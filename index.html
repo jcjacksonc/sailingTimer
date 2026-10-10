@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="sailboat.jpg">
 
     <style>
         :root {
@@ -19,6 +19,8 @@
             --text-color: #f4f4f6;
             --accent-color: #4f46e5;
             --accent-hover: #6366f1;
+            --secondary-btn: #374151;
+            --secondary-hover: #4b5563;
             --muted-color: #9ca3af;
         }
 
@@ -50,9 +52,16 @@
             text-align: center;
         }
 
+        .live-clock {
+            font-size: 0.9rem;
+            color: var(--muted-color);
+            margin-bottom: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
         h1 {
             font-size: 1.5rem;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-weight: 600;
             letter-spacing: -0.5px;
         }
@@ -61,7 +70,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .time-box {
@@ -87,16 +96,16 @@
         }
 
         .message {
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-bottom: 20px;
             color: var(--muted-color);
-            min-height: 30px;
+            min-height: 24px;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         input[type="datetime-local"] {
@@ -131,11 +140,20 @@
         button:hover {
             background-color: var(--accent-hover);
         }
+
+        .btn-secondary {
+            background-color: var(--secondary-btn);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-hover);
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
         <h1 id="event-title">Countdown</h1>
 
         <div class="timer-grid">
@@ -157,20 +175,17 @@
             </div>
         </div>
 
-        <div class="message" id="message">Select a target time below</div>
+        <div class="message" id="message">Select a target time or quick start</div>
 
         <div class="controls">
+            <button id="quick-5min-btn" class="btn-secondary">Start 5 Min Timer</button>
             <input type="datetime-local" id="datetime-picker">
-            <button id="start-btn">Set Countdown</button>
+            <button id="start-btn">Set Custom Countdown</button>
         </div>
     </div>
 
     <script>
-        // Set default target to 7 days from now if none chosen
-        let targetTime = localStorage.getItem('pwa_target') 
-            ? new Date(localStorage.getItem('pwa_target')) 
-            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
+        const liveClockEl = document.getElementById('live-clock');
         const daysEl = document.getElementById('days');
         const hoursEl = document.getElementById('hours');
         const minsEl = document.getElementById('minutes');
@@ -178,17 +193,46 @@
         const messageEl = document.getElementById('message');
         const pickerEl = document.getElementById('datetime-picker');
         const startBtn = document.getElementById('start-btn');
+        const quick5Btn = document.getElementById('quick-5min-btn');
 
-        // Pre-fill picker with current target formatted for input
+        // Update live clock every second
+        function updateLiveClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            liveClockEl.textContent = `Current Time: ${timeString}`;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        // Target time management
+        let targetTime = localStorage.getItem('pwa_target') 
+            ? new Date(localStorage.getItem('pwa_target')) 
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        // Pre-fill picker
         pickerEl.value = new Date(targetTime.getTime() - (targetTime.getTimezoneOffset() * 60000))
             .toISOString()
             .slice(0, 16);
 
+        // Custom Countdown Button
         startBtn.addEventListener('click', () => {
             if (!pickerEl.value) return;
             targetTime = new Date(pickerEl.value);
             localStorage.setItem('pwa_target', targetTime);
-            messageEl.textContent = "Countdown updated!";
+            messageEl.textContent = "Custom countdown active!";
+        });
+
+        // 5-Minute Quick Timer Button
+        quick5Btn.addEventListener('click', () => {
+            targetTime = new Date(Date.now() + 5 * 60 * 1000);
+            localStorage.setItem('pwa_target', targetTime);
+            
+            // Update input picker to match
+            pickerEl.value = new Date(targetTime.getTime() - (targetTime.getTimezoneOffset() * 60000))
+                .toISOString()
+                .slice(0, 16);
+                
+            messageEl.textContent = "5-minute timer started!";
         });
 
         function updateCountdown() {
