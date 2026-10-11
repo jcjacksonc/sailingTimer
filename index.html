@@ -66,7 +66,34 @@
             letter-spacing: -0.5px;
         }
 
-        /* Rolling Wheel Container (Visible when stopped) */
+        /* Mode Selector Tabs */
+        .mode-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: var(--muted-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Rolling Wheel Time Picker (Duration Mode) */
         .picker-container {
             display: flex;
             justify-content: center;
@@ -132,6 +159,39 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 6px;
+        }
+
+        /* Start Time Input Container */
+        .target-time-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px 15px;
+        }
+
+        input[type="time"] {
+            width: 80%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            font-size: 1.5rem;
+            text-align: center;
+            outline: none;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .target-time-label {
+            font-size: 0.75rem;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* Active Countdown Display (Visible when running) */
@@ -224,7 +284,13 @@
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
         <h1 id="event-title">Countdown Timer</h1>
 
-        <!-- Rolling Wheel Time Picker (Shown when stopped) -->
+        <!-- Mode Toggle Tabs -->
+        <div class="mode-tabs" id="mode-tabs">
+            <button class="tab-btn active" id="duration-tab">Duration</button>
+            <button class="tab-btn" id="target-time-tab">Target Time</button>
+        </div>
+
+        <!-- Rolling Wheel Time Picker (Duration Mode) -->
         <div class="picker-container" id="picker-container">
             <div class="wheel-column">
                 <div class="wheel" id="minutes-wheel"></div>
@@ -235,6 +301,12 @@
                 <div class="wheel" id="seconds-wheel"></div>
                 <div class="wheel-label">Seconds</div>
             </div>
+        </div>
+
+        <!-- Target Time Input (Target Time Mode) -->
+        <div class="target-time-container" id="target-time-container">
+            <input type="time" id="time-input">
+            <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
         </div>
 
         <!-- Clean Active Countdown Display (Shown when running) -->
@@ -250,7 +322,7 @@
             </div>
         </div>
 
-        <div class="message" id="message">Scroll wheels to set time</div>
+        <div class="message" id="message">Scroll wheels to set duration</div>
 
         <div class="controls">
             <button id="start-btn">Start Countdown</button>
@@ -261,7 +333,12 @@
     <script>
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
+        const modeTabs = document.getElementById('mode-tabs');
+        const durationTab = document.getElementById('duration-tab');
+        const targetTimeTab = document.getElementById('target-time-tab');
         const pickerContainer = document.getElementById('picker-container');
+        const targetTimeContainer = document.getElementById('target-time-container');
+        const timeInput = document.getElementById('time-input');
         const activeDisplay = document.getElementById('active-display');
         const activeMinsEl = document.getElementById('active-mins');
         const activeSecsEl = document.getElementById('active-secs');
@@ -273,6 +350,34 @@
         let targetTime = null;
         let isRunning = false;
         let lastSpokenSecond = -1;
+        let currentMode = 'duration'; // 'duration' or 'target'
+
+        // Initialize time input to current time + 5 mins
+        const defaultTarget = new Date(Date.now() + 5 * 60 * 1000);
+        timeInput.value = `${String(defaultTarget.getHours()).padStart(2, '0')}:${String(defaultTarget.getMinutes()).padStart(2, '0')}`;
+
+        // Tab Switching
+        durationTab.addEventListener('click', () => {
+            if (isRunning) return;
+            currentMode = 'duration';
+            durationTab.classList.add('active');
+            targetTimeTab.classList.remove('active');
+            pickerContainer.style.display = 'flex';
+            targetTimeContainer.style.display = 'none';
+            quick5Btn.style.display = 'block';
+            messageEl.textContent = "Scroll wheels to set duration";
+        });
+
+        targetTimeTab.addEventListener('click', () => {
+            if (isRunning) return;
+            currentMode = 'target';
+            targetTimeTab.classList.add('active');
+            durationTab.classList.remove('active');
+            pickerContainer.style.display = 'none';
+            targetTimeContainer.style.display = 'flex';
+            quick5Btn.style.display = 'none';
+            messageEl.textContent = "Set target hours and minutes";
+        });
 
         function populateWheel(wheelEl, maxVal) {
             wheelEl.innerHTML = '<div class="wheel-item" style="pointer-events:none;"></div>';
@@ -320,7 +425,7 @@
             });
         }
 
-        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesView = minutesWheel));
+        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel));
         secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel));
         updateWheelHighlight(minutesWheel);
         updateWheelHighlight(secondsWheel);
@@ -343,26 +448,53 @@
 
         function setUIState(running) {
             if (running) {
+                modeTabs.style.display = 'none';
                 pickerContainer.style.display = 'none';
+                targetTimeContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
                 startBtn.textContent = "Reset / Stop";
             } else {
-                pickerContainer.style.display = 'flex';
+                modeTabs.style.display = 'flex';
+                if (currentMode === 'duration') {
+                    pickerContainer.style.display = 'flex';
+                    quick5Btn.style.display = 'block';
+                } else {
+                    targetTimeContainer.style.display = 'flex';
+                }
                 activeDisplay.style.display = 'none';
-                quick5Btn.style.display = 'block';
                 startBtn.textContent = "Start Countdown";
             }
         }
 
         startBtn.addEventListener('click', () => {
             if (!isRunning) {
-                const mins = getSelectedMinutes();
-                const secs = getSelectedSeconds();
-                const totalMs = (mins * 60 + secs) * 1000;
+                let totalMs = 0;
+
+                if (currentMode === 'duration') {
+                    const mins = getSelectedMinutes();
+                    const secs = getSelectedSeconds();
+                    totalMs = (mins * 60 + secs) * 1000;
+                } else {
+                    const timeVal = timeInput.value;
+                    if (!timeVal) {
+                        messageEl.textContent = "Please set a target time";
+                        return;
+                    }
+                    const [targetHours, targetMins] = timeVal.split(':').map(Number);
+                    const now = new Date();
+                    const targetDate = new Date();
+                    targetDate.setHours(targetHours, targetMins, 0, 0);
+
+                    // If target time has already passed today, assume it's for tomorrow
+                    if (targetDate.getTime() <= now.getTime()) {
+                        targetDate.setDate(targetDate.getDate() + 1);
+                    }
+                    totalMs = targetDate.getTime() - now.getTime();
+                }
 
                 if (totalMs <= 0) {
-                    messageEl.textContent = "Please select a time > 0";
+                    messageEl.textContent = "Target time must be in the future";
                     return;
                 }
 
@@ -401,10 +533,9 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
-            // Update the clean active text display
             activeMinsEl.textContent = String(minutes).padStart(2, '0');
             activeSecsEl.textContent = String(seconds).padStart(2, '0');
-            setWheelValues(minutes, seconds); // keep background wheels in sync
+            setWheelValues(minutes, seconds);
 
             if (totalSeconds === 0 && distance <= 0) {
                 isRunning = false;
