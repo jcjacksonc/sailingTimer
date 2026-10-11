@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.3">
+    <link rel="manifest" href="manifest.json?v=1.0.4">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.3">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.4">
 
     <style>
         :root {
@@ -337,9 +337,10 @@
 
     <script>
         // ==========================================
-        // EASILY CONFIGURABLE TEXT STRINGS
+        // CONFIGURABLE TEXT STRINGS & VOICE SETTINGS
         // ==========================================
         const CONFIG = {
+            appTitle: "Countdown Timer",
             startBtnText: "Start Countdown",
             stopBtnText: "Reset / Stop",
             quick5BtnText: "Quick 5 Min Timer",
@@ -350,12 +351,18 @@
             timerStoppedSpeech: "Timer stopped",
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
-            targetTimeMsg: "Set target hours and minutes"
+            targetTimeMsg: "Set target hours and minutes",
+
+            // Voice Settings
+            speechRate: 1.2,        // Speed: 0.5 (slow) to 2.0 (fast)
+            speechPitch: 1.0,       // Pitch: 0.5 (low) to 1.5 (high)
+            speechVoiceLang: "en-US" // Dialect e.g., 'en-US', 'en-GB', 'en-AU'
         };
         // ==========================================
 
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
+        const eventTitleEl = document.getElementById('event-title');
         const modeTabs = document.getElementById('mode-tabs');
         const durationTab = document.getElementById('duration-tab');
         const targetTimeTab = document.getElementById('target-time-tab');
@@ -371,8 +378,11 @@
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
 
+        // Apply config options to UI
+        eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
         quick5Btn.textContent = CONFIG.quick5BtnText;
+        messageEl.textContent = CONFIG.defaultDurationMsg;
 
         let targetTime = null;
         let isRunning = false;
@@ -412,13 +422,23 @@
             }
         }
 
+        function applyVoiceProperties(utterance) {
+            utterance.rate = CONFIG.speechRate;
+            utterance.pitch = CONFIG.speechPitch;
+            if (CONFIG.speechVoiceLang) utterance.lang = CONFIG.speechVoiceLang;
+        }
+
         function initSpeechCache() {
             if (!('speechSynthesis' in window)) return;
             for (let i = 1; i <= 20; i++) {
-                utteranceCache[String(i)] = new SpeechSynthesisUtterance(String(i));
+                const u = new SpeechSynthesisUtterance(String(i));
+                applyVoiceProperties(u);
+                utteranceCache[String(i)] = u;
             }
             [CONFIG.timerStartedSpeech, CONFIG.timerStoppedSpeech, CONFIG.raceStartedSpeech].forEach(phrase => {
-                utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
+                const u = new SpeechSynthesisUtterance(phrase);
+                applyVoiceProperties(u);
+                utteranceCache[phrase] = u;
             });
         }
         initSpeechCache();
@@ -503,7 +523,7 @@
             if (!('speechSynthesis' in window)) return;
             if (forceCancel) window.speechSynthesis.cancel();
             const utterance = utteranceCache[text] || new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.2;
+            applyVoiceProperties(utterance);
             window.speechSynthesis.speak(utterance);
         }
 
@@ -529,115 +549,4 @@
         }
 
         startBtn.addEventListener('click', () => {
-            initAudioContext();
-            if (!isRunning) {
-                let totalMs = 0;
-                if (currentMode === 'duration') {
-                    const mins = getSelectedMinutes();
-                    const secs = getSelectedSeconds();
-                    totalMs = (mins * 60 + secs) * 1000;
-                } else {
-                    const timeVal = timeInput.value;
-                    if (!timeVal) {
-                        messageEl.textContent = "Please set a target time";
-                        return;
-                    }
-                    const [targetHours, targetMins] = timeVal.split(':').map(Number);
-                    const now = new Date();
-                    const targetDate = new Date();
-                    targetDate.setHours(targetHours, targetMins, 0, 0);
-                    if (targetDate.getTime() <= now.getTime()) {
-                        targetDate.setDate(targetDate.getDate() + 1);
-                    }
-                    totalMs = targetDate.getTime() - now.getTime();
-                }
-
-                if (totalMs <= 0) {
-                    messageEl.textContent = "Target time must be in the future";
-                    return;
-                }
-
-                targetTime = Date.now() + totalMs;
-                isRunning = true;
-                lastSpokenSecond = -1;
-                messageEl.textContent = CONFIG.runningMsg;
-                setUIState(true);
-                speak(CONFIG.timerStartedSpeech, true);
-            } else {
-                isRunning = false;
-                targetTime = null;
-                messageEl.textContent = CONFIG.stoppedMsg;
-                setUIState(false);
-                speak(CONFIG.timerStoppedSpeech, true);
-            }
-        });
-
-        quick5Btn.addEventListener('click', () => {
-            initAudioContext();
-            setWheelValues(5, 0);
-            targetTime = Date.now() + 5 * 60 * 1000;
-            isRunning = true;
-            lastSpokenSecond = -1;
-            messageEl.textContent = CONFIG.runningMsg;
-            setUIState(true);
-            speak(CONFIG.timerStartedSpeech, true);
-        });
-
-        function updateCountdown() {
-            if (!isRunning || !targetTime) return;
-
-            const now = Date.now();
-            const distance = targetTime - now;
-            
-            // Overtime mode (past zero)
-            if (distance <= 0) {
-                const elapsedMs = Math.abs(distance);
-                const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
-                const minutes = Math.floor(totalElapsedSeconds / 60);
-                const seconds = totalElapsedSeconds % 60;
-
-                activeSignEl.textContent = "+";
-                activeMinsEl.textContent = String(minutes).padStart(2, '0');
-                activeSecsEl.textContent = String(seconds).padStart(2, '0');
-                messageEl.textContent = CONFIG.raceStartedMsg;
-
-                if (lastSpokenSecond !== 0) {
-                    playTone(300, 0.4, 'triangle', 0.3); // Doop tone at zero
-                    speak(CONFIG.raceStartedSpeech, true);
-                    lastSpokenSecond = 0;
-                }
-                return;
-            }
-
-            activeSignEl.textContent = " ";
-            const totalSeconds = Math.ceil(distance / 1000);
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-
-            activeMinsEl.textContent = String(minutes).padStart(2, '0');
-            activeSecsEl.textContent = String(seconds).padStart(2, '0');
-            setWheelValues(minutes, seconds);
-
-            if (totalSeconds !== lastSpokenSecond) {
-                if (totalSeconds === 15) {
-                    speak("15", true);
-                } else if (totalSeconds >= 11 && totalSeconds <= 20) {
-                    playTone(440, 0.08, 'sine', 0.15); // Pips starting at 20s through 11s
-                } else if (totalSeconds >= 1 && totalSeconds <= 10) {
-                    speak(String(totalSeconds), false); // Countdown 10 down to 1 (just numbers)
-                } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                    speak(speechText, true);
-                } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                    speak(speechText, true);
-                }
-
-                lastSpokenSecond = totalSeconds;
-            }
-        }
-
-        setInterval(updateCountdown, 100);
-    </script>
-</body>
-</html>
+            init
