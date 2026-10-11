@@ -136,20 +136,21 @@
             font-size: 1.8rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            color: var(--muted-color);
+            color: var(--text-color); /* Fixed: visible text color */
             scroll-snap-align: center;
             cursor: pointer;
-            transition: color 0.15s;
+            opacity: 0.4;
+            transition: opacity 0.15s;
         }
 
         .wheel-item.selected {
-            color: var(--text-color);
+            opacity: 1.0;
         }
 
         .wheel-separator {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--muted-color);
+            color: var(--text-color);
             padding-bottom: 5px;
         }
 
@@ -386,4 +387,224 @@
         }
 
         function initSpeechCache() {
-            if (!('speechSynthesis' in window))
+            if (!('speechSynthesis' in window)) return;
+            for (let i = 1; i <= 15; i++) {
+                utteranceCache[String(i)] = new SpeechSynthesisUtterance(String(i));
+            }
+            ['Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
+                utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
+            });
+        }
+        initSpeechCache();
+
+        const defaultTarget = new Date(Date.now() + 5 * 60 * 1000);
+        timeInput.value = `${String(defaultTarget.getHours()).padStart(2, '0')}:${String(defaultTarget.getMinutes()).padStart(2, '0')}`;
+
+        durationTab.addEventListener('click', () => {
+            if (isRunning) return;
+            currentMode = 'duration';
+            durationTab.classList.add('active');
+            targetTimeTab.classList.remove('active');
+            pickerContainer.style.display = 'flex';
+            targetTimeContainer.style.display = 'none';
+            quick5Btn.style.display = 'block';
+            messageEl.textContent = "Scroll wheels to set duration";
+        });
+
+        targetTimeTab.addEventListener('click', () => {
+            if (isRunning) return;
+            currentMode = 'target';
+            targetTimeTab.classList.add('active');
+            durationTab.classList.remove('active');
+            pickerContainer.style.display = 'none';
+            targetTimeContainer.style.display = 'flex';
+            quick5Btn.style.display = 'none';
+            messageEl.textContent = "Set target hours and minutes";
+        });
+
+        function populateWheel(wheelEl, maxVal) {
+            let html = '<div class="wheel-item" style="pointer-events:none;"></div>';
+            for (let i = 0; i <= maxVal; i++) {
+                html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
+            }
+            html += '<div class="wheel-item" style="pointer-events:none;"></div>';
+            wheelEl.innerHTML = html;
+
+            wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
+                item.addEventListener('click', () => {
+                    if (!isRunning) {
+                        const val = parseInt(item.dataset.value);
+                        wheelEl.scrollTop = val * 40;
+                    }
+                });
+            });
+        }
+
+        populateWheel(minutesWheel, 59);
+        populateWheel(secondsWheel, 59);
+        minutesWheel.scrollTop = 5 * 40;
+        secondsWheel.scrollTop = 0 * 40;
+
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 40); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 40); }
+        function setWheelValues(mins, secs) {
+            minutesWheel.scrollTop = mins * 40;
+            secondsWheel.scrollTop = secs * 40;
+        }
+
+        function updateWheelHighlight(wheelEl) {
+            const index = Math.round(wheelEl.scrollTop / 40);
+            const items = wheelEl.querySelectorAll('.wheel-item');
+            items.forEach((item, idx) => {
+                if (idx === index + 1) item.classList.add('selected');
+                else item.classList.remove('selected');
+            });
+        }
+
+        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel));
+        secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel));
+        updateWheelHighlight(minutesWheel);
+        updateWheelHighlight(secondsWheel);
+
+        function updateLiveClock() {
+            const now = new Date();
+            liveClockEl.textContent = `Current Time: ${now.toLocaleTimeString()}`;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        function speak(text, forceCancel = false) {
+            if (!('speechSynthesis' in window)) return;
+            if (forceCancel) window.speechSynthesis.cancel();
+            const utterance = utteranceCache[text] || new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.2;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setUIState(running) {
+            if (running) {
+                modeTabs.style.display = 'none';
+                pickerContainer.style.display = 'none';
+                targetTimeContainer.style.display = 'none';
+                activeDisplay.style.display = 'flex';
+                quick5Btn.style.display = 'none';
+                startBtn.textContent = "Reset / Stop";
+            } else {
+                modeTabs.style.display = 'flex';
+                if (currentMode === 'duration') {
+                    pickerContainer.style.display = 'flex';
+                    quick5Btn.style.display = 'block';
+                } else {
+                    targetTimeContainer.style.display = 'flex';
+                }
+                activeDisplay.style.display = 'none';
+                startBtn.textContent = "Start Countdown";
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            initAudioContext();
+            if (!isRunning) {
+                let totalMs = 0;
+                if (currentMode === 'duration') {
+                    const mins = getSelectedMinutes();
+                    const secs = getSelectedSeconds();
+                    totalMs = (mins * 60 + secs) * 1000;
+                } else {
+                    const timeVal = timeInput.value;
+                    if (!timeVal) {
+                        messageEl.textContent = "Please set a target time";
+                        return;
+                    }
+                    const [targetHours, targetMins] = timeVal.split(':').map(Number);
+                    const now = new Date();
+                    const targetDate = new Date();
+                    targetDate.setHours(targetHours, targetMins, 0, 0);
+                    if (targetDate.getTime() <= now.getTime()) {
+                        targetDate.setDate(targetDate.getDate() + 1);
+                    }
+                    totalMs = targetDate.getTime() - now.getTime();
+                }
+
+                if (totalMs <= 0) {
+                    messageEl.textContent = "Target time must be in the future";
+                    return;
+                }
+
+                targetTime = Date.now() + totalMs;
+                isRunning = true;
+                lastSpokenSecond = -1;
+                messageEl.textContent = "Countdown running...";
+                setUIState(true);
+                speak("Timer started", true);
+            } else {
+                isRunning = false;
+                targetTime = null;
+                messageEl.textContent = "Timer stopped";
+                setUIState(false);
+                speak("Timer stopped", true);
+            }
+        });
+
+        quick5Btn.addEventListener('click', () => {
+            initAudioContext();
+            setWheelValues(5, 0);
+            targetTime = Date.now() + 5 * 60 * 1000;
+            isRunning = true;
+            lastSpokenSecond = -1;
+            messageEl.textContent = "5-minute timer started!";
+            setUIState(true);
+            speak("Timer started", true);
+        });
+
+        function updateCountdown() {
+            if (!isRunning || !targetTime) return;
+
+            const now = Date.now();
+            const distance = targetTime - now;
+            const totalSeconds = Math.max(0, Math.ceil(distance / 1000));
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            activeMinsEl.textContent = String(minutes).padStart(2, '0');
+            activeSecsEl.textContent = String(seconds).padStart(2, '0');
+            setWheelValues(minutes, seconds);
+
+            if (totalSeconds === 0 && distance <= 0) {
+                isRunning = false;
+                messageEl.textContent = "Time's up! 🎉";
+                if (lastSpokenSecond !== 0) {
+                    playTone(300, 0.4, 'triangle', 0.3);
+                    speak("Time is up!", true);
+                    lastSpokenSecond = 0;
+                }
+                setUIState(false);
+                return;
+            }
+
+            if (totalSeconds !== lastSpokenSecond) {
+                if (totalSeconds === 15) {
+                    speak("15", true);
+                } else if (totalSeconds === 10) {
+                    speak("10", true);
+                } else if (totalSeconds >= 6 && totalSeconds <= 9) {
+                    playTone(440, 0.08, 'sine', 0.15);
+                } else if (totalSeconds >= 1 && totalSeconds <= 5) {
+                    speak(String(totalSeconds), false);
+                } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
+                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    speak(speechText, true);
+                } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
+                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    speak(speechText, true);
+                }
+
+                lastSpokenSecond = totalSeconds;
+            }
+        }
+
+        setInterval(updateCountdown, 100);
+    </script>
+</body>
+</html>
