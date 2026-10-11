@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.36">
+    <link rel="manifest" href="manifest.json?v=1.0.37">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.36">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.37">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -47,10 +47,17 @@
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
+        html, body {
+            height: 100vh;
+            max-height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* Strict lock against page scrolling */
+            position: fixed;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -61,46 +68,54 @@
         .container {
             width: 100%;
             max-width: 440px;
+            height: 100%;
+            max-height: calc(100vh - 20px);
             background-color: var(--card-bg);
-            border-radius: 28px;
-            padding: 20px 15px;
+            border-radius: 24px;
+            padding: 15px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .live-clock {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: var(--muted-color);
-            margin-bottom: 10px;
+            margin-bottom: 4px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         h1 {
-            font-size: 1.65rem;
-            margin-bottom: 15px;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
             font-weight: 700;
             letter-spacing: -0.5px;
+            flex-shrink: 0;
         }
 
         /* Mode Selector Tabs */
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 14px;
-            padding: 5px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -116,11 +131,12 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 20px 10px;
+            border-radius: 18px;
+            padding: 15px 10px;
+            flex-shrink: 0;
         }
 
         .wheel-column {
@@ -131,14 +147,14 @@
 
         .wheel {
             height: 150px;
-            width: 100px;
+            width: 90px;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 14px;
+            border-radius: 12px;
         }
 
         .wheel::-webkit-scrollbar {
@@ -165,18 +181,18 @@
         }
 
         .wheel-separator {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: var(--text-color);
             padding-bottom: 10px;
         }
 
         .wheel-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 8px;
+            letter-spacing: 1.2px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
@@ -185,22 +201,23 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 30px 15px;
+            border-radius: 18px;
+            padding: 25px 15px;
+            flex-shrink: 0;
         }
 
         input[type="time"] {
             width: 85%;
-            padding: 16px;
-            border-radius: 14px;
+            padding: 12px;
+            border-radius: 12px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 2rem;
+            font-size: 1.8rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -208,10 +225,10 @@
         }
 
         .target-time-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             font-weight: 600;
         }
 
@@ -220,13 +237,13 @@
             display: none;
             justify-content: center;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 22px;
-            padding: 25px 15px;
-            transition: padding 0.2s ease;
+            border-radius: 18px;
+            padding: 15px 10px;
+            flex-shrink: 0;
         }
 
         .active-box {
@@ -236,68 +253,69 @@
         }
 
         .active-value {
-            font-size: 3.8rem;
+            font-size: 3.2rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             line-height: 1;
-            transition: font-size 0.2s ease;
         }
 
         .active-separator {
-            font-size: 3.8rem;
+            font-size: 3.2rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 12px;
+            padding-bottom: 8px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 20px 10px;
+            padding: 15px 10px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 10rem;
-            letter-spacing: -5px;
+            font-size: 7.5rem;
+            letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 10px;
+            letter-spacing: 1.2px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
-        /* GPS Track Map Panel (Maximized for Overtime) */
+        /* GPS Track Map Panel (Flexible Fill) */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 6px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 10px;
+            border-radius: 18px;
+            padding: 8px;
+            flex: 1; /* Automatically expands to fit screen */
+            min-height: 0;
         }
 
         .gps-toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--muted-color);
-            padding: 0 5px;
+            padding: 0 4px;
+            flex-shrink: 0;
         }
 
-        /* Toggle Switch Styling */
         .switch {
             position: relative;
             display: inline-block;
-            width: 46px;
-            height: 24px;
+            width: 40px;
+            height: 22px;
         }
 
         .switch input {
@@ -312,14 +330,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 24px;
+            border-radius: 22px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 16px;
+            width: 16px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -332,24 +350,26 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(22px);
+            transform: translateX(18px);
         }
 
         .gps-stats {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
-            padding: 8px;
-            border-radius: 10px;
+            padding: 6px;
+            border-radius: 8px;
             text-align: center;
+            flex-shrink: 0;
         }
 
-        /* Maximized Leaflet Map Container Element */
+        /* Map Wrapper Fills Vertical Screen Space */
         #map-wrapper {
             width: 100%;
-            height: 380px; /* Maximized Map Height */
-            border-radius: 14px;
+            flex: 1;
+            min-height: 180px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
         }
@@ -363,9 +383,9 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.95rem;
-            padding: 12px;
-            margin-top: 5px;
+            font-size: 0.85rem;
+            padding: 8px;
+            flex-shrink: 0;
         }
 
         .download-btn:hover {
@@ -373,27 +393,29 @@
         }
 
         .message {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
             color: var(--muted-color);
-            min-height: 28px;
+            min-height: 22px;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         button {
             width: 100%;
-            padding: 18px;
-            border-radius: 14px;
+            padding: 14px;
+            border-radius: 12px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -419,13 +441,15 @@
 <body>
 
     <div class="container">
-        <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-        <h1 id="event-title">Beta Timer</h1>
+        <div>
+            <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
+            <h1 id="event-title">Beta Timer</h1>
 
-        <!-- Mode Toggle Tabs -->
-        <div class="mode-tabs" id="mode-tabs">
-            <button class="tab-btn active" id="duration-tab">Duration</button>
-            <button class="tab-btn" id="target-time-tab">Target Time</button>
+            <!-- Mode Toggle Tabs -->
+            <div class="mode-tabs" id="mode-tabs">
+                <button class="tab-btn active" id="duration-tab">Duration</button>
+                <button class="tab-btn" id="target-time-tab">Target Time</button>
+            </div>
         </div>
 
         <!-- Rolling Wheel Time Picker -->
@@ -480,11 +504,13 @@
             <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
         </div>
 
-        <div class="message" id="message">Scroll wheels to set duration</div>
+        <div>
+            <div class="message" id="message">Scroll wheels to set duration</div>
 
-        <div class="controls">
-            <button id="start-btn">Start Countdown</button>
-            <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+            <div class="controls">
+                <button id="start-btn">Start Countdown</button>
+                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+            </div>
         </div>
     </div>
 
@@ -560,10 +586,10 @@
         let cachedVoice = null;
 
         let watchId = null;
-        let gpsTrackCoords = [];
+        let gpsTrackPoints = []; // Stores { lat, lon, knots }
         let isOvertimeActive = false;
         let leafletMap = null;
-        let polylineLayer = null;
+        let polylineGroup = null;
 
         function initLeafletMap(lat, lon) {
             if (leafletMap) return;
@@ -573,28 +599,44 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // Esri World Imagery Satellite Tiles with CORS enabled
+            // Esri World Imagery Satellite Tiles
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
             }).addTo(leafletMap);
+
+            polylineGroup = L.layerGroup().addTo(leafletMap);
+        }
+
+        // Color coding function for speed (in knots)
+        function getSpeedColor(knots) {
+            const k = parseFloat(knots);
+            if (k < 3.0) return '#38bdf8'; // Blue / Cyan (Slow)
+            if (k < 6.0) return '#10b981'; // Green / Emerald (Medium)
+            if (k < 8.0) return '#f59e0b'; // Amber / Yellow (Fast)
+            return '#ef4444';             // Red (Max speed)
         }
 
         function updateMapTrack() {
-            if (!leafletMap || gpsTrackCoords.length === 0) return;
+            if (!leafletMap || gpsTrackPoints.length === 0) return;
 
-            if (polylineLayer) {
-                leafletMap.removeLayer(polylineLayer);
+            polylineGroup.clearLayers();
+
+            // Draw color-coded track segments based on speed
+            for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
+                const p1 = gpsTrackPoints[i];
+                const p2 = gpsTrackPoints[i + 1];
+                const segmentColor = getSpeedColor(p2.knots);
+
+                L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+                    color: segmentColor,
+                    weight: 5,
+                    opacity: 0.95
+                }).addTo(polylineGroup);
             }
 
-            polylineLayer = L.polyline(gpsTrackCoords, {
-                color: '#38bdf8',
-                weight: 5,
-                opacity: 0.95
-            }).addTo(leafletMap);
-
-            const latest = gpsTrackCoords[gpsTrackCoords.length - 1];
-            leafletMap.setView(latest);
+            const latest = gpsTrackPoints[gpsTrackPoints.length - 1];
+            leafletMap.setView([latest.lat, latest.lon]);
         }
 
         function startGPSTracking() {
@@ -607,7 +649,7 @@
                         const speedMs = pos.coords.speed;
                         const knots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackCoords.push([lat, lon]);
+                        gpsTrackPoints.push({ lat, lon, knots });
                         gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${knots} kts`;
                         downloadTrackBtn.style.display = 'block';
 
@@ -637,7 +679,7 @@
             if (leafletMap) {
                 leafletMap.remove();
                 leafletMap = null;
-                polylineLayer = null;
+                polylineGroup = null;
             }
         }
 
@@ -825,7 +867,7 @@
                 downloadTrackBtn.style.display = 'none';
                 isOvertimeActive = false;
                 stopGPSTracking();
-                gpsTrackCoords = [];
+                gpsTrackPoints = [];
                 startBtn.textContent = CONFIG.startBtnText;
             }
         }
