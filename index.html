@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.11">
+    <link rel="manifest" href="manifest.json?v=1.0.12">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.11">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.12">
 
     <style>
         :root {
@@ -362,10 +362,17 @@
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
 
-            // Pitch Frequencies (Hz) & Audio Options
-            pipFreq: 440,           // A4 (440.00 Hz)
-            doopFreq: 659.25,       // E5 (659.25 Hz)
-            audioVolume: 2.0,       // Tone gain scaling
+            // Pip Tone Settings (20s - 11s)
+            pipFreq: 440,          // A4 (440.00 Hz)
+            pipDuration: 0.200,    // Duration in seconds
+            pipType: "sine",       // Oscillator type
+            pipVolume: 2.0,        // Gain volume
+
+            // Doop Tone Settings (0s)
+            doopFreq: 659.25,      // E5 (659.25 Hz)
+            doopDuration: 0.75,    // Duration in seconds
+            doopType: "triangle",  // Oscillator type
+            doopVolume: 2.0,       // Gain volume
 
             // Speech Settings
             speechRate: 1.0,        
@@ -442,7 +449,7 @@
             }
         }
 
-        function playTone(freq, duration, type = 'sine', volume = CONFIG.audioVolume) {
+        function playTone(freq, duration, type, volume) {
             try {
                 initAudioContext();
                 const osc = audioCtx.createOscillator();
@@ -678,8 +685,8 @@
                 messageEl.textContent = CONFIG.raceStartedMsg;
 
                 if (lastSpokenSecond !== 0) {
-                    // Play Doop tone (E5 @ 659.25 Hz)
-                    playTone(CONFIG.doopFreq, 0.75, 'triangle', 2.0);
+                    // Play Doop tone using CONFIG values
+                    playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
                     
                     // Wait 1 second before speaking "Race started"
                     setTimeout(() => {
@@ -704,8 +711,8 @@
                 if (totalSeconds === 15) {
                     speak("15", true);
                 } else if (totalSeconds >= 11 && totalSeconds <= 20) {
-                    // Play A4 pips @ 440 Hz
-                    playTone(CONFIG.pipFreq, 0.200, 'sine', 2.0);
+                    // Play Pip tone using CONFIG values
+                    playTone(CONFIG.pipFreq, CONFIG.pipDuration, CONFIG.pipType, CONFIG.pipVolume);
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
