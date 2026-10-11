@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Countdown Timer</title>
 
-    <!-- PWA / iOS Meta Tags -->
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA / iOS Meta Tags with Cache Busting -->
+    <link rel="manifest" href="manifest.json?v=1.0.1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.1">
 
     <style>
         :root {
@@ -283,7 +283,7 @@
 
     <div class="container">
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-        <h1 id="event-title">s'Wonderful Timer</h1>
+        <h1 id="event-title">Countdown Timer</h1>
 
         <!-- Mode Toggle Tabs -->
         <div class="mode-tabs" id="mode-tabs">
@@ -336,6 +336,24 @@
     </div>
 
     <script>
+        // ==========================================
+        // EASILY CONFIGURABLE TEXT STRINGS
+        // ==========================================
+        const CONFIG = {
+            startBtnText: "Start Countdown",
+            stopBtnText: "Reset / Stop",
+            quick5BtnText: "Quick 5 Min Timer",
+            runningMsg: "Countdown running...",
+            stoppedMsg: "Timer stopped",
+            raceStartedMsg: "Race started! 🏁",
+            timerStartedSpeech: "Timer started",
+            timerStoppedSpeech: "Timer stopped",
+            raceStartedSpeech: "Race started",
+            defaultDurationMsg: "Scroll wheels to set duration",
+            targetTimeMsg: "Set target hours and minutes"
+        };
+        // ==========================================
+
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
         const modeTabs = document.getElementById('mode-tabs');
@@ -352,6 +370,10 @@
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
+
+        // Apply config button texts
+        startBtn.textContent = CONFIG.startBtnText;
+        quick5Btn.textContent = CONFIG.quick5BtnText;
 
         let targetTime = null;
         let isRunning = false;
@@ -396,7 +418,7 @@
             for (let i = 1; i <= 15; i++) {
                 utteranceCache[String(i)] = new SpeechSynthesisUtterance(String(i));
             }
-            ['Timer started', 'Timer stopped', 'Race started'].forEach(phrase => {
+            [CONFIG.timerStartedSpeech, CONFIG.timerStoppedSpeech, CONFIG.raceStartedSpeech].forEach(phrase => {
                 utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
             });
         }
@@ -413,7 +435,7 @@
             pickerContainer.style.display = 'flex';
             targetTimeContainer.style.display = 'none';
             quick5Btn.style.display = 'block';
-            messageEl.textContent = "Scroll wheels to set duration";
+            messageEl.textContent = CONFIG.defaultDurationMsg;
         });
 
         targetTimeTab.addEventListener('click', () => {
@@ -424,7 +446,7 @@
             pickerContainer.style.display = 'none';
             targetTimeContainer.style.display = 'flex';
             quick5Btn.style.display = 'none';
-            messageEl.textContent = "Set target hours and minutes";
+            messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
         function populateWheel(wheelEl, maxVal) {
@@ -493,7 +515,7 @@
                 targetTimeContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
-                startBtn.textContent = "Reset / Stop";
+                startBtn.textContent = CONFIG.stopBtnText;
             } else {
                 modeTabs.style.display = 'flex';
                 if (currentMode === 'duration') {
@@ -503,7 +525,7 @@
                     targetTimeContainer.style.display = 'flex';
                 }
                 activeDisplay.style.display = 'none';
-                startBtn.textContent = "Start Countdown";
+                startBtn.textContent = CONFIG.startBtnText;
             }
         }
 
@@ -539,15 +561,15 @@
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
                 lastSpokenSecond = -1;
-                messageEl.textContent = "Countdown running...";
+                messageEl.textContent = CONFIG.runningMsg;
                 setUIState(true);
-                speak("Timer started", true);
+                speak(CONFIG.timerStartedSpeech, true);
             } else {
                 isRunning = false;
                 targetTime = null;
-                messageEl.textContent = "Timer stopped";
+                messageEl.textContent = CONFIG.stoppedMsg;
                 setUIState(false);
-                speak("Timer stopped", true);
+                speak(CONFIG.timerStoppedSpeech, true);
             }
         });
 
@@ -557,9 +579,9 @@
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
             lastSpokenSecond = -1;
-            messageEl.textContent = "5-minute timer started!";
+            messageEl.textContent = CONFIG.runningMsg;
             setUIState(true);
-            speak("Timer started", true);
+            speak(CONFIG.timerStartedSpeech, true);
         });
 
         function updateCountdown() {
@@ -568,7 +590,7 @@
             const now = Date.now();
             const distance = targetTime - now;
             
-            // Check if we have entered overtime (past zero)
+            // Overtime mode (past zero)
             if (distance <= 0) {
                 const elapsedMs = Math.abs(distance);
                 const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
@@ -578,11 +600,11 @@
                 activeSignEl.textContent = "+";
                 activeMinsEl.textContent = String(minutes).padStart(2, '0');
                 activeSecsEl.textContent = String(seconds).padStart(2, '0');
-                messageEl.textContent = "Race started! 🏁";
+                messageEl.textContent = CONFIG.raceStartedMsg;
 
                 if (lastSpokenSecond !== 0) {
-                    playTone(300, 0.4, 'triangle', 0.3); // "Doop" tone
-                    speak("Race started", true);
+                    playTone(300, 0.4, 'triangle', 0.3); // Doop tone at zero
+                    speak(CONFIG.raceStartedSpeech, true);
                     lastSpokenSecond = 0;
                 }
                 return;
@@ -601,9 +623,11 @@
                 if (totalSeconds === 10) {
                     speak("10", true);
                 } else if (totalSeconds >= 6 && totalSeconds <= 9) {
-                    playTone(440, 0.08, 'sine', 0.15);
-                } else if (totalSeconds >= 1 && totalSeconds <= 5) {
-                    speak(String(totalSeconds), false);
+                    playTone(440, 0.08, 'sine', 0.15); // beep beep beep beep
+                } else if (totalSeconds === 5) {
+                    speak("5", true);
+                } else if (totalSeconds >= 1 && totalSeconds <= 4) {
+                    playTone(440, 0.08, 'sine', 0.15); // beep beep beep beep
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
                     let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
                     speak(speechText, true);
@@ -611,10 +635,3 @@
                     let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
                     speak(speechText, true);
                 }
-
-                lastSpokenSecond = totalSeconds;
-            }
-        }
-
-        setInterval(updateCountdown, 100);
-    </script>
