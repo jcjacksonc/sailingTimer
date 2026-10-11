@@ -6,14 +6,15 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.28">
+    <link rel="manifest" href="manifest.json?v=1.0.29">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.28">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.29">
 
-    <!-- Apple MapKit JS CDN -->
-    <script src="https://cdn.apple-mapkit.com/mk/6.x.x/mapkit.js"></script>
+    <!-- Leaflet.js Map Library (No API Key Required) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
@@ -266,7 +267,7 @@
             font-weight: 600;
         }
 
-        /* Apple Maps GPS Tracker Panel (Appears in Overtime) */
+        /* GPS Track Logger Panel (Appears in Overtime) */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
@@ -340,13 +341,12 @@
             text-align: center;
         }
 
-        /* Apple Map container view element */
-        #apple-map-container {
+        /* Leaflet Map Container Element */
+        #map-container {
             width: 100%;
             height: 220px;
             border-radius: 12px;
-            overflow: hidden;
-            background: #0f172a;
+            z-index: 1;
         }
 
         .message {
@@ -441,17 +441,17 @@
             </div>
         </div>
 
-        <!-- Apple Maps GPS Tracker Panel (Active in Overtime) -->
+        <!-- GPS Track Map Panel (Active in Overtime) -->
         <div class="gps-logger-panel" id="gps-logger-panel">
             <div class="gps-toggle-row">
-                <span>Record Apple Maps GPS Track</span>
+                <span>Record Live GPS Track</span>
                 <label class="switch">
                     <input type="checkbox" id="gps-toggle" checked>
                     <span class="slider"></span>
                 </label>
             </div>
             <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
-            <div id="apple-map-container"></div>
+            <div id="map-container"></div>
         </div>
 
         <div class="message" id="message">Scroll wheels to set duration</div>
@@ -535,61 +535,39 @@
         let watchId = null;
         let gpsTrackCoords = [];
         let isOvertimeActive = false;
-        let appleMap = null;
-        let polylineOverlay = null;
+        let leafletMap = null;
+        let polylineLayer = null;
 
-        // Initialize Apple MapKit JS
-        function initAppleMap(initialLat, initialLon) {
-            if (typeof mapkit === 'undefined') {
-                gpsStats.textContent = "MapKit JS failed to load";
-                return;
-            }
+        function initLeafletMap(lat, lon) {
+            if (leafletMap) return;
 
-            try {
-                // Initialize mapkit with token (Replace with valid token or use placeholder)
-                mapkit.init({
-                    authorizationCallback: function(done) {
-                        done("YOUR-MAPKIT-TOKEN"); 
-                    }
-                });
+            leafletMap = L.map('map-container', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([lat, lon], 16);
 
-                const centerCoord = new mapkit.Coordinate(initialLat, initialLon);
-                appleMap = new mapkit.Map("apple-map-container", {
-                    center: centerCoord,
-                    span: new mapkit.CoordinateSpan(0.01, 0.01),
-                    showsUserLocation: true,
-                    showsCompass: mapkit.FeatureVisibility.Adaptive,
-                    mapType: mapkit.MapType.Standard
-                });
-            } catch (e) {
-                console.log("MapKit init error:", e);
-                gpsStats.textContent = "Apple Maps initialized (token required for tiles)";
-            }
+            // High-contrast Dark Matter tile layer for great cockpit visibility
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }).addTo(leafletMap);
         }
 
         function updateMapTrack() {
-            if (!appleMap || gpsTrackCoords.length === 0) return;
+            if (!leafletMap || gpsTrackCoords.length === 0) return;
 
-            const coordinates = gpsTrackCoords.map(pt => new mapkit.Coordinate(pt.lat, pt.lon));
-
-            // Remove existing overlay line if present
-            if (polylineOverlay) {
-                appleMap.removeOverlay(polylineOverlay);
+            if (polylineLayer) {
+                leafletMap.removeLayer(polylineLayer);
             }
 
-            // Draw fresh polyline track trail
-            polylineOverlay = new mapkit.PolylineOverlay(coordinates, {
-                style: new mapkit.StrokeStyle({
-                    color: "#007AFF",
-                    lineWidth: 5
-                })
-            });
+            polylineLayer = L.polyline(gpsTrackCoords, {
+                color: '#38bdf8',
+                weight: 4,
+                opacity: 0.9
+            }).addTo(leafletMap);
 
-            appleMap.addOverlay(polylineOverlay);
-
-            // Center map on latest position
-            const latest = coordinates[coordinates.length - 1];
-            appleMap.setCenterAnimated(latest, true);
+            const latest = gpsTrackCoords[gpsTrackCoords.length - 1];
+            leafletMap.setView(latest);
         }
 
         function startGPSTracking() {
@@ -602,12 +580,13 @@
                         const speedMs = pos.coords.speed;
                         const knots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackCoords.push({ lat, lon });
+                        gpsTrackCoords.push([lat, lon]);
                         gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${knots} kts`;
 
-                        if (!appleMap) {
-                            initAppleMap(lat, lon);
+                        if (!leafletMap) {
+                            initLeafletMap(lat, lon);
                         } else {
+                            leafletMap.invalidateSize();
                             updateMapTrack();
                         }
                     },
@@ -627,8 +606,11 @@
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
-            appleMap = null;
-            polylineOverlay = null;
+            if (leafletMap) {
+                leafletMap.remove();
+                leafletMap = null;
+                polylineLayer = null;
+            }
         }
 
         async function requestWakeLock() {
