@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.23">
+    <link rel="manifest" href="manifest.json?v=1.0.24">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.23">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.24">
 
     <style>
         :root {
@@ -228,7 +228,6 @@
             align-items: center;
         }
 
-        /* Standard Multi-Column Sizes */
         .active-value {
             font-size: 3.8rem;
             font-weight: 800;
@@ -246,7 +245,6 @@
             line-height: 1;
         }
 
-        /* Single Column / Final Minute Super Size */
         .active-display.seconds-only {
             padding: 20px 10px;
         }
@@ -263,6 +261,100 @@
             letter-spacing: 1.5px;
             margin-top: 10px;
             font-weight: 600;
+        }
+
+        /* GPS Track Logger Overlay Panel (Appears in Overtime) */
+        .gps-logger-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(128, 128, 128, 0.2);
+            border-radius: 20px;
+            padding: 15px;
+        }
+
+        .gps-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted-color);
+        }
+
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .gps-stats {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            font-variant-numeric: tabular-nums;
+            background: rgba(0,0,0,0.1);
+            padding: 8px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        canvas#track-canvas {
+            width: 100%;
+            height: 160px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            display: block;
+        }
+
+        .download-btn {
+            display: none;
+            background-color: #059669;
+            font-size: 0.9rem;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .download-btn:hover {
+            background-color: #047857;
         }
 
         .message {
@@ -340,7 +432,7 @@
             <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
         </div>
 
-        <!-- Clean Active Countdown Display (Shown when running) -->
+        <!-- Clean Active Countdown Display -->
         <div class="active-display" id="active-display">
             <div class="active-box" id="box-sign" style="display:none;">
                 <div class="active-value" id="active-sign">&nbsp;</div>
@@ -357,6 +449,20 @@
             </div>
         </div>
 
+        <!-- GPS Track Logger Panel (Active in Overtime) -->
+        <div class="gps-logger-panel" id="gps-logger-panel">
+            <div class="gps-toggle-row">
+                <span>Record GPS Track & Speed</span>
+                <label class="switch">
+                    <input type="checkbox" id="gps-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
+            <canvas id="track-canvas"></canvas>
+            <button class="download-btn" id="download-track-btn">Download Track Image (PNG)</button>
+        </div>
+
         <div class="message" id="message">Scroll wheels to set duration</div>
 
         <div class="controls">
@@ -366,9 +472,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURABLE TEXT STRINGS, AUDIO & VOICE
-        // ==========================================
         const CONFIG = {
             appTitle: "Beta Timer",
             startBtnText: "Start Countdown",
@@ -383,24 +486,20 @@
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
 
-            // Pip Tone Settings (20s - 11s)
-            pipFreq: 440,          // A4 (440.00 Hz)
-            pipDuration: 0.200,    // Duration in seconds
-            pipType: "sine",       // Oscillator type
-            pipVolume: 2.0,        // Gain volume
+            pipFreq: 440,
+            pipDuration: 0.200,
+            pipType: "sine",
+            pipVolume: 2.0,
 
-            // Doop Tone Settings (0s)
-            doopFreq: 659.25,      // E5 (659.25 Hz)
-            doopDuration: 0.75,    // Duration in seconds
-            doopType: "triangle",  // Oscillator type
-            doopVolume: 2.0,       // Gain volume
+            doopFreq: 659.25,
+            doopDuration: 0.75,
+            doopType: "triangle",
+            doopVolume: 2.0,
 
-            // Speech Settings
             speechRate: 1.0,        
             speechPitch: 1.0,       
             speechVoiceLang: "en-GB" 
         };
-        // ==========================================
 
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
@@ -424,6 +523,13 @@
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
+        
+        const gpsLoggerPanel = document.getElementById('gps-logger-panel');
+        const gpsToggle = document.getElementById('gps-toggle');
+        const gpsStats = document.getElementById('gps-stats');
+        const trackCanvas = document.getElementById('track-canvas');
+        const trackCtx = trackCanvas.getContext('2d');
+        const downloadTrackBtn = document.getElementById('download-track-btn');
 
         eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
@@ -438,41 +544,122 @@
         let wakeLock = null;
         let cachedVoice = null;
 
+        let watchId = null;
+        let gpsTrackPoints = [];
+        let isOvertimeActive = false;
+
+        function resizeTrackCanvas() {
+            trackCanvas.width = trackCanvas.clientWidth * window.devicePixelRatio;
+            trackCanvas.height = trackCanvas.clientHeight * window.devicePixelRatio;
+            redrawTrack();
+        }
+
+        function redrawTrack() {
+            trackCtx.clearRect(0, 0, trackCanvas.width, trackCanvas.height);
+            if (gpsTrackPoints.length === 0) {
+                trackCtx.fillStyle = "#9ca3af";
+                trackCtx.font = "14px sans-serif";
+                trackCtx.textAlign = "center";
+                trackCtx.fillText("Waiting for GPS track data...", trackCanvas.width / 2, trackCanvas.height / 2);
+                return;
+            }
+
+            // Find bounds
+            let minLat = gpsTrackPoints[0].lat, maxLat = gpsTrackPoints[0].lat;
+            let minLon = gpsTrackPoints[0].lon, maxLon = gpsTrackPoints[0].lon;
+
+            gpsTrackPoints.forEach(p => {
+                if (p.lat < minLat) minLat = p.lat;
+                if (p.lat > maxLat) maxLat = p.lat;
+                if (p.lon < minLon) minLon = p.lon;
+                if (p.lon > maxLon) maxLon = p.lon;
+            });
+
+            const padding = 40;
+            const w = trackCanvas.width - padding * 2;
+            const h = trackCanvas.height - padding * 2;
+            const latSpan = maxLat - minLat || 0.0001;
+            const lonSpan = maxLon - minLon || 0.0001;
+
+            // Draw track line
+            trackCtx.strokeStyle = "#4f46e5";
+            trackCtx.lineWidth = 4;
+            trackCtx.beginPath();
+
+            gpsTrackPoints.forEach((p, idx) => {
+                const x = padding + ((p.lon - minLon) / lonSpan) * w;
+                const y = trackCanvas.height - (padding + ((p.lat - minLat) / latSpan) * h);
+                if (idx === 0) trackCtx.moveTo(x, y);
+                else trackCtx.lineTo(x, y);
+            });
+            trackCtx.stroke();
+
+            // Draw current position marker
+            const last = gpsTrackPoints[gpsTrackPoints.length - 1];
+            const lx = padding + ((last.lon - minLon) / lonSpan) * w;
+            const ly = trackCanvas.height - (padding + ((last.lat - minLat) / latSpan) * h);
+            trackCtx.fillStyle = "#ef4444";
+            trackCtx.beginPath();
+            trackCtx.arc(lx, ly, 6, 0, Math.PI * 2);
+            trackCtx.fill();
+        }
+
+        function startGPSTracking() {
+            if ('geolocation' in navigator) {
+                watchId = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        if (!isOvertimeActive || !gpsToggle.checked) return;
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        const speedMs = pos.coords.speed;
+                        const knots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
+
+                        gpsTrackPoints.push({ lat, lon, knots });
+                        gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${knots} kts`;
+                        redrawTrack();
+                        downloadTrackBtn.style.display = 'block';
+                    },
+                    (err) => {
+                        console.log("GPS error:", err);
+                        gpsStats.textContent = "GPS signal unavailable";
+                    },
+                    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+                );
+            } else {
+                gpsStats.textContent = "Geolocation not supported";
+            }
+        }
+
+        function stopGPSTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+        }
+
+        downloadTrackBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'race-track.png';
+            link.href = trackCanvas.toDataURL('image/png');
+            link.click();
+        });
+
         // Screen Wake Lock API
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.log("Wake Lock error:", err);
-                }
+                try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
             }
         }
 
         async function releaseWakeLock() {
             if (wakeLock !== null) {
-                try {
-                    await wakeLock.release();
-                    wakeLock = null;
-                } catch (err) {
-                    console.log("Wake Lock release error:", err);
-                }
+                try { await wakeLock.release(); wakeLock = null; } catch (err) {}
             }
         }
 
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible' && isRunning) {
-                await requestWakeLock();
-            }
-        });
-
         function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playTone(freq, duration, type, volume) {
@@ -480,21 +667,15 @@
                 initAudioContext();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                
                 gain.gain.setValueAtTime(volume, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Audio play error:", e);
-            }
+            } catch (e) {}
         }
 
         function loadVoice() {
@@ -513,13 +694,11 @@
         function speak(text, forceCancel = false) {
             if (!('speechSynthesis' in window)) return;
             if (forceCancel) window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = CONFIG.speechRate;
             utterance.pitch = CONFIG.speechPitch;
             utterance.lang = CONFIG.speechVoiceLang;
             if (cachedVoice) utterance.voice = cachedVoice;
-
             window.speechSynthesis.speak(utterance);
         }
 
@@ -565,13 +744,9 @@
             }
             html += '<div class="wheel-item" style="pointer-events:none;"></div>';
             wheelEl.innerHTML = html;
-
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) {
-                        const val = parseInt(item.dataset.value);
-                        wheelEl.scrollTop = val * 50;
-                    }
+                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 50;
                 });
             });
         }
@@ -590,8 +765,7 @@
 
         function updateWheelHighlight(wheelEl) {
             const index = Math.round(wheelEl.scrollTop / 50);
-            const items = wheelEl.querySelectorAll('.wheel-item');
-            items.forEach((item, idx) => {
+            wheelEl.querySelectorAll('.wheel-item').forEach((item, idx) => {
                 if (idx === index + 1) item.classList.add('selected');
                 else item.classList.remove('selected');
             });
@@ -603,8 +777,7 @@
         updateWheelHighlight(secondsWheel);
 
         function updateLiveClock() {
-            const now = new Date();
-            liveClockEl.textContent = `Current Time: ${now.toLocaleTimeString()}`;
+            liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
         }
         setInterval(updateLiveClock, 1000);
         updateLiveClock();
@@ -631,6 +804,11 @@
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
+                gpsLoggerPanel.style.display = 'none';
+                downloadTrackBtn.style.display = 'none';
+                isOvertimeActive = false;
+                stopGPSTracking();
+                gpsTrackPoints = [];
                 startBtn.textContent = CONFIG.startBtnText;
             }
         }
@@ -640,29 +818,19 @@
             if (!isRunning) {
                 let totalMs = 0;
                 if (currentMode === 'duration') {
-                    const mins = getSelectedMinutes();
-                    const secs = getSelectedSeconds();
-                    totalMs = (mins * 60 + secs) * 1000;
+                    totalMs = (getSelectedMinutes() * 60 + getSelectedSeconds()) * 1000;
                 } else {
                     const timeVal = timeInput.value;
-                    if (!timeVal) {
-                        messageEl.textContent = "Please set a target time";
-                        return;
-                    }
+                    if (!timeVal) { messageEl.textContent = "Please set a target time"; return; }
                     const [targetHours, targetMins] = timeVal.split(':').map(Number);
                     const now = new Date();
                     const targetDate = new Date();
                     targetDate.setHours(targetHours, targetMins, 0, 0);
-                    if (targetDate.getTime() <= now.getTime()) {
-                        targetDate.setDate(targetDate.getDate() + 1);
-                    }
+                    if (targetDate.getTime() <= now.getTime()) targetDate.setDate(targetDate.getDate() + 1);
                     totalMs = targetDate.getTime() - now.getTime();
                 }
 
-                if (totalMs <= 0) {
-                    messageEl.textContent = "Target time must be in the future";
-                    return;
-                }
+                if (totalMs <= 0) { messageEl.textContent = "Target time must be in the future"; return; }
 
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
@@ -696,17 +864,22 @@
         function updateCountdown() {
             if (!isRunning || !targetTime) return;
 
-            const now = Date.now();
-            const distance = targetTime - now;
+            const distance = targetTime - Date.now();
             
-            // Overtime mode (past zero)
+            // Overtime mode (past zero) -> Race Starts!
             if (distance <= 0) {
                 const elapsedMs = Math.abs(distance);
                 const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
                 const minutes = Math.floor(totalElapsedSeconds / 60);
                 const seconds = totalElapsedSeconds % 60;
 
-                // Restore minute box layout for overtime tracking (with leading zeros)
+                if (!isOvertimeActive) {
+                    isOvertimeActive = true;
+                    gpsLoggerPanel.style.display = 'flex';
+                    resizeTrackCanvas();
+                    startGPSTracking();
+                }
+
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'flex';
                 boxMins.style.display = 'flex';
@@ -722,10 +895,7 @@
 
                 if (lastSpokenSecond !== 0) {
                     playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
-                    setTimeout(() => {
-                        speak(CONFIG.raceStartedSpeech, true);
-                    }, 1000);
-
+                    setTimeout(() => speak(CONFIG.raceStartedSpeech, true), 1000);
                     lastSpokenSecond = 0;
                 }
                 return;
@@ -735,20 +905,19 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
-            // Below 1 minute: Hide minutes & separator, scale up seconds, single digit when < 10
             if (minutes === 0) {
                 activeDisplay.classList.add('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'none';
                 boxSep.style.display = 'none';
-                activeSecsEl.textContent = String(seconds); // Single digit (9, 8, 7...)
+                activeSecsEl.textContent = String(seconds);
             } else {
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 activeMinsEl.textContent = String(minutes).padStart(2, '0');
-                activeSecsEl.textContent = String(seconds).padStart(2, '0'); // Two digits (09, 08...)
+                activeSecsEl.textContent = String(seconds).padStart(2, '0');
             }
 
             setWheelValues(minutes, seconds);
@@ -761,13 +930,10 @@
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                    speak(speechText, true);
+                    speak(minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`, true);
                 } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                    speak(speechText, true);
+                    speak(minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`, true);
                 }
-
                 lastSpokenSecond = totalSeconds;
             }
         }
