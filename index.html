@@ -535,4 +535,135 @@
                 quick5Btn.style.display = 'none';
                 startBtn.textContent = CONFIG.stopBtnText;
             } else {
-                mode
+                modeTabs.style.display = 'flex';
+                if (currentMode === 'duration') {
+                    pickerContainer.style.display = 'flex';
+                    quick5Btn.style.display = 'block';
+                } else {
+                    targetTimeContainer.style.display = 'flex';
+                }
+                activeDisplay.style.display = 'none';
+                startBtn.textContent = CONFIG.startBtnText;
+            }
+        }
+
+        startBtn.addEventListener('click', () => {
+            initAudioContext();
+            if (!isRunning) {
+                let totalMs = 0;
+                if (currentMode === 'duration') {
+                    const mins = getSelectedMinutes();
+                    const secs = getSelectedSeconds();
+                    totalMs = (mins * 60 + secs) * 1000;
+                } else {
+                    const timeVal = timeInput.value;
+                    if (!timeVal) {
+                        messageEl.textContent = "Please set a target time";
+                        return;
+                    }
+                    const [targetHours, targetMins] = timeVal.split(':').map(Number);
+                    const now = new Date();
+                    const targetDate = new Date();
+                    targetDate.setHours(targetHours, targetMins, 0, 0);
+                    if (targetDate.getTime() <= now.getTime()) {
+                        targetDate.setDate(targetDate.getDate() + 1);
+                    }
+                    totalMs = targetDate.getTime() - now.getTime();
+                }
+
+                if (totalMs <= 0) {
+                    messageEl.textContent = "Target time must be in the future";
+                    return;
+                }
+
+                targetTime = Date.now() + totalMs;
+                scriptInitRunning = true;
+                isRunning = true;
+                lastSpokenSecond = -1;
+                messageEl.textContent = CONFIG.runningMsg;
+                setUIState(true);
+                speak(CONFIG.timerStartedSpeech, true);
+            } else {
+                isRunning = false;
+                targetTime = null;
+                messageEl.textContent = CONFIG.stoppedMsg;
+                setUIState(false);
+                speak(CONFIG.timerStoppedSpeech, true);
+            }
+        });
+
+        quick5Btn.addEventListener('click', () => {
+            initAudioContext();
+            setWheelValues(5, 0);
+            targetTime = Date.now() + 5 * 60 * 1000;
+            isRunning = true;
+            lastSpokenSecond = -1;
+            messageEl.textContent = CONFIG.runningMsg;
+            setUIState(true);
+            speak(CONFIG.timerStartedSpeech, true);
+        });
+
+        function updateCountdown() {
+            if (!isRunning || !targetTime) return;
+
+            const now = Date.now();
+            const distance = targetTime - now;
+            
+            // Overtime mode (past zero)
+            if (distance <= 0) {
+                const elapsedMs = Math.abs(distance);
+                const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
+                const minutes = Math.floor(totalElapsedSeconds / 60);
+                const seconds = totalElapsedSeconds % 60;
+
+                activeSignEl.textContent = "+";
+                activeMinsEl.textContent = String(minutes).padStart(2, '0');
+                activeSecsEl.textContent = String(seconds).padStart(2, '0');
+                messageEl.textContent = CONFIG.raceStartedMsg;
+
+                if (lastSpokenSecond !== 0) {
+                    // Play Doop tone first
+                    playTone(300, 0.4, 'triangle', 0.3);
+                    
+                    // Wait 1 second before speaking "Race started"
+                    setTimeout(() => {
+                        speak(CONFIG.raceStartedSpeech, true);
+                    }, 1000);
+
+                    lastSpokenSecond = 0;
+                }
+                return;
+            }
+
+            activeSignEl.textContent = " ";
+            const totalSeconds = Math.ceil(distance / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            activeMinsEl.textContent = String(minutes).padStart(2, '0');
+            activeSecsEl.textContent = String(seconds).padStart(2, '0');
+            setWheelValues(minutes, seconds);
+
+            if (totalSeconds !== lastSpokenSecond) {
+                if (totalSeconds === 15) {
+                    speak("15", true);
+                } else if (totalSeconds >= 11 && totalSeconds <= 20) {
+                    playTone(440, 0.08, 'sine', 0.15); // Pips starting at 20s down to 11s
+                } else if (totalSeconds >= 1 && totalSeconds <= 10) {
+                    speak(String(totalSeconds), false); // Countdown 10 down to 1
+                } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
+                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    speak(speechText, true);
+                } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
+                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    speak(speechText, true);
+                }
+
+                lastSpokenSecond = totalSeconds;
+            }
+        }
+
+        setInterval(updateCountdown, 100);
+    </script>
+</body>
+</html>
