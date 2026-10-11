@@ -66,7 +66,7 @@
             letter-spacing: -0.5px;
         }
 
-        /* Rolling Wheel Container */
+        /* Rolling Wheel Container (Visible when stopped) */
         .picker-container {
             display: flex;
             justify-content: center;
@@ -90,15 +90,15 @@
             width: 80px;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             position: relative;
             background: rgba(255, 255, 255, 0.02);
             border-radius: 12px;
         }
 
         .wheel::-webkit-scrollbar {
-            display: none; /* Chrome/Safari/iOS */
+            display: none;
         }
 
         .wheel-item {
@@ -132,6 +132,47 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 6px;
+        }
+
+        /* Active Countdown Display (Visible when running) */
+        .active-display {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px 15px;
+        }
+
+        .active-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .active-value {
+            font-size: 3rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-color);
+        }
+
+        .active-separator {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--muted-color);
+            padding-bottom: 12px;
+        }
+
+        .active-label {
+            font-size: 0.7rem;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
         }
 
         .message {
@@ -183,8 +224,8 @@
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
         <h1 id="event-title">Countdown Timer</h1>
 
-        <!-- Rolling Wheel Time Picker / Display -->
-        <div class="picker-container">
+        <!-- Rolling Wheel Time Picker (Shown when stopped) -->
+        <div class="picker-container" id="picker-container">
             <div class="wheel-column">
                 <div class="wheel" id="minutes-wheel"></div>
                 <div class="wheel-label">Minutes</div>
@@ -193,6 +234,19 @@
             <div class="wheel-column">
                 <div class="wheel" id="seconds-wheel"></div>
                 <div class="wheel-label">Seconds</div>
+            </div>
+        </div>
+
+        <!-- Clean Active Countdown Display (Shown when running) -->
+        <div class="active-display" id="active-display">
+            <div class="active-box">
+                <div class="active-value" id="active-mins">00</div>
+                <div class="active-label">Minutes</div>
+            </div>
+            <div class="active-separator">:</div>
+            <div class="active-box">
+                <div class="active-value" id="active-secs">00</div>
+                <div class="active-label">Seconds</div>
             </div>
         </div>
 
@@ -207,6 +261,10 @@
     <script>
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
+        const pickerContainer = document.getElementById('picker-container');
+        const activeDisplay = document.getElementById('active-display');
+        const activeMinsEl = document.getElementById('active-mins');
+        const activeSecsEl = document.getElementById('active-secs');
         const minutesWheel = document.getElementById('minutes-wheel');
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
@@ -216,7 +274,6 @@
         let isRunning = false;
         let lastSpokenSecond = -1;
 
-        // Populate wheels (0 to 59)
         function populateWheel(wheelEl, maxVal) {
             wheelEl.innerHTML = '<div class="wheel-item" style="pointer-events:none;"></div>';
             for (let i = 0; i <= maxVal; i++) {
@@ -235,7 +292,6 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
 
-        // Default to 5 minutes on load
         minutesWheel.scrollTop = 5 * 40;
         secondsWheel.scrollTop = 0 * 40;
 
@@ -264,12 +320,11 @@
             });
         }
 
-        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel));
+        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesView = minutesWheel));
         secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel));
         updateWheelHighlight(minutesWheel);
         updateWheelHighlight(secondsWheel);
 
-        // Update live clock every second
         function updateLiveClock() {
             const now = new Date();
             liveClockEl.textContent = `Current Time: ${now.toLocaleTimeString()}`;
@@ -277,20 +332,29 @@
         setInterval(updateLiveClock, 1000);
         updateLiveClock();
 
-        // Speech synthesis helper
         function speak(text, forceCancel = false) {
             if ('speechSynthesis' in window) {
-                if (forceCancel) {
-                    window.speechSynthesis.cancel();
-                }
+                if (forceCancel) window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 1.1;
-                window.speechSynthesis.spend = true; 
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        // Unified Start / Stop Button Handler
+        function setUIState(running) {
+            if (running) {
+                pickerContainer.style.display = 'none';
+                activeDisplay.style.display = 'flex';
+                quick5Btn.style.display = 'none';
+                startBtn.textContent = "Reset / Stop";
+            } else {
+                pickerContainer.style.display = 'flex';
+                activeDisplay.style.display = 'none';
+                quick5Btn.style.display = 'block';
+                startBtn.textContent = "Start Countdown";
+            }
+        }
+
         startBtn.addEventListener('click', () => {
             if (!isRunning) {
                 const mins = getSelectedMinutes();
@@ -306,13 +370,13 @@
                 isRunning = true;
                 lastSpokenSecond = -1;
                 messageEl.textContent = "Countdown running...";
-                startBtn.textContent = "Reset / Stop";
+                setUIState(true);
                 speak("Timer started", true);
             } else {
                 isRunning = false;
                 targetTime = null;
                 messageEl.textContent = "Timer stopped";
-                startBtn.textContent = "Start Countdown";
+                setUIState(false);
                 speak("Timer stopped", true);
             }
         });
@@ -323,7 +387,7 @@
             isRunning = true;
             lastSpokenSecond = -1;
             messageEl.textContent = "5-minute timer started!";
-            startBtn.textContent = "Reset / Stop";
+            setUIState(true);
             speak("5 minute timer started", true);
         });
 
@@ -334,22 +398,24 @@
             const distance = targetTime - now;
             const totalSeconds = Math.max(0, Math.floor(distance / 1000));
 
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            // Update the clean active text display
+            activeMinsEl.textContent = String(minutes).padStart(2, '0');
+            activeSecsEl.textContent = String(seconds).padStart(2, '0');
+            setWheelValues(minutes, seconds); // keep background wheels in sync
+
             if (totalSeconds === 0 && distance <= 0) {
-                setWheelValues(0, 0);
                 isRunning = false;
                 messageEl.textContent = "Time's up! 🎉";
                 if (lastSpokenSecond !== 0) {
                     speak("Time is up!", true);
                     lastSpokenSecond = 0;
                 }
-                startBtn.textContent = "Start Countdown";
+                setUIState(false);
                 return;
             }
-
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-
-            setWheelValues(minutes, seconds);
 
             // Speech interval logic
             if (totalSeconds !== lastSpokenSecond) {
@@ -367,7 +433,6 @@
                     let speechText = "";
                     if (totalSeconds < 15) {
                         speechText = String(totalSeconds);
-                        // Do NOT force cancel on every second under 15s to let the audio flow smoothly without clipping
                         speak(speechText, false);
                     } else {
                         if (minutes > 0 && seconds > 0) {
