@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Countdown PWA</title>
+    <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -77,11 +77,11 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
-            padding: 20px 10px;
+            padding: 24px 10px;
         }
 
         .time-value {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -108,14 +108,14 @@
             gap: 10px;
         }
 
-        input[type="datetime-local"] {
+        input[type="number"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(0, 0, 0, 0.2);
             color: var(--text-color);
-            font-size: 1rem;
+            font-size: 1.1rem;
             text-align: center;
             outline: none;
         }
@@ -154,19 +154,11 @@
 
     <div class="container">
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-        <h1 id="event-title">Countdown</h1>
+        <h1 id="event-title">Countdown Timer</h1>
 
         <div class="timer-grid">
             <div class="time-box">
-                <div class="time-value" id="days">00</div>
-                <div class="time-label">Days</div>
-            </div>
-            <div class="time-box">
-                <div class="time-value" id="hours">00</div>
-                <div class="time-label">Hours</div>
-            </div>
-            <div class="time-box">
-                <div class="time-value" id="minutes">00</div>
+                <div class="time-value" id="minutes">05</div>
                 <div class="time-label">Minutes</div>
             </div>
             <div class="time-box">
@@ -175,88 +167,116 @@
             </div>
         </div>
 
-        <div class="message" id="message">Select a target time or quick start</div>
+        <div class="message" id="message">Ready</div>
 
         <div class="controls">
             <button id="quick-5min-btn" class="btn-secondary">Start 5 Min Timer</button>
-            <input type="datetime-local" id="datetime-picker">
-            <button id="start-btn">Set Custom Countdown</button>
+            <input type="number" id="minutes-input" placeholder="Minutes (e.g. 10)" min="1" max="1440">
+            <button id="start-custom-btn">Start Custom Timer</button>
         </div>
     </div>
 
     <script>
         const liveClockEl = document.getElementById('live-clock');
-        const daysEl = document.getElementById('days');
-        const hoursEl = document.getElementById('hours');
         const minsEl = document.getElementById('minutes');
         const secsEl = document.getElementById('seconds');
         const messageEl = document.getElementById('message');
-        const pickerEl = document.getElementById('datetime-picker');
-        const startBtn = document.getElementById('start-btn');
+        const minutesInput = document.getElementById('minutes-input');
+        const startCustomBtn = document.getElementById('start-custom-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
 
         // Update live clock every second
         function updateLiveClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            liveClockEl.textContent = `Current Time: ${timeString}`;
+            liveClockEl.textContent = `Current Time: ${now.toLocaleTimeString()}`;
         }
         setInterval(updateLiveClock, 1000);
         updateLiveClock();
 
-        // Target time management
-        let targetTime = localStorage.getItem('pwa_target') 
-            ? new Date(localStorage.getItem('pwa_target')) 
-            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        let targetTime = Date.now() + 5 * 60 * 1000; // Default 5 mins
+        let lastSpokenSecond = -1;
 
-        // Pre-fill picker
-        pickerEl.value = new Date(targetTime.getTime() - (targetTime.getTimezoneOffset() * 60000))
-            .toISOString()
-            .slice(0, 16);
+        // Speech synthesis helper
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any pending speech so it doesn't queue up
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
 
-        // Custom Countdown Button
-        startBtn.addEventListener('click', () => {
-            if (!pickerEl.value) return;
-            targetTime = new Date(pickerEl.value);
-            localStorage.setItem('pwa_target', targetTime);
-            messageEl.textContent = "Custom countdown active!";
+        function setTimerDuration(minutes) {
+            targetTime = Date.now() + (minutes * 60 * 1000);
+            lastSpokenSecond = -1;
+            messageEl.textContent = `${minutes} min timer started`;
+            speak(`${minutes} minute timer started`);
+        }
+
+        quick5Btn.addEventListener('click', () => {
+            setTimerDuration(5);
         });
 
-        // 5-Minute Quick Timer Button
-        quick5Btn.addEventListener('click', () => {
-            targetTime = new Date(Date.now() + 5 * 60 * 1000);
-            localStorage.setItem('pwa_target', targetTime);
-            
-            // Update input picker to match
-            pickerEl.value = new Date(targetTime.getTime() - (targetTime.getTimezoneOffset() * 60000))
-                .toISOString()
-                .slice(0, 16);
-                
-            messageEl.textContent = "5-minute timer started!";
+        startCustomBtn.addEventListener('click', () => {
+            const val = parseFloat(minutesInput.value);
+            if (isNaN(val) || val <= 0) {
+                messageEl.textContent = "Please enter valid minutes";
+                return;
+            }
+            setTimerDuration(val);
         });
 
         function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = targetTime.getTime() - now;
+            const now = Date.now();
+            const distance = targetTime - now;
+            const totalSeconds = Math.max(0, Math.floor(distance / 1000));
 
-            if (distance < 0) {
-                daysEl.textContent = "00";
-                hoursEl.textContent = "00";
+            if (totalSeconds === 0 && distance <= 0) {
                 minsEl.textContent = "00";
                 secsEl.textContent = "00";
-                messageEl.textContent = "Time's up! 🎉";
+                if (lastSpokenSecond !== 0) {
+                    messageEl.textContent = "Time's up! 🎉";
+                    speak("Time is up!");
+                    lastSpokenSecond = 0;
+                }
                 return;
             }
 
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
 
-            daysEl.textContent = String(days).padStart(2, '0');
-            hoursEl.textContent = String(hours).padStart(2, '0');
             minsEl.textContent = String(minutes).padStart(2, '0');
             secsEl.textContent = String(seconds).padStart(2, '0');
+
+            // Speech interval logic
+            if (totalSeconds !== lastSpokenSecond) {
+                let shouldSpeak = false;
+
+                if (totalSeconds < 15) {
+                    // c. Under 15 seconds: speak every second
+                    shouldSpeak = true;
+                } else if (totalSeconds < 180) {
+                    // b. Under 3 minutes (180s): speak every 15 seconds
+                    if (totalSeconds % 15 === 0) shouldSpeak = true;
+                } else {
+                    // a. Above 3 minutes: speak every 30 seconds
+                    if (totalSeconds % 30 === 0) shouldSpeak = true;
+                }
+
+                if (shouldSpeak) {
+                    let timeText = "";
+                    if (minutes > 0 && seconds > 0) {
+                        timeText = `${minutes} minutes ${seconds} seconds`;
+                    } else if (minutes > 0) {
+                        timeText = `${minutes} minutes`;
+                    } else {
+                        timeText = `${seconds} seconds`;
+                    }
+                    speak(timeText);
+                }
+
+                lastSpokenSecond = totalSeconds;
+            }
         }
 
         setInterval(updateCountdown, 1000);
