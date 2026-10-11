@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.13">
+    <link rel="manifest" href="manifest.json?v=1.0.15">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.13">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.15">
 
     <style>
         :root {
@@ -245,7 +245,7 @@
             margin-top: 4px;
         }
 
-        /* Live GPS Widget */
+        /* Live GPS & Map Container */
         .gps-container {
             margin-bottom: 20px;
             background: rgba(0, 0, 0, 0.05);
@@ -260,6 +260,14 @@
             color: var(--muted-color);
             font-variant-numeric: tabular-nums;
             margin-bottom: 8px;
+        }
+
+        .map-wrapper {
+            margin-top: 8px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .map-btn {
@@ -369,10 +377,13 @@
             </div>
         </div>
 
-        <!-- Live GPS Widget -->
+        <!-- Live GPS & Embedded Map Widget -->
         <div class="gps-container" id="gps-container">
             <div class="gps-info" id="gps-coords">Acquiring GPS fix...</div>
-            <a href="#" id="map-link" target="_blank" class="map-btn" style="display:none;">Open in Maps 📍</a>
+            <div class="map-wrapper" id="map-wrapper" style="display:none;">
+                <iframe id="map-iframe" width="100%" height="150" style="border:0;" loading="lazy" src=""></iframe>
+            </div>
+            <a href="#" id="map-link" target="_blank" class="map-btn" style="display:none;">Open in Full Maps 📍</a>
         </div>
 
         <div class="message" id="message">Scroll wheels to set duration</div>
@@ -438,6 +449,8 @@
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
         const gpsCoordsEl = document.getElementById('gps-coords');
+        const mapWrapperEl = document.getElementById('map-wrapper');
+        const mapIframeEl = document.getElementById('map-iframe');
         const mapLinkEl = document.getElementById('map-link');
 
         eventTitleEl.textContent = CONFIG.appTitle;
@@ -453,6 +466,8 @@
         let wakeLock = null;
         let cachedVoice = null;
         let watchId = null;
+        let lastLat = null;
+        let lastLon = null;
 
         // Screen Wake Lock API
         async function requestWakeLock() {
@@ -482,7 +497,7 @@
             }
         });
 
-        // Live GPS Tracking
+        // Live GPS Tracking with Embedded Map Update
         function startGPS() {
             if ('geolocation' in navigator) {
                 watchId = navigator.geolocation.watchPosition(
@@ -493,17 +508,34 @@
                         const speedKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : 0.0;
 
                         gpsCoordsEl.textContent = `Lat: ${lat}, Lon: ${lon} | ${speedKnots} kts`;
+
+                        // Only refresh iframe source if position changes significantly to keep map smooth
+                        if (lat !== lastLat || lon !== lastLon) {
+                            lastLat = lat;
+                            lastLon = lon;
+                            mapIframeEl.src = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+                            mapWrapperEl.style.display = 'block';
+                        }
+
                         mapLinkEl.href = `https://maps.apple.com/?q=${lat},${lon}`;
                         mapLinkEl.style.display = 'inline-block';
                     },
                     (error) => {
-                        console.log("GPS error:", error);
-                        gpsCoordsEl.textContent = "GPS signal unavailable";
+                        console.warn(`Geolocation error (${error.code}): ${error.message}`);
+                        if (error.code === 1) {
+                            gpsCoordsEl.textContent = "GPS permission denied";
+                        } else if (error.code === 2) {
+                            gpsCoordsEl.textContent = "GPS position unavailable";
+                        } else if (error.code === 3) {
+                            gpsCoordsEl.textContent = "GPS request timed out";
+                        } else {
+                            gpsCoordsEl.textContent = "GPS signal unavailable";
+                        }
                     },
                     {
                         enableHighAccuracy: true,
                         maximumAge: 1000,
-                        timeout: 5000
+                        timeout: 10000
                     }
                 );
             } else {
