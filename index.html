@@ -278,11 +278,14 @@
         updateLiveClock();
 
         // Speech synthesis helper
-        function speak(text) {
+        function speak(text, forceCancel = false) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+                if (forceCancel) {
+                    window.speechSynthesis.cancel();
+                }
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.rate = 1.1;
+                window.speechSynthesis.spend = true; 
                 window.speechSynthesis.speak(utterance);
             }
         }
@@ -304,11 +307,13 @@
                 lastSpokenSecond = -1;
                 messageEl.textContent = "Countdown running...";
                 startBtn.textContent = "Reset / Stop";
+                speak("Timer started", true);
             } else {
                 isRunning = false;
                 targetTime = null;
                 messageEl.textContent = "Timer stopped";
                 startBtn.textContent = "Start Countdown";
+                speak("Timer stopped", true);
             }
         });
 
@@ -319,6 +324,7 @@
             lastSpokenSecond = -1;
             messageEl.textContent = "5-minute timer started!";
             startBtn.textContent = "Reset / Stop";
+            speak("5 minute timer started", true);
         });
 
         function updateCountdown() {
@@ -333,7 +339,7 @@
                 isRunning = false;
                 messageEl.textContent = "Time's up! 🎉";
                 if (lastSpokenSecond !== 0) {
-                    speak("Time is up!");
+                    speak("Time is up!", true);
                     lastSpokenSecond = 0;
                 }
                 startBtn.textContent = "Start Countdown";
@@ -361,14 +367,18 @@
                     let speechText = "";
                     if (totalSeconds < 15) {
                         speechText = String(totalSeconds);
-                    } else if (minutes > 0 && seconds > 0) {
-                        speechText = `${minutes} minutes ${seconds} seconds`;
-                    } else if (minutes > 0) {
-                        speechText = `${minutes} minutes`;
+                        // Do NOT force cancel on every second under 15s to let the audio flow smoothly without clipping
+                        speak(speechText, false);
                     } else {
-                        speechText = `${seconds} seconds`;
+                        if (minutes > 0 && seconds > 0) {
+                            speechText = `${minutes} minutes ${seconds} seconds`;
+                        } else if (minutes > 0) {
+                            speechText = `${minutes} minutes`;
+                        } else {
+                            speechText = `${seconds} seconds`;
+                        }
+                        speak(speechText, true);
                     }
-                    speak(speechText);
                 }
 
                 lastSpokenSecond = totalSeconds;
