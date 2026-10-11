@@ -136,7 +136,7 @@
             font-size: 1.8rem;
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            color: var(--text-color); /* Fixed: visible text color */
+            color: var(--text-color);
             scroll-snap-align: center;
             cursor: pointer;
             opacity: 0.4;
@@ -313,6 +313,10 @@
         <!-- Clean Active Countdown Display (Shown when running) -->
         <div class="active-display" id="active-display">
             <div class="active-box">
+                <div class="active-value" id="active-sign">+</div>
+                <div class="active-label">Status</div>
+            </div>
+            <div class="active-box">
                 <div class="active-value" id="active-mins">00</div>
                 <div class="active-label">Minutes</div>
             </div>
@@ -341,6 +345,7 @@
         const targetTimeContainer = document.getElementById('target-time-container');
         const timeInput = document.getElementById('time-input');
         const activeDisplay = document.getElementById('active-display');
+        const activeSignEl = document.getElementById('active-sign');
         const activeMinsEl = document.getElementById('active-mins');
         const activeSecsEl = document.getElementById('active-secs');
         const minutesWheel = document.getElementById('minutes-wheel');
@@ -391,7 +396,7 @@
             for (let i = 1; i <= 15; i++) {
                 utteranceCache[String(i)] = new SpeechSynthesisUtterance(String(i));
             }
-            ['Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
+            ['Timer started', 'Timer stopped', 'Race started'].forEach(phrase => {
                 utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
             });
         }
@@ -562,8 +567,29 @@
 
             const now = Date.now();
             const distance = targetTime - now;
-            const totalSeconds = Math.max(0, Math.ceil(distance / 1000));
+            
+            // Check if we have entered overtime (past zero)
+            if (distance <= 0) {
+                const elapsedMs = Math.abs(distance);
+                const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
+                const minutes = Math.floor(totalElapsedSeconds / 60);
+                const seconds = totalElapsedSeconds % 60;
 
+                activeSignEl.textContent = "+";
+                activeMinsEl.textContent = String(minutes).padStart(2, '0');
+                activeSecsEl.textContent = String(seconds).padStart(2, '0');
+                messageEl.textContent = "Race started! 🏁";
+
+                if (lastSpokenSecond !== 0) {
+                    playTone(300, 0.4, 'triangle', 0.3); // "Doop" tone
+                    speak("Race started", true);
+                    lastSpokenSecond = 0;
+                }
+                return;
+            }
+
+            activeSignEl.textContent = " ";
+            const totalSeconds = Math.ceil(distance / 1000);
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
@@ -571,22 +597,8 @@
             activeSecsEl.textContent = String(seconds).padStart(2, '0');
             setWheelValues(minutes, seconds);
 
-            if (totalSeconds === 0 && distance <= 0) {
-                isRunning = false;
-                messageEl.textContent = "Time's up! 🎉";
-                if (lastSpokenSecond !== 0) {
-                    playTone(300, 0.4, 'triangle', 0.3);
-                    speak("Time is up!", true);
-                    lastSpokenSecond = 0;
-                }
-                setUIState(false);
-                return;
-            }
-
             if (totalSeconds !== lastSpokenSecond) {
-                if (totalSeconds === 15) {
-                    speak("15", true);
-                } else if (totalSeconds === 10) {
+                if (totalSeconds === 10) {
                     speak("10", true);
                 } else if (totalSeconds >= 6 && totalSeconds <= 9) {
                     playTone(440, 0.08, 'sine', 0.15);
@@ -606,5 +618,3 @@
 
         setInterval(updateCountdown, 100);
     </script>
-</body>
-</html>
