@@ -6,11 +6,14 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.27">
+    <link rel="manifest" href="manifest.json?v=1.0.28">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.27">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.28">
+
+    <!-- Apple MapKit JS CDN -->
+    <script src="https://cdn.apple-mapkit.com/mk/6.x.x/mapkit.js"></script>
 
     <style>
         :root {
@@ -263,7 +266,7 @@
             font-weight: 600;
         }
 
-        /* GPS Track Logger Panel (Appears in Overtime) */
+        /* Apple Maps GPS Tracker Panel (Appears in Overtime) */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
@@ -337,24 +340,13 @@
             text-align: center;
         }
 
-        canvas#track-canvas {
+        /* Apple Map container view element */
+        #apple-map-container {
             width: 100%;
-            height: 190px;
-            background: #0f172a;
+            height: 220px;
             border-radius: 12px;
-            display: block;
-        }
-
-        .download-btn {
-            display: none;
-            background-color: #059669;
-            font-size: 0.9rem;
-            padding: 10px;
-            margin-top: 5px;
-        }
-
-        .download-btn:hover {
-            background-color: #047857;
+            overflow: hidden;
+            background: #0f172a;
         }
 
         .message {
@@ -449,18 +441,17 @@
             </div>
         </div>
 
-        <!-- GPS Track Logger Panel (Active in Overtime) -->
+        <!-- Apple Maps GPS Tracker Panel (Active in Overtime) -->
         <div class="gps-logger-panel" id="gps-logger-panel">
             <div class="gps-toggle-row">
-                <span>Record GPS Track & Speed</span>
+                <span>Record Apple Maps GPS Track</span>
                 <label class="switch">
                     <input type="checkbox" id="gps-toggle" checked>
                     <span class="slider"></span>
                 </label>
             </div>
             <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
-            <canvas id="track-canvas"></canvas>
-            <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
+            <div id="apple-map-container"></div>
         </div>
 
         <div class="message" id="message">Scroll wheels to set duration</div>
@@ -527,9 +518,6 @@
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
         const gpsToggle = document.getElementById('gps-toggle');
         const gpsStats = document.getElementById('gps-stats');
-        const trackCanvas = document.getElementById('track-canvas');
-        const trackCtx = trackCanvas.getContext('2d');
-        const downloadTrackBtn = document.getElementById('download-track-btn');
 
         eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
@@ -545,112 +533,63 @@
         let cachedVoice = null;
 
         let watchId = null;
-        let gpsTrackPoints = [];
+        let gpsTrackCoords = [];
         let isOvertimeActive = false;
+        let appleMap = null;
+        let polylineOverlay = null;
 
-        // Load background map image (place 'map.png' or 'chart.jpg' in your repository root)
-        const mapBgImage = new Image();
-        mapBgImage.src = 'map.png'; 
-        let mapImageLoaded = false;
-        mapBgImage.onload = () => {
-            mapImageLoaded = true;
-            redrawTrack();
-        };
-
-        function resizeTrackCanvas() {
-            trackCanvas.width = trackCanvas.clientWidth * window.devicePixelRatio;
-            trackCanvas.height = trackCanvas.clientHeight * window.devicePixelRatio;
-            redrawTrack();
-        }
-
-        function redrawTrack() {
-            const w = trackCanvas.width;
-            const h = trackCanvas.height;
-
-            trackCtx.clearRect(0, 0, w, h);
-
-            // 1. Draw Map Picture Background (if map.jpg is present in repo)
-            if (mapImageLoaded) {
-                trackCtx.drawImage(mapBgImage, 0, 0, w, h);
-            } else {
-                // Fallback placeholder instruction if map.jpg hasn't been added yet
-                trackCtx.fillStyle = "#0f172a";
-                trackCtx.fillRect(0, 0, w, h);
-                trackCtx.fillStyle = "#94a3b8";
-                trackCtx.font = `${12 * window.devicePixelRatio}px sans-serif`;
-                trackCtx.textAlign = "center";
-                trackCtx.fillText("Tip: Add 'map.jpg' to repo for map backdrop", w / 2, 25);
-            }
-
-            if (gpsTrackPoints.length === 0) {
-                trackCtx.fillStyle = "#ffffff";
-                trackCtx.font = `${13 * window.devicePixelRatio}px sans-serif`;
-                trackCtx.textAlign = "center";
-                trackCtx.shadowColor = "rgba(0, 0, 0, 0.8)";
-                trackCtx.shadowBlur = 4;
-                trackCtx.fillText("Waiting for GPS fix to overlay track...", w / 2, h / 2);
-                trackCtx.shadowBlur = 0; // reset shadow
+        // Initialize Apple MapKit JS
+        function initAppleMap(initialLat, initialLon) {
+            if (typeof mapkit === 'undefined') {
+                gpsStats.textContent = "MapKit JS failed to load";
                 return;
             }
 
-            // Find bounds
-            let minLat = gpsTrackPoints[0].lat, maxLat = gpsTrackPoints[0].lat;
-            let minLon = gpsTrackPoints[0].lon, maxLon = gpsTrackPoints[0].lon;
+            try {
+                // Initialize mapkit with token (Replace with valid token or use placeholder)
+                mapkit.init({
+                    authorizationCallback: function(done) {
+                        done("YOUR-MAPKIT-TOKEN"); 
+                    }
+                });
 
-            gpsTrackPoints.forEach(p => {
-                if (p.lat < minLat) minLat = p.lat;
-                if (p.lat > maxLat) maxLat = p.lat;
-                if (p.lon < minLon) minLon = p.lon;
-                if (p.lon > maxLon) maxLon = p.lon;
+                const centerCoord = new mapkit.Coordinate(initialLat, initialLon);
+                appleMap = new mapkit.Map("apple-map-container", {
+                    center: centerCoord,
+                    span: new mapkit.CoordinateSpan(0.01, 0.01),
+                    showsUserLocation: true,
+                    showsCompass: mapkit.FeatureVisibility.Adaptive,
+                    mapType: mapkit.MapType.Standard
+                });
+            } catch (e) {
+                console.log("MapKit init error:", e);
+                gpsStats.textContent = "Apple Maps initialized (token required for tiles)";
+            }
+        }
+
+        function updateMapTrack() {
+            if (!appleMap || gpsTrackCoords.length === 0) return;
+
+            const coordinates = gpsTrackCoords.map(pt => new mapkit.Coordinate(pt.lat, pt.lon));
+
+            // Remove existing overlay line if present
+            if (polylineOverlay) {
+                appleMap.removeOverlay(polylineOverlay);
+            }
+
+            // Draw fresh polyline track trail
+            polylineOverlay = new mapkit.PolylineOverlay(coordinates, {
+                style: new mapkit.StrokeStyle({
+                    color: "#007AFF",
+                    lineWidth: 5
+                })
             });
 
-            const padding = 45 * window.devicePixelRatio;
-            const drawW = w - padding * 2;
-            const drawH = h - padding * 2;
-            const latSpan = maxLat - minLat || 0.0001;
-            const lonSpan = maxLon - minLon || 0.0001;
+            appleMap.addOverlay(polylineOverlay);
 
-            // 2. Draw Track Line Over Map
-            trackCtx.strokeStyle = "#38bdf8"; // Vibrant track line
-            trackCtx.lineWidth = 5 * window.devicePixelRatio;
-            trackCtx.lineCap = "round";
-            trackCtx.lineJoin = "round";
-            trackCtx.shadowColor = "rgba(0, 0, 0, 0.5)";
-            trackCtx.shadowBlur = 6;
-            
-            trackCtx.beginPath();
-            gpsTrackPoints.forEach((p, idx) => {
-                const x = padding + ((p.lon - minLon) / lonSpan) * drawW;
-                const y = h - (padding + ((p.lat - minLat) / latSpan) * drawH);
-                if (idx === 0) trackCtx.moveTo(x, y);
-                else trackCtx.lineTo(x, y);
-            });
-            trackCtx.stroke();
-            trackCtx.shadowBlur = 0; // reset shadow
-
-            // Draw start pin
-            const start = gpsTrackPoints[0];
-            const sx = padding + ((start.lon - minLon) / lonSpan) * drawW;
-            const sy = h - (padding + ((start.lat - minLat) / latSpan) * drawH);
-            trackCtx.fillStyle = "#10b981";
-            trackCtx.beginPath();
-            trackCtx.arc(sx, sy, 6 * window.devicePixelRatio, 0, Math.PI * 2);
-            trackCtx.fill();
-            trackCtx.strokeStyle = "#ffffff";
-            trackCtx.lineWidth = 2 * window.devicePixelRatio;
-            trackCtx.stroke();
-
-            // Draw current vessel position marker
-            const last = gpsTrackPoints[gpsTrackPoints.length - 1];
-            const lx = padding + ((last.lon - minLon) / lonSpan) * drawW;
-            const ly = h - (padding + ((last.lat - minLat) / latSpan) * drawH);
-            trackCtx.fillStyle = "#ef4444";
-            trackCtx.beginPath();
-            trackCtx.arc(lx, ly, 8 * window.devicePixelRatio, 0, Math.PI * 2);
-            trackCtx.fill();
-            trackCtx.strokeStyle = "#ffffff";
-            trackCtx.lineWidth = 2 * window.devicePixelRatio;
-            trackCtx.stroke();
+            // Center map on latest position
+            const latest = coordinates[coordinates.length - 1];
+            appleMap.setCenterAnimated(latest, true);
         }
 
         function startGPSTracking() {
@@ -663,10 +602,14 @@
                         const speedMs = pos.coords.speed;
                         const knots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackPoints.push({ lat, lon, knots });
+                        gpsTrackCoords.push({ lat, lon });
                         gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${knots} kts`;
-                        redrawTrack();
-                        downloadTrackBtn.style.display = 'block';
+
+                        if (!appleMap) {
+                            initAppleMap(lat, lon);
+                        } else {
+                            updateMapTrack();
+                        }
                     },
                     (err) => {
                         console.log("GPS error:", err);
@@ -684,20 +627,9 @@
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
+            appleMap = null;
+            polylineOverlay = null;
         }
-
-        downloadTrackBtn.addEventListener('click', () => {
-            trackCanvas.toBlob((blob) => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'beta-timer-track-map.png';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }, 'image/png');
-        });
 
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
@@ -859,10 +791,9 @@
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 gpsLoggerPanel.style.display = 'none';
-                downloadTrackBtn.style.display = 'none';
                 isOvertimeActive = false;
                 stopGPSTracking();
-                gpsTrackPoints = [];
+                gpsTrackCoords = [];
                 startBtn.textContent = CONFIG.startBtnText;
             }
         }
@@ -929,7 +860,6 @@
                 if (!isOvertimeActive) {
                     isOvertimeActive = true;
                     gpsLoggerPanel.style.display = 'flex';
-                    resizeTrackCanvas();
                     startGPSTracking();
                 }
 
