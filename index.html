@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.34">
+    <link rel="manifest" href="manifest.json?v=1.0.35">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.34">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.35">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -546,9 +546,9 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // Esri Gray Canvas: Completely free, no API keys, zero ferry lines, zero public transit clutter
-            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 16
+            // Esri World Imagery: High-resolution satellite tiles, zero API keys, clean imagery
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19
             }).addTo(leafletMap);
         }
 
@@ -560,7 +560,7 @@
             }
 
             polylineLayer = L.polyline(gpsTrackCoords, {
-                color: '#2563eb', // Bold blue track line
+                color: '#38bdf8', // High-visibility bright cyan track line over satellite
                 weight: 5,
                 opacity: 0.95
             }).addTo(leafletMap);
