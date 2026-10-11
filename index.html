@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.16">
+    <link rel="manifest" href="manifest.json?v=1.0.17">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.16">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.17">
 
     <style>
         :root {
@@ -220,24 +220,17 @@
         .map-wrapper {
             position: relative;
             width: 100%;
-            height: 220px;
-            border-radius: 12px;
+            height: 240px;
+            border-radius: 16px;
             overflow: hidden;
-            background: rgba(0, 0, 0, 0.1);
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .map-wrapper iframe,
-        .map-wrapper canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
+        canvas#tactical-canvas {
             width: 100%;
             height: 100%;
-            border: 0;
-        }
-
-        .map-wrapper canvas {
-            pointer-events: none; /* Lets touch/scroll events pass through to the map iframe underneath */
+            display: block;
         }
 
         .gps-info {
@@ -336,7 +329,7 @@
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
         <h1 id="event-title">Countdown Timer</h1>
 
-        <!-- Mode Toggle Tabs (Added Layline Map tab) -->
+        <!-- Mode Toggle Tabs -->
         <div class="mode-tabs" id="mode-tabs">
             <button class="tab-btn active" id="duration-tab">Duration</button>
             <button class="tab-btn" id="target-time-tab">Target Time</button>
@@ -362,13 +355,10 @@
             <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
         </div>
 
-        <!-- Layline Map Container -->
+        <!-- Layline Tactical Canvas Container -->
         <div class="map-view-container" id="map-view-container">
             <div class="gps-info" id="gps-coords">Acquiring GPS fix...</div>
             <div class="map-wrapper">
-                <!-- Apple Maps Base Layer iframe -->
-                <iframe id="apple-map-iframe" src="about:blank" loading="lazy"></iframe>
-                <!-- Transparent Overlay Canvas for future laylines -->
                 <canvas id="tactical-canvas"></canvas>
             </div>
         </div>
@@ -415,7 +405,7 @@
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
-            mapViewMsg: "Live tactical map & GPS active",
+            mapViewMsg: "Tactical Radar Active ⛵",
 
             // Pip Tone Settings (20s - 11s)
             pipFreq: 440,          // A4 (440.00 Hz)
@@ -456,8 +446,8 @@
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
         const gpsCoordsEl = document.getElementById('gps-coords');
-        const appleMapIframe = document.getElementById('apple-map-iframe');
         const tacticalCanvas = document.getElementById('tactical-canvas');
+        const ctx = tacticalCanvas.getContext('2d');
 
         eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
@@ -472,53 +462,80 @@
         let wakeLock = null;
         let cachedVoice = null;
         let watchId = null;
-        let mapInitialized = false;
 
-        // Screen Wake Lock API
-        async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.log("Wake Lock error:", err);
-                }
-            }
+        let currentLat = -33.8568;
+        let currentLon = 151.2153;
+        let currentKnots = 0.0;
+        let currentHeading = 0;
+
+        function resizeCanvas() {
+            if (!tacticalCanvas) return;
+            tacticalCanvas.width = tacticalCanvas.clientWidth * window.devicePixelRatio;
+            tacticalCanvas.height = tacticalCanvas.clientHeight * window.devicePixelRatio;
+            drawTacticalRadar();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawTacticalRadar() {
+            if (!ctx) return;
+            const w = tacticalCanvas.width;
+            const h = tacticalCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Radar Ring Backgrounds
+            ctx.strokeStyle = "rgba(99, 102, 241, 0.25)";
+            ctx.lineWidth = 2;
+
+            [0.25, 0.45, 0.65].forEach(rRatio => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, Math.min(w, h) * rRatio, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            // Crosshairs
+            ctx.beginPath();
+            ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
+            ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy);
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            ctx.stroke();
+
+            // Center Marker (Your Boat Position)
+            ctx.fillStyle = "#6366f1";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // North Arrow Indicator
+            ctx.fillStyle = "#ef4444";
+            ctx.font = "bold 14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("N", cx, 24);
         }
 
-        async function releaseWakeLock() {
-            if (wakeLock !== null) {
-                try {
-                    await wakeLock.release();
-                    wakeLock = null;
-                } catch (err) {
-                    console.log("Wake Lock release error:", err);
-                }
-            }
-        }
-
-        document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible' && isRunning) {
-                await requestWakeLock();
-            }
-        });
-
-        // Live GPS Tracking & Apple Maps Link
+        // Live GPS Tracking
         function startGPS() {
             if ('geolocation' in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (position) => {
-                        const lat = position.coords.latitude.toFixed(5);
-                        const lon = position.coords.longitude.toFixed(5);
+                        currentLat = position.coords.latitude;
+                        currentLon = position.coords.longitude;
                         const speedMs = position.coords.speed;
-                        const speedKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : 0.0;
-
-                        gpsCoordsEl.textContent = `Lat: ${lat}, Lon: ${lon} | ${speedKnots} kts`;
-
-                        // Initialize Apple Map iframe once we get our first real GPS fix
-                        if (!mapInitialized) {
-                            appleMapIframe.src = `https://maps.apple.com/?q=${lat},${lon}&z=15`;
-                            mapInitialized = true;
+                        currentKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : 0.0;
+                        if (position.coords.heading) {
+                            currentHeading = position.coords.heading;
                         }
+
+                        gpsCoordsEl.textContent = `Lat: ${currentLat.toFixed(5)}, Lon: ${currentLon.toFixed(5)} | ${currentKnots} kts`;
+                        drawTacticalRadar();
                     },
                     (error) => {
                         console.log("GPS error:", error);
@@ -643,6 +660,7 @@
             mapViewContainer.style.display = 'flex';
             quick5Btn.style.display = 'none';
             messageEl.textContent = CONFIG.mapViewMsg;
+            setTimeout(resizeCanvas, 50);
         });
 
         function populateWheel(wheelEl, maxVal) {
@@ -715,6 +733,7 @@
                     targetTimeContainer.style.display = 'flex';
                 } else if (currentMode === 'map') {
                     mapViewContainer.style.display = 'flex';
+                    setTimeout(resizeCanvas, 50);
                 }
                 activeDisplay.style.display = 'none';
                 startBtn.textContent = CONFIG.startBtnText;
@@ -801,10 +820,7 @@
                 messageEl.textContent = CONFIG.raceStartedMsg;
 
                 if (lastSpokenSecond !== 0) {
-                    // Play Doop tone using CONFIG values
                     playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
-                    
-                    // Wait 1 second before speaking "Race started"
                     setTimeout(() => {
                         speak(CONFIG.raceStartedSpeech, true);
                     }, 1000);
@@ -827,7 +843,6 @@
                 if (totalSeconds === 15) {
                     speak("15", true);
                 } else if (totalSeconds >= 11 && totalSeconds <= 20) {
-                    // Play Pip tone using CONFIG values
                     playTone(CONFIG.pipFreq, CONFIG.pipDuration, CONFIG.pipType, CONFIG.pipVolume);
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
