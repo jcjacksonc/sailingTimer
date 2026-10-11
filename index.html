@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Countdown Timer</title>
+    <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.24">
+    <link rel="manifest" href="manifest.json?v=1.0.25">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.24">
+    <meta name="apple-mobile-web-app-title" content="Beta Timer">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.25">
 
     <style>
         :root {
@@ -263,7 +263,7 @@
             font-weight: 600;
         }
 
-        /* GPS Track Logger Overlay Panel (Appears in Overtime) */
+        /* GPS Track Logger Panel (Appears in Overtime) */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
@@ -340,7 +340,7 @@
         canvas#track-canvas {
             width: 100%;
             height: 160px;
-            background: rgba(0, 0, 0, 0.2);
+            background: #0f172a; /* Nautical chart background tone */
             border-radius: 12px;
             display: block;
         }
@@ -405,7 +405,7 @@
 
     <div class="container">
         <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-        <h1 id="event-title">Countdown Timer</h1>
+        <h1 id="event-title">Beta Timer</h1>
 
         <!-- Mode Toggle Tabs -->
         <div class="mode-tabs" id="mode-tabs">
@@ -460,7 +460,7 @@
             </div>
             <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
             <canvas id="track-canvas"></canvas>
-            <button class="download-btn" id="download-track-btn">Download Track Image (PNG)</button>
+            <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
         </div>
 
         <div class="message" id="message">Scroll wheels to set duration</div>
@@ -555,12 +555,34 @@
         }
 
         function redrawTrack() {
-            trackCtx.clearRect(0, 0, trackCanvas.width, trackCanvas.height);
+            const w = trackCanvas.width;
+            const h = trackCanvas.height;
+
+            // 1. Draw Simulated Nautical Map Grid Background
+            trackCtx.fillStyle = "#0f172a";
+            trackCtx.fillRect(0, 0, w, h);
+
+            trackCtx.strokeStyle = "rgba(51, 65, 85, 0.4)";
+            trackCtx.lineWidth = 1;
+            const gridSize = 40 * window.devicePixelRatio;
+            for (let x = 0; x < w; x += gridSize) {
+                trackCtx.beginPath(); trackCtx.moveTo(x, 0); trackCtx.lineTo(x, h); trackCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                trackCtx.beginPath(); trackCtx.moveTo(0, y); trackCtx.lineTo(w, y); trackCtx.stroke();
+            }
+
+            // Compass Rose watermark indicator
+            trackCtx.fillStyle = "rgba(100, 116, 139, 0.2)";
+            trackCtx.font = `${12 * window.devicePixelRatio}px sans-serif`;
+            trackCtx.textAlign = "right";
+            trackCtx.fillText("N ↑", w - 15, 25);
+
             if (gpsTrackPoints.length === 0) {
                 trackCtx.fillStyle = "#9ca3af";
-                trackCtx.font = "14px sans-serif";
+                trackCtx.font = `${13 * window.devicePixelRatio}px sans-serif`;
                 trackCtx.textAlign = "center";
-                trackCtx.fillText("Waiting for GPS track data...", trackCanvas.width / 2, trackCanvas.height / 2);
+                trackCtx.fillText("Waiting for GPS fix to map track...", w / 2, h / 2);
                 return;
             }
 
@@ -575,33 +597,47 @@
                 if (p.lon > maxLon) maxLon = p.lon;
             });
 
-            const padding = 40;
-            const w = trackCanvas.width - padding * 2;
-            const h = trackCanvas.height - padding * 2;
+            const padding = 45 * window.devicePixelRatio;
+            const drawW = w - padding * 2;
+            const drawH = h - padding * 2;
             const latSpan = maxLat - minLat || 0.0001;
             const lonSpan = maxLon - minLon || 0.0001;
 
             // Draw track line
-            trackCtx.strokeStyle = "#4f46e5";
-            trackCtx.lineWidth = 4;
+            trackCtx.strokeStyle = "#38bdf8"; // Bright nautical cyan track line
+            trackCtx.lineWidth = 4 * window.devicePixelRatio;
+            trackCtx.lineCap = "round";
+            trackCtx.lineJoin = "round";
             trackCtx.beginPath();
 
             gpsTrackPoints.forEach((p, idx) => {
-                const x = padding + ((p.lon - minLon) / lonSpan) * w;
-                const y = trackCanvas.height - (padding + ((p.lat - minLat) / latSpan) * h);
+                const x = padding + ((p.lon - minLon) / lonSpan) * drawW;
+                const y = h - (padding + ((p.lat - minLat) / latSpan) * drawH);
                 if (idx === 0) trackCtx.moveTo(x, y);
                 else trackCtx.lineTo(x, y);
             });
             trackCtx.stroke();
 
-            // Draw current position marker
+            // Draw start pin
+            const start = gpsTrackPoints[0];
+            const sx = padding + ((start.lon - minLon) / lonSpan) * drawW;
+            const sy = h - (padding + ((start.lat - minLat) / latSpan) * drawH);
+            trackCtx.fillStyle = "#10b981";
+            trackCtx.beginPath();
+            trackCtx.arc(sx, sy, 5 * window.devicePixelRatio, 0, Math.PI * 2);
+            trackCtx.fill();
+
+            // Draw current vessel position marker
             const last = gpsTrackPoints[gpsTrackPoints.length - 1];
-            const lx = padding + ((last.lon - minLon) / lonSpan) * w;
-            const ly = trackCanvas.height - (padding + ((last.lat - minLat) / latSpan) * h);
+            const lx = padding + ((last.lon - minLon) / lonSpan) * drawW;
+            const ly = h - (padding + ((last.lat - minLat) / latSpan) * drawH);
             trackCtx.fillStyle = "#ef4444";
             trackCtx.beginPath();
-            trackCtx.arc(lx, ly, 6, 0, Math.PI * 2);
+            trackCtx.arc(lx, ly, 7 * window.devicePixelRatio, 0, Math.PI * 2);
             trackCtx.fill();
+            trackCtx.strokeStyle = "#ffffff";
+            trackCtx.lineWidth = 2 * window.devicePixelRatio;
+            trackCtx.stroke();
         }
 
         function startGPSTracking() {
@@ -639,12 +675,11 @@
 
         downloadTrackBtn.addEventListener('click', () => {
             const link = document.createElement('a');
-            link.download = 'race-track.png';
+            link.download = 'beta-timer-track.png';
             link.href = trackCanvas.toDataURL('image/png');
             link.click();
         });
 
-        // Screen Wake Lock API
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
                 try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
@@ -866,7 +901,6 @@
 
             const distance = targetTime - Date.now();
             
-            // Overtime mode (past zero) -> Race Starts!
             if (distance <= 0) {
                 const elapsedMs = Math.abs(distance);
                 const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
