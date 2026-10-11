@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.2">
+    <link rel="manifest" href="manifest.json?v=1.0.3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.2">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.3">
 
     <style>
         :root {
@@ -414,7 +414,7 @@
 
         function initSpeechCache() {
             if (!('speechSynthesis' in window)) return;
-            for (let i = 1; i <= 15; i++) {
+            for (let i = 1; i <= 20; i++) {
                 utteranceCache[String(i)] = new SpeechSynthesisUtterance(String(i));
             }
             [CONFIG.timerStartedSpeech, CONFIG.timerStoppedSpeech, CONFIG.raceStartedSpeech].forEach(phrase => {
@@ -619,14 +619,12 @@
             setWheelValues(minutes, seconds);
 
             if (totalSeconds !== lastSpokenSecond) {
-                if (totalSeconds === 10) {
-                    speak("10", true);
-                } else if (totalSeconds >= 6 && totalSeconds <= 9) {
-                    playTone(440, 0.08, 'sine', 0.15); // beep beep beep beep
-                } else if (totalSeconds === 5) {
-                    speak("5", true);
-                } else if (totalSeconds >= 1 && totalSeconds <= 4) {
-                    playTone(440, 0.08, 'sine', 0.15); // beep beep beep beep
+                if (totalSeconds === 15) {
+                    speak("15", true);
+                } else if (totalSeconds >= 11 && totalSeconds <= 20) {
+                    playTone(440, 0.08, 'sine', 0.15); // Pips starting at 20s through 11s
+                } else if (totalSeconds >= 1 && totalSeconds <= 10) {
+                    speak(String(totalSeconds), false); // Countdown 10 down to 1 (just numbers)
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
                     let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
                     speak(speechText, true);
