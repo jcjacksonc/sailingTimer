@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.12">
+    <link rel="manifest" href="manifest.json?v=1.0.13">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.12">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.13">
 
     <style>
         :root {
@@ -245,6 +245,39 @@
             margin-top: 4px;
         }
 
+        /* Live GPS Widget */
+        .gps-container {
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .gps-info {
+            font-size: 0.85rem;
+            color: var(--muted-color);
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 8px;
+        }
+
+        .map-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: var(--secondary-btn);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .map-btn:hover {
+            background-color: var(--secondary-hover);
+        }
+
         .message {
             font-size: 1rem;
             margin-bottom: 20px;
@@ -336,6 +369,12 @@
             </div>
         </div>
 
+        <!-- Live GPS Widget -->
+        <div class="gps-container" id="gps-container">
+            <div class="gps-info" id="gps-coords">Acquiring GPS fix...</div>
+            <a href="#" id="map-link" target="_blank" class="map-btn" style="display:none;">Open in Maps 📍</a>
+        </div>
+
         <div class="message" id="message">Scroll wheels to set duration</div>
 
         <div class="controls">
@@ -364,15 +403,15 @@
 
             // Pip Tone Settings (20s - 11s)
             pipFreq: 440,          // A4 (440.00 Hz)
-            pipDuration: 0.66,    // Duration in seconds
-            pipType: "triangle",       // Oscillator type
-            pipVolume: 3.0,        // Gain volume
+            pipDuration: 0.200,    // Duration in seconds
+            pipType: "sine",       // Oscillator type
+            pipVolume: 2.0,        // Gain volume
 
             // Doop Tone Settings (0s)
-            doopFreq: 880,      // A5 (880.00 Hz)
-            doopDuration: 1.5,    // Duration in seconds
+            doopFreq: 659.25,      // E5 (659.25 Hz)
+            doopDuration: 0.75,    // Duration in seconds
             doopType: "triangle",  // Oscillator type
-            doopVolume: 3.0,       // Gain volume
+            doopVolume: 2.0,       // Gain volume
 
             // Speech Settings
             speechRate: 1.0,        
@@ -398,6 +437,8 @@
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
+        const gpsCoordsEl = document.getElementById('gps-coords');
+        const mapLinkEl = document.getElementById('map-link');
 
         eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
@@ -411,6 +452,7 @@
         let audioCtx = null;
         let wakeLock = null;
         let cachedVoice = null;
+        let watchId = null;
 
         // Screen Wake Lock API
         async function requestWakeLock() {
@@ -439,6 +481,36 @@
                 await requestWakeLock();
             }
         });
+
+        // Live GPS Tracking
+        function startGPS() {
+            if ('geolocation' in navigator) {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude.toFixed(5);
+                        const lon = position.coords.longitude.toFixed(5);
+                        const speedMs = position.coords.speed;
+                        const speedKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : 0.0;
+
+                        gpsCoordsEl.textContent = `Lat: ${lat}, Lon: ${lon} | ${speedKnots} kts`;
+                        mapLinkEl.href = `https://maps.apple.com/?q=${lat},${lon}`;
+                        mapLinkEl.style.display = 'inline-block';
+                    },
+                    (error) => {
+                        console.log("GPS error:", error);
+                        gpsCoordsEl.textContent = "GPS signal unavailable";
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 5000
+                    }
+                );
+            } else {
+                gpsCoordsEl.textContent = "Geolocation not supported";
+            }
+        }
+        startGPS();
 
         function initAudioContext() {
             if (!audioCtx) {
