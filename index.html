@@ -161,7 +161,7 @@
             margin-top: 6px;
         }
 
-        /* Start Time Input Container */
+        /* Target Time Input Container */
         .target-time-container {
             display: none;
             flex-direction: column;
@@ -350,7 +350,26 @@
         let targetTime = null;
         let isRunning = false;
         let lastSpokenSecond = -1;
-        let currentMode = 'duration'; // 'duration' or 'target'
+        let currentMode = 'duration';
+        const utteranceCache = {};
+
+        // Pre-synthesize and prime utterances on load to eliminate on-the-fly lag
+        function initSpeechCache() {
+            if (!('speechSynthesis' in window)) return;
+            
+            // Prime numbers 0 to 15
+            for (let i = 0; i <= 15; i++) {
+                const utterance = new SpeechSynthesisUtterance(String(i));
+                utterance.rate = 1.2;
+                utteranceCache[i] = utterance;
+            }
+            
+            // Prime common phrases
+            ['Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
+                utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
+            });
+        }
+        initSpeechCache();
 
         // Initialize time input to current time + 5 mins
         const defaultTarget = new Date(Date.now() + 5 * 60 * 1000);
@@ -438,12 +457,12 @@
         updateLiveClock();
 
         function speak(text, forceCancel = false) {
-            if ('speechSynthesis' in window) {
-                if (forceCancel) window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.1;
-                window.speechSynthesis.speak(utterance);
-            }
+            if (!('speechSynthesis' in window)) return;
+            if (forceCancel) window.speechSynthesis.cancel();
+            
+            // Use pre-cached utterance if available for zero lag
+            const utterance = utteranceCache[text] || new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
         }
 
         function setUIState(running) {
@@ -486,7 +505,6 @@
                     const targetDate = new Date();
                     targetDate.setHours(targetHours, targetMins, 0, 0);
 
-                    // If target time has already passed today, assume it's for tomorrow
                     if (targetDate.getTime() <= now.getTime()) {
                         targetDate.setDate(targetDate.getDate() + 1);
                     }
@@ -520,7 +538,7 @@
             lastSpokenSecond = -1;
             messageEl.textContent = "5-minute timer started!";
             setUIState(true);
-            speak("5 minute timer started", true);
+            speak("Timer started", true);
         });
 
         function updateCountdown() {
@@ -561,11 +579,11 @@
                 }
 
                 if (shouldSpeak) {
-                    let speechText = "";
                     if (totalSeconds < 15) {
-                        speechText = String(totalSeconds);
-                        speak(speechText, false);
+                        // Speak raw number instantly from cache
+                        speak(String(totalSeconds), false);
                     } else {
+                        let speechText = "";
                         if (minutes > 0 && seconds > 0) {
                             speechText = `${minutes} minutes ${seconds} seconds`;
                         } else if (minutes > 0) {
