@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.25">
+    <link rel="manifest" href="manifest.json?v=1.0.26">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.25">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.26">
 
     <style>
         :root {
@@ -339,8 +339,8 @@
 
         canvas#track-canvas {
             width: 100%;
-            height: 160px;
-            background: #0f172a; /* Nautical chart background tone */
+            height: 180px;
+            background: #1e293b;
             border-radius: 12px;
             display: block;
         }
@@ -558,13 +558,24 @@
             const w = trackCanvas.width;
             const h = trackCanvas.height;
 
-            // 1. Draw Simulated Nautical Map Grid Background
-            trackCtx.fillStyle = "#0f172a";
+            // 1. Draw Simulated Nautical Chart Picture Background
+            trackCtx.fillStyle = "#0f172a"; // Deep marine blue chart base
             trackCtx.fillRect(0, 0, w, h);
 
-            trackCtx.strokeStyle = "rgba(51, 65, 85, 0.4)";
+            // Draw topography / depth contour lines picture effect
+            trackCtx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+            trackCtx.lineWidth = 2 * window.devicePixelRatio;
+            for (let i = -h; i < w; i += 40 * window.devicePixelRatio) {
+                trackCtx.beginPath();
+                trackCtx.moveTo(i, 0);
+                trackCtx.lineTo(i + h, h);
+                trackCtx.stroke();
+            }
+
+            // Draw coordinate grid lines
+            trackCtx.strokeStyle = "rgba(100, 116, 139, 0.3)";
             trackCtx.lineWidth = 1;
-            const gridSize = 40 * window.devicePixelRatio;
+            const gridSize = 50 * window.devicePixelRatio;
             for (let x = 0; x < w; x += gridSize) {
                 trackCtx.beginPath(); trackCtx.moveTo(x, 0); trackCtx.lineTo(x, h); trackCtx.stroke();
             }
@@ -572,17 +583,17 @@
                 trackCtx.beginPath(); trackCtx.moveTo(0, y); trackCtx.lineTo(w, y); trackCtx.stroke();
             }
 
-            // Compass Rose watermark indicator
-            trackCtx.fillStyle = "rgba(100, 116, 139, 0.2)";
-            trackCtx.font = `${12 * window.devicePixelRatio}px sans-serif`;
+            // Compass rose overlay graphic
+            trackCtx.fillStyle = "rgba(148, 163, 184, 0.25)";
+            trackCtx.font = `bold ${11 * window.devicePixelRatio}px sans-serif`;
             trackCtx.textAlign = "right";
             trackCtx.fillText("N ↑", w - 15, 25);
 
             if (gpsTrackPoints.length === 0) {
-                trackCtx.fillStyle = "#9ca3af";
+                trackCtx.fillStyle = "#94a3b8";
                 trackCtx.font = `${13 * window.devicePixelRatio}px sans-serif`;
                 trackCtx.textAlign = "center";
-                trackCtx.fillText("Waiting for GPS fix to map track...", w / 2, h / 2);
+                trackCtx.fillText("Waiting for GPS fix to overlay track...", w / 2, h / 2);
                 return;
             }
 
@@ -597,14 +608,14 @@
                 if (p.lon > maxLon) maxLon = p.lon;
             });
 
-            const padding = 45 * window.devicePixelRatio;
+            const padding = 50 * window.devicePixelRatio;
             const drawW = w - padding * 2;
             const drawH = h - padding * 2;
             const latSpan = maxLat - minLat || 0.0001;
             const lonSpan = maxLon - minLon || 0.0001;
 
             // Draw track line
-            trackCtx.strokeStyle = "#38bdf8"; // Bright nautical cyan track line
+            trackCtx.strokeStyle = "#38bdf8";
             trackCtx.lineWidth = 4 * window.devicePixelRatio;
             trackCtx.lineCap = "round";
             trackCtx.lineJoin = "round";
@@ -673,11 +684,18 @@
             }
         }
 
+        // iOS PWA compatible blob download handler
         downloadTrackBtn.addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'beta-timer-track.png';
-            link.href = trackCanvas.toDataURL('image/png');
-            link.click();
+            trackCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'beta-timer-track.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
         });
 
         async function requestWakeLock() {
