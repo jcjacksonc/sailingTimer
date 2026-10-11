@@ -363,23 +363,23 @@
             }
         }
 
-        function playTick(isFinal = false) {
+        function playTone(freq, duration, type = 'sine', volume = 0.15) {
             try {
                 initAudioContext();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(isFinal ? 880 : 440, audioCtx.currentTime);
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
                 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.08);
+                osc.stop(audioCtx.currentTime + duration);
             } catch (e) {
                 console.log("Audio play error:", e);
             }
@@ -387,7 +387,7 @@
 
         function initSpeechCache() {
             if (!('speechSynthesis' in window)) return;
-            ['Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
+            ['15', '10', '5', 'Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
                 utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
             });
         }
@@ -470,6 +470,7 @@
             if (!('speechSynthesis' in window)) return;
             if (forceCancel) window.speechSynthesis.cancel();
             const utterance = utteranceCache[text] || new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.2;
             window.speechSynthesis.speak(utterance);
         }
 
@@ -525,77 +526,4 @@
 
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
-                lastSpokenSecond = -1;
-                messageEl.textContent = "Countdown running...";
-                setUIState(true);
-                speak("Timer started", true);
-            } else {
-                isRunning = false;
-                targetTime = null;
-                messageEl.textContent = "Timer stopped";
-                setUIState(false);
-                speak("Timer stopped", true);
-            }
-        });
-
-        quick5Btn.addEventListener('click', () => {
-            initAudioContext();
-            setWheelValues(5, 0);
-            targetTime = Date.now() + 5 * 60 * 1000;
-            isRunning = true;
-            lastSpokenSecond = -1;
-            messageEl.textContent = "5-minute timer started!";
-            setUIState(true);
-            speak("Timer started", true);
-        });
-
-        function updateCountdown() {
-            if (!isRunning || !targetTime) return;
-
-            const now = Date.now();
-            const distance = targetTime - now;
-            const totalSeconds = Math.max(0, Math.ceil(distance / 1000));
-
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-
-            activeMinsEl.textContent = String(minutes).padStart(2, '0');
-            activeSecsEl.textContent = String(seconds).padStart(2, '0');
-            setWheelValues(minutes, seconds);
-
-            if (totalSeconds === 0 && distance <= 0) {
-                isRunning = false;
-                messageEl.textContent = "Time's up! 🎉";
-                if (lastSpokenSecond !== 0) {
-                    playTick(true);
-                    speak("Time is up!", true);
-                    lastSpokenSecond = 0;
-                }
-                setUIState(false);
-                return;
-            }
-
-            // Interval logic (changed threshold to 10 seconds)
-            if (totalSeconds !== lastSpokenSecond) {
-                if (totalSeconds <= 10) {
-                    playTick(totalSeconds === 0);
-                } else if (totalSeconds < 180) {
-                    if (totalSeconds % 15 === 0) {
-                        let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                        speak(speechText, true);
-                    }
-                } else {
-                    if (totalSeconds % 30 === 0) {
-                        let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
-                        speak(speechText, true);
-                    }
-                }
-
-                lastSpokenSecond = totalSeconds;
-            }
-        }
-
-        setInterval(updateCountdown, 100);
-    </script>
-</body>
-</html>
+                lastSpokenSecond =
