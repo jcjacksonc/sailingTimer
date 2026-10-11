@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.29">
+    <link rel="manifest" href="manifest.json?v=1.0.30">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.29">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.30">
 
     <!-- Leaflet.js Map Library (No API Key Required) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -267,7 +267,7 @@
             font-weight: 600;
         }
 
-        /* GPS Track Logger Panel (Appears in Overtime) */
+        /* GPS Track Map Panel (Appears in Overtime) */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
@@ -546,10 +546,9 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // High-contrast Dark Matter tile layer for great cockpit visibility
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
-                subdomains: 'abcd'
+            // Free standard OpenStreetMap tiles (No API keys required)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
             }).addTo(leafletMap);
         }
 
@@ -561,8 +560,8 @@
             }
 
             polylineLayer = L.polyline(gpsTrackCoords, {
-                color: '#38bdf8',
-                weight: 4,
+                color: '#2563eb', // Clean blue track line
+                weight: 5,
                 opacity: 0.9
             }).addTo(leafletMap);
 
