@@ -351,15 +351,42 @@
         let isRunning = false;
         let lastSpokenSecond = -1;
         let currentMode = 'duration';
+        let audioCtx = null;
         const utteranceCache = {};
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTick(isFinal = false) {
+            try {
+                initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isFinal ? 880 : 440, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
 
         function initSpeechCache() {
             if (!('speechSynthesis' in window)) return;
-            for (let i = 0; i <= 15; i++) {
-                const utterance = new SpeechSynthesisUtterance(String(i));
-                utterance.rate = 1.3; // Snappy rate to prevent overlap
-                utteranceCache[i] = utterance;
-            }
             ['Timer started', 'Timer stopped', 'Time is up!'].forEach(phrase => {
                 utteranceCache[phrase] = new SpeechSynthesisUtterance(phrase);
             });
@@ -468,6 +495,7 @@
         }
 
         startBtn.addEventListener('click', () => {
+            initAudioContext();
             if (!isRunning) {
                 let totalMs = 0;
                 if (currentMode === 'duration') {
@@ -511,6 +539,7 @@
         });
 
         quick5Btn.addEventListener('click', () => {
+            initAudioContext();
             setWheelValues(5, 0);
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
@@ -538,6 +567,7 @@
                 isRunning = false;
                 messageEl.textContent = "Time's up! 🎉";
                 if (lastSpokenSecond !== 0) {
+                    playTick(true);
                     speak("Time is up!", true);
                     lastSpokenSecond = 0;
                 }
@@ -545,33 +575,18 @@
                 return;
             }
 
-            // Speech interval logic
+            // Interval logic (changed threshold to 10 seconds)
             if (totalSeconds !== lastSpokenSecond) {
-                let shouldSpeak = false;
-
-                if (totalSeconds <= 15) {
-                    // Under or equal to 15 seconds: trigger every single second (15, 14, 13...)
-                    shouldSpeak = true;
+                if (totalSeconds <= 10) {
+                    playTick(totalSeconds === 0);
                 } else if (totalSeconds < 180) {
-                    // Between 15s and 3 mins: every 15 seconds
-                    if (totalSeconds % 15 === 0) shouldSpeak = true;
+                    if (totalSeconds % 15 === 0) {
+                        let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                        speak(speechText, true);
+                    }
                 } else {
-                    // Above 3 mins: every 30 seconds
-                    if (totalSeconds % 30 === 0) shouldSpeak = true;
-                }
-
-                if (shouldSpeak) {
-                    if (totalSeconds <= 15) {
-                        speak(String(totalSeconds), false);
-                    } else {
-                        let speechText = "";
-                        if (minutes > 0 && seconds > 0) {
-                            speechText = `${minutes} minutes ${seconds} seconds`;
-                        } else if (minutes > 0) {
-                            speechText = `${minutes} minutes`;
-                        } else {
-                            speechText = `${seconds} seconds`;
-                        }
+                    if (totalSeconds % 30 === 0) {
+                        let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
                         speak(speechText, true);
                     }
                 }
