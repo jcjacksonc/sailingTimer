@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.33">
+    <link rel="manifest" href="manifest.json?v=1.0.34">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.33">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.34">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -341,18 +341,12 @@
             text-align: center;
         }
 
-        /* Leaflet Container with Dark Tactical Marine Filter */
+        /* Leaflet Map Container Element */
         #map-container {
             width: 100%;
             height: 220px;
             border-radius: 12px;
             z-index: 1;
-            background: #0f172a;
-        }
-
-        /* CSS Inversion Filter to strip clutter and create a clean dark map */
-        #map-container .leaflet-tile-pane {
-            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
         }
 
         .message {
@@ -552,9 +546,9 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // Open-access official OpenStreetMap tile server (No API keys or signup required)
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
+            // Esri Gray Canvas: Completely free, no API keys, zero ferry lines, zero public transit clutter
+            L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 16
             }).addTo(leafletMap);
         }
 
@@ -566,7 +560,7 @@
             }
 
             polylineLayer = L.polyline(gpsTrackCoords, {
-                color: '#38bdf8', // Vibrant cyan track line
+                color: '#2563eb', // Bold blue track line
                 weight: 5,
                 opacity: 0.95
             }).addTo(leafletMap);
