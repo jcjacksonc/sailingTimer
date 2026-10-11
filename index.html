@@ -186,16 +186,12 @@
         <!-- Rolling Wheel Time Picker / Display -->
         <div class="picker-container">
             <div class="wheel-column">
-                <div class="wheel" id="minutes-wheel">
-                    <!-- Populated via JS -->
-                </div>
+                <div class="wheel" id="minutes-wheel"></div>
                 <div class="wheel-label">Minutes</div>
             </div>
             <div class="wheel-separator">:</div>
             <div class="wheel-column">
-                <div class="wheel" id="seconds-wheel">
-                    <!-- Populated via JS -->
-                </div>
+                <div class="wheel" id="seconds-wheel"></div>
                 <div class="wheel-label">Seconds</div>
             </div>
         </div>
@@ -222,7 +218,6 @@
 
         // Populate wheels (0 to 59)
         function populateWheel(wheelEl, maxVal) {
-            // Add top and bottom padding items for smooth centering
             wheelEl.innerHTML = '<div class="wheel-item" style="pointer-events:none;"></div>';
             for (let i = 0; i <= maxVal; i++) {
                 const item = document.createElement('div');
@@ -230,7 +225,7 @@
                 item.textContent = String(i).padStart(2, '0');
                 item.dataset.value = i;
                 item.addEventListener('click', () => {
-                    wheelEl.scrollTop = i * 40;
+                    if (!isRunning) wheelEl.scrollTop = i * 40;
                 });
                 wheelEl.appendChild(item);
             }
@@ -257,12 +252,11 @@
             secondsWheel.scrollTop = secs * 40;
         }
 
-        // Highlight selected item during scroll
         function updateWheelHighlight(wheelEl) {
             const index = Math.round(wheelEl.scrollTop / 40);
             const items = wheelEl.querySelectorAll('.wheel-item');
             items.forEach((item, idx) => {
-                if (idx === index + 1) { // +1 accounts for top padding item
+                if (idx === index + 1) {
                     item.classList.add('selected');
                 } else {
                     item.classList.remove('selected');
@@ -286,28 +280,36 @@
         // Speech synthesis helper
         function speak(text) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Cut off previous speech immediately
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 1.1; // Slightly faster to keep it snappy
+                utterance.rate = 1.1;
                 window.speechSynthesis.speak(utterance);
             }
         }
 
+        // Unified Start / Stop Button Handler
         startBtn.addEventListener('click', () => {
-            const mins = getSelectedMinutes();
-            const secs = getSelectedSeconds();
-            const totalMs = (mins * 60 + secs) * 1000;
+            if (!isRunning) {
+                const mins = getSelectedMinutes();
+                const secs = getSelectedSeconds();
+                const totalMs = (mins * 60 + secs) * 1000;
 
-            if (totalMs <= 0) {
-                messageEl.textContent = "Please select a time > 0";
-                return;
+                if (totalMs <= 0) {
+                    messageEl.textContent = "Please select a time > 0";
+                    return;
+                }
+
+                targetTime = Date.now() + totalMs;
+                isRunning = true;
+                lastSpokenSecond = -1;
+                messageEl.textContent = "Countdown running...";
+                startBtn.textContent = "Reset / Stop";
+            } else {
+                isRunning = false;
+                targetTime = null;
+                messageEl.textContent = "Timer stopped";
+                startBtn.textContent = "Start Countdown";
             }
-
-            targetTime = Date.now() + totalMs;
-            isRunning = true;
-            lastSpokenSecond = -1;
-            messageEl.textContent = "Countdown running...";
-            startBtn.textContent = "Reset / Stop";
         });
 
         quick5Btn.addEventListener('click', () => {
@@ -316,16 +318,7 @@
             isRunning = true;
             lastSpokenSecond = -1;
             messageEl.textContent = "5-minute timer started!";
-        });
-
-        // Toggle button behavior if clicked while running
-        startBtn.addEventListener('click', () => {
-            if (isRunning && startBtn.textContent.includes("Reset")) {
-                isRunning = false;
-                targetTime = null;
-                messageEl.textContent = "Timer stopped";
-                startBtn.textContent = "Start Countdown";
-            }
+            startBtn.textContent = "Reset / Stop";
         });
 
         function updateCountdown() {
@@ -350,7 +343,6 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
-            // Update wheels to show remaining time
             setWheelValues(minutes, seconds);
 
             // Speech interval logic
@@ -358,13 +350,10 @@
                 let shouldSpeak = false;
 
                 if (totalSeconds < 15) {
-                    // Under 15 seconds: just say the raw number to avoid audio clipping
                     shouldSpeak = true;
                 } else if (totalSeconds < 180) {
-                    // Under 3 minutes: speak every 15 seconds
                     if (totalSeconds % 15 === 0) shouldSpeak = true;
                 } else {
-                    // Above 3 minutes: speak every 30 seconds
                     if (totalSeconds % 30 === 0) shouldSpeak = true;
                 }
 
@@ -386,7 +375,7 @@
             }
         }
 
-        setInterval(updateCountdown, 200); // Higher frequency check for smooth UI snapping
+        setInterval(updateCountdown, 200);
     </script>
 </body>
 </html>
