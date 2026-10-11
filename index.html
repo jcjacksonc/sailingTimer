@@ -355,7 +355,7 @@
 
             // Voice Settings
             speechRate: 1.0,        
-            speechPitch: 1.0,       
+            speechPitch: 2.0,       
             speechVoiceLang: "en-au" 
         };
         // ==========================================
@@ -648,7 +648,7 @@
                 if (totalSeconds === 15) {
                     speak("15", true);
                 } else if (totalSeconds >= 11 && totalSeconds <= 20) {
-                    playTone(440, 0.08, 'sine', 0.5); // Pips starting at 20s down to 11s
+                    playTone(440, 0.200, 'sine', 1); // Pips starting at 20s down to 11s
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false); // Countdown 10 down to 1
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
