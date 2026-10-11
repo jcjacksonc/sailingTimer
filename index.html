@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.30">
+    <link rel="manifest" href="manifest.json?v=1.0.31">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.30">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.31">
 
     <!-- Leaflet.js Map Library (No API Key Required) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -546,9 +546,10 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // Free standard OpenStreetMap tiles (No API keys required)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19
+            // Clean CartoDB Positron base (No ferry lines, transit icons, or tourist clutter)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
             }).addTo(leafletMap);
         }
 
@@ -560,7 +561,7 @@
             }
 
             polylineLayer = L.polyline(gpsTrackCoords, {
-                color: '#2563eb', // Clean blue track line
+                color: '#4f46e5', // Clean indigo track line matching app accent
                 weight: 5,
                 opacity: 0.9
             }).addTo(leafletMap);
