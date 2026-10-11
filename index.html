@@ -6,11 +6,11 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.22">
+    <link rel="manifest" href="manifest.json?v=1.0.23">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.22">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.23">
 
     <style>
         :root {
@@ -246,13 +246,13 @@
             line-height: 1;
         }
 
-        /* Single Column / Final Minute Super Size - INCREASED AGAIN */
+        /* Single Column / Final Minute Super Size */
         .active-display.seconds-only {
-            padding: 20px 10px; /* Reduced padding to make room for bigger digits */
+            padding: 20px 10px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 10rem; /* Increased from 7.5rem (+33%) */
+            font-size: 10rem;
             letter-spacing: -5px;
         }
 
@@ -706,7 +706,7 @@
                 const minutes = Math.floor(totalElapsedSeconds / 60);
                 const seconds = totalElapsedSeconds % 60;
 
-                // Restore minute box layout for overtime tracking
+                // Restore minute box layout for overtime tracking (with leading zeros)
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'flex';
                 boxMins.style.display = 'flex';
@@ -735,20 +735,20 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
-            // Below 1 minute: Hide minutes & separator, scale up seconds to max size
+            // Below 1 minute: Hide minutes & separator, scale up seconds, single digit when < 10
             if (minutes === 0) {
                 activeDisplay.classList.add('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'none';
                 boxSep.style.display = 'none';
-                activeSecsEl.textContent = String(seconds).padStart(2, '0');
+                activeSecsEl.textContent = String(seconds); // Single digit (9, 8, 7...)
             } else {
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 activeMinsEl.textContent = String(minutes).padStart(2, '0');
-                activeSecsEl.textContent = String(seconds).padStart(2, '0');
+                activeSecsEl.textContent = String(seconds).padStart(2, '0'); // Two digits (09, 08...)
             }
 
             setWheelValues(minutes, seconds);
