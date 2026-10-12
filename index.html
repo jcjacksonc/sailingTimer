@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.54">
+    <link rel="manifest" href="manifest.json?v=1.0.55">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.54">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.55">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -165,6 +165,7 @@
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
+            scroll-padding-top: 82.5px; /* Ensures items snap precisely to the optical center */
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
@@ -493,6 +494,7 @@
             .wheel {
                 width: 140px;
                 max-height: 180px;
+                scroll-padding-top: 62.5px;
             }
 
             .wheel-item {
@@ -581,7 +583,7 @@
                 -webkit-backdrop-filter: blur(4px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 border-radius: 14px !important;
-                padding: 8px 16px !important; /* Reduced padding for smaller footprint */
+                padding: 8px 16px !important;
                 z-index: 999999 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
                 align-items: center !important;
@@ -600,7 +602,7 @@
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 3.5rem !important; /* Scaled down from 4.5rem to 3.5rem */
+                font-size: 3.5rem !important;
                 line-height: 1 !important;
                 color: #ffffff !important;
                 text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
@@ -1046,18 +1048,22 @@
         let scrollTimeouts = {};
 
         function populateWheel(wheelEl, maxVal) {
-            let html = '<div class="wheel-item" style="pointer-events:none;"></div>';
+            // Added multiple padding spacer items top & bottom so indices 0 and 59 can center precisely
+            let html = '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
+            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += '<div class="wheel-item" style="pointer-events:none;"></div>';
+            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
+            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        wheelEl.scrollTo({ top: targetVal * ITEM_HEIGHT, behavior: 'smooth' });
+                        // Offset by 2 spacer blocks (index + 2)
+                        wheelEl.scrollTo({ top: (targetVal + 2) * ITEM_HEIGHT, behavior: 'smooth' });
                     }
                 });
             });
@@ -1066,21 +1072,27 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
         
-        minutesWheel.scrollTop = 5 * ITEM_HEIGHT;
-        secondsWheel.scrollTop = 0 * ITEM_HEIGHT;
+        // Synchronous initial placement to 05:00 right away without waiting for window load events
+        function initWheelPositions() {
+            minutesWheel.scrollTop = (5 + 2) * ITEM_HEIGHT;
+            secondsWheel.scrollTop = (0 + 2) * ITEM_HEIGHT;
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+        }
+        initWheelPositions();
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT); }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT) - 2; }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT) - 2; }
         
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * ITEM_HEIGHT;
-            secondsWheel.scrollTop = secs * ITEM_HEIGHT;
+            minutesWheel.scrollTop = (mins + 2) * ITEM_HEIGHT;
+            secondsWheel.scrollTop = (secs + 2) * ITEM_HEIGHT;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const index = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
-            wheelEl.querySelectorAll('.wheel-item').forEach((item, idx) => {
-                if (idx === index + 1) item.classList.add('selected');
+            const rawIndex = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
+            wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
+                if (idx === rawIndex - 2) item.classList.add('selected');
                 else item.classList.remove('selected');
             });
         }
@@ -1102,15 +1114,6 @@
 
         minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
         secondsWheel.addEventListener('scroll', () => handleWheelScroll(secondsWheel), { passive: true });
-        
-        updateWheelHighlight(minutesWheel);
-        updateWheelHighlight(secondsWheel);
-
-        window.addEventListener('load', () => {
-            setWheelValues(5, 0);
-            updateWheelHighlight(minutesWheel);
-            updateWheelHighlight(secondsWheel);
-        });
 
         function updateLiveClock() {
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
