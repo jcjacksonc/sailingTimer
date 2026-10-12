@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.64">
+    <link rel="manifest" href="manifest.json?v=1.0.65">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.64">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.65">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -172,7 +172,6 @@
             background: rgba(128, 128, 128, 0.06);
             border-radius: 12px;
             -webkit-overflow-scrolling: touch;
-            /* Native CSS scroll-padding perfectly centers snapped items without spacer element bugs */
             scroll-padding-top: calc(50% - (var(--item-height) / 2));
             scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
             padding-top: calc(50% - (var(--item-height) / 2));
@@ -270,6 +269,7 @@
             border-radius: 20px;
             padding: 14px;
             flex-shrink: 0;
+            width: 100%;
         }
 
         .active-box {
@@ -471,7 +471,7 @@
             background-color: var(--secondary-hover);
         }
 
-        /* LANDSCAPE ADAPTIVE RULES FOR PRE-RACE & RACE */
+        /* LANDSCAPE ADAPTIVE RULES FOR PRE-RACE & ACTIVE TIMER */
         @media (orientation: landscape) {
             html, body {
                 height: 100vh !important;
@@ -500,6 +500,7 @@
                 flex-wrap: wrap;
                 align-items: center;
                 justify-content: space-between;
+                align-content: center;
             }
 
             .left-column > div:first-child {
@@ -542,6 +543,15 @@
             .wheel {
                 width: 95px;
                 max-height: 95px;
+            }
+
+            /* Perfectly centered active countdown display in landscape mode when running */
+            .active-display {
+                width: 100% !important;
+                max-width: 480px;
+                margin: 0 auto 6px auto !important;
+                padding: 12px !important;
+                justify-content: center !important;
             }
 
             .message {
@@ -843,7 +853,7 @@
         let latestKnots = "0.0";
 
         function getItemHeight() {
-            return 50; // matches --item-height in CSS
+            return 50;
         }
 
         function updateTelemetryText() {
