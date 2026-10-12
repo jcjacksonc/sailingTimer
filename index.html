@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.48">
+    <link rel="manifest" href="manifest.json?v=1.0.49">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.48">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.49">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -161,7 +161,7 @@
             height: 100%;
             max-height: 220px;
             width: 110px;
-            overflow-y: scroll;
+            overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
@@ -515,7 +515,7 @@
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & LOW-BLUR TRANSLUCENT OVERLAYS */
+            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & ULTRA-TRANSLUCENT OVERLAYS */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -1058,7 +1058,7 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
         
-        // Initial set and startup alignment
+        // Initial setup and aligned startup
         minutesWheel.scrollTop = 5 * ITEM_HEIGHT;
         secondsWheel.scrollTop = 0 * ITEM_HEIGHT;
 
@@ -1090,7 +1090,7 @@
                 if (Math.abs(currentScroll - targetScroll) > 1) {
                     wheelEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
                 }
-            }, 120);
+            }, 180);
         }
 
         minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
@@ -1098,6 +1098,13 @@
         
         updateWheelHighlight(minutesWheel);
         updateWheelHighlight(secondsWheel);
+
+        // Ensure correct initial alignment after layout settles
+        window.addEventListener('load', () => {
+            setWheelValues(5, 0);
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+        });
 
         function updateLiveClock() {
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
