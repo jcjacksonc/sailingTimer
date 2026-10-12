@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.60">
+    <link rel="manifest" href="manifest.json?v=1.0.61">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.60">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.61">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -469,71 +469,113 @@
             background-color: var(--secondary-hover);
         }
 
-        /* PRE-RACE MODE - LANDSCAPE ADAPTIVE LAYOUT */
+        /* PRE-RACE MODE - LANDSCAPE COMPACT ADAPTIVE LAYOUT */
         @media (orientation: landscape) {
             html, body {
-                height: 100% !important;
-                max-height: 100% !important;
-                width: 100% !important;
-                overflow-y: auto !important;
-                position: relative !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100vw !important;
+                overflow: hidden !important;
+                position: fixed !important;
             }
 
             body {
-                padding: 10px !important;
-                justify-content: flex-start !important;
+                padding: 6px !important;
+                justify-content: center !important;
+                align-items: center !important;
             }
 
             .container {
-                max-width: 680px;
-                height: auto;
-                max-height: none;
+                max-width: 96vw;
+                max-height: 96vh;
+                height: 100%;
                 margin: 0 auto;
-                padding: 15px 25px;
+                padding: 10px 18px;
+                justify-content: space-between;
             }
 
             .left-column {
                 width: 100%;
-                justify-content: flex-start;
+                height: 100%;
+                justify-content: space-between;
+            }
+
+            .live-clock {
+                font-size: 0.8rem;
+                margin-bottom: 2px;
+            }
+
+            h1 {
+                font-size: 1.2rem;
+                margin-bottom: 6px;
             }
 
             .mode-tabs {
-                max-width: 420px;
-                margin: 0 auto 10px auto;
+                max-width: 320px;
+                margin: 0 auto 6px auto;
+                padding: 3px;
+            }
+
+            .tab-btn {
+                padding: 6px;
+                font-size: 0.9rem;
             }
 
             .picker-container, .target-time-container {
-                max-width: 580px;
-                margin: 0 auto 10px auto;
-                padding: 10px 20px;
-                min-height: 150px;
+                max-width: 480px;
+                min-height: 110px;
+                max-height: 125px;
+                margin: 0 auto 6px auto;
+                padding: 6px 15px;
             }
 
             .wheel {
-                width: 130px;
-                max-height: 150px;
+                width: 100px;
+                max-height: 110px;
             }
 
             .wheel-spacer {
-                height: 47.5px;
+                height: 32.5px !important;
             }
 
             .wheel-item {
-                height: 55px;
-                font-size: 2.8rem;
+                height: 45px;
+                font-size: 2.1rem;
+            }
+
+            .wheel-separator {
+                font-size: 2.2rem;
+                padding-bottom: 6px;
+            }
+
+            .wheel-label {
+                font-size: 0.65rem;
+                margin-top: 2px;
+            }
+
+            input[type="time"] {
+                padding: 8px;
+                font-size: 1.8rem;
+            }
+
+            .message {
+                font-size: 0.85rem;
+                margin-bottom: 6px;
+                min-height: 18px;
             }
 
             .controls {
-                max-width: 480px;
+                max-width: 440px;
                 margin: 0 auto;
                 flex-direction: row;
-                gap: 12px;
+                gap: 10px;
             }
 
             .controls button {
                 flex: 1;
-                padding: 14px;
-                font-size: 1.05rem;
+                padding: 10px;
+                font-size: 0.95rem;
+                border-radius: 10px;
             }
 
             .right-column {
@@ -1067,24 +1109,26 @@
             messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
-        function getItemHeight() {
-            return (window.innerWidth > window.innerHeight) ? 55 : 55;
+        function getCurrentItemHeight() {
+            return (window.innerWidth > window.innerHeight) ? 45 : 55;
         }
 
         function populateWheel(wheelEl, maxVal) {
-            let html = '<div class="wheel-spacer" style="height: 82.5px;"></div>';
+            const itemH = getCurrentItemHeight();
+            const spacerH = (110 / 2) - (itemH / 2);
+            let html = `<div class="wheel-spacer" style="height: ${spacerH > 0 ? spacerH : 32.5}px;"></div>`;
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += '<div class="wheel-spacer" style="height: 82.5px;"></div>';
+            html += `<div class="wheel-spacer" style="height: ${spacerH > 0 ? spacerH : 32.5}px;"></div>`;
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        const itemH = 55;
-                        wheelEl.scrollTo({ top: (targetVal + 1) * itemH, behavior: 'smooth' });
+                        const curH = getCurrentItemHeight();
+                        wheelEl.scrollTo({ top: (targetVal + 1) * curH, behavior: 'smooth' });
                     }
                 });
             });
@@ -1093,16 +1137,18 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 55) - 1; }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 55) - 1; }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / getCurrentItemHeight()) - 1; }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / getCurrentItemHeight()) - 1; }
         
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = (mins + 1) * 55;
-            secondsWheel.scrollTop = (secs + 1) * 55;
+            const curH = getCurrentItemHeight();
+            minutesWheel.scrollTop = (mins + 1) * curH;
+            secondsWheel.scrollTop = (secs + 1) * curH;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const rawIndex = Math.round(wheelEl.scrollTop / 55);
+            const curH = getCurrentItemHeight();
+            const rawIndex = Math.round(wheelEl.scrollTop / curH);
             const selectedIdx = rawIndex - 1;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
                 if (idx === selectedIdx) item.classList.add('selected');
