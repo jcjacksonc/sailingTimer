@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.37">
+    <link rel="manifest" href="manifest.json?v=1.0.38">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.37">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.38">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -51,7 +51,7 @@
             height: 100vh;
             max-height: 100vh;
             width: 100vw;
-            overflow: hidden; /* Strict lock against page scrolling */
+            overflow: hidden;
             position: fixed;
         }
 
@@ -62,17 +62,17 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
         }
 
         .container {
             width: 100%;
             max-width: 440px;
             height: 100%;
-            max-height: calc(100vh - 20px);
+            max-height: calc(100vh - 16px);
             background-color: var(--card-bg);
             border-radius: 24px;
-            padding: 15px;
+            padding: 12px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -81,17 +81,17 @@
         }
 
         .live-clock {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--muted-color);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
             flex-shrink: 0;
         }
 
         h1 {
-            font-size: 1.4rem;
-            margin-bottom: 10px;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
             font-weight: 700;
             letter-spacing: -0.5px;
             flex-shrink: 0;
@@ -101,19 +101,19 @@
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 10px;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 8px;
+            padding: 6px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
@@ -130,12 +130,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
+            gap: 10px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
-            padding: 15px 10px;
+            border-radius: 16px;
+            padding: 10px;
             flex-shrink: 0;
         }
 
@@ -146,15 +146,15 @@
         }
 
         .wheel {
-            height: 150px;
-            width: 90px;
+            height: 130px;
+            width: 85px;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 12px;
+            border-radius: 10px;
         }
 
         .wheel::-webkit-scrollbar {
@@ -162,11 +162,11 @@
         }
 
         .wheel-item {
-            height: 50px;
+            height: 43px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 1.9rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -181,18 +181,18 @@
         }
 
         .wheel-separator {
-            font-size: 2.2rem;
+            font-size: 1.9rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .wheel-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-top: 6px;
+            letter-spacing: 1px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
@@ -201,23 +201,23 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
-            padding: 25px 15px;
+            border-radius: 16px;
+            padding: 20px 10px;
             flex-shrink: 0;
         }
 
         input[type="time"] {
-            width: 85%;
-            padding: 12px;
-            border-radius: 12px;
+            width: 80%;
+            padding: 10px;
+            border-radius: 10px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -225,10 +225,10 @@
         }
 
         .target-time-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 1px;
             font-weight: 600;
         }
 
@@ -238,11 +238,11 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
-            padding: 15px 10px;
+            border-radius: 16px;
+            padding: 12px 10px;
             flex-shrink: 0;
         }
 
@@ -253,7 +253,7 @@
         }
 
         .active-value {
-            font-size: 3.2rem;
+            font-size: 2.8rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -261,42 +261,42 @@
         }
 
         .active-separator {
-            font-size: 3.2rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 15px 10px;
+            padding: 12px 10px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 7.5rem;
-            letter-spacing: -4px;
+            font-size: 6rem;
+            letter-spacing: -3px;
         }
 
         .active-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-top: 6px;
+            letter-spacing: 1px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
-        /* GPS Track Map Panel (Flexible Fill) */
+        /* GPS Track Map Panel */
         .gps-logger-panel {
             display: none;
             flex-direction: column;
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
+            border-radius: 16px;
             padding: 8px;
-            flex: 1; /* Automatically expands to fit screen */
+            flex: 1;
             min-height: 0;
         }
 
@@ -304,7 +304,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--muted-color);
             padding: 0 4px;
@@ -314,8 +314,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 40px;
-            height: 22px;
+            width: 36px;
+            height: 20px;
         }
 
         .switch input {
@@ -330,14 +330,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 22px;
+            border-radius: 20px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
+            height: 14px;
+            width: 14px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -350,26 +350,25 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(18px);
+            transform: translateX(16px);
         }
 
         .gps-stats {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
-            padding: 6px;
-            border-radius: 8px;
+            padding: 5px;
+            border-radius: 6px;
             text-align: center;
             flex-shrink: 0;
         }
 
-        /* Map Wrapper Fills Vertical Screen Space */
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 180px;
-            border-radius: 12px;
+            min-height: 140px;
+            border-radius: 10px;
             overflow: hidden;
             position: relative;
         }
@@ -383,7 +382,7 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             padding: 8px;
             flex-shrink: 0;
         }
@@ -393,10 +392,10 @@
         }
 
         .message {
-            font-size: 0.95rem;
-            margin-bottom: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
             color: var(--muted-color);
-            min-height: 22px;
+            min-height: 18px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -404,18 +403,18 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
         }
 
         button {
             width: 100%;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -436,80 +435,116 @@
         .btn-secondary:hover {
             background-color: var(--secondary-hover);
         }
+
+        /* LANDSCAPE MODE OPTIMIZATIONS */
+        @media (orientation: landscape) {
+            .container {
+                max-width: 98vw;
+                max-height: 98vh;
+                flex-direction: row;
+                text-align: left;
+                gap: 12px;
+                padding: 10px;
+            }
+            .left-column {
+                width: 310px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                flex-shrink: 0;
+                height: 100%;
+            }
+            .right-column {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                height: 100%;
+            }
+            .gps-logger-panel {
+                height: 100%;
+                margin-bottom: 0;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div>
-            <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-            <h1 id="event-title">Beta Timer</h1>
+        <!-- Left Column in Landscape / Full Stack in Portrait -->
+        <div class="left-column">
+            <div>
+                <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
+                <h1 id="event-title">Beta Timer</h1>
 
-            <!-- Mode Toggle Tabs -->
-            <div class="mode-tabs" id="mode-tabs">
-                <button class="tab-btn active" id="duration-tab">Duration</button>
-                <button class="tab-btn" id="target-time-tab">Target Time</button>
+                <!-- Mode Toggle Tabs -->
+                <div class="mode-tabs" id="mode-tabs">
+                    <button class="tab-btn active" id="duration-tab">Duration</button>
+                    <button class="tab-btn" id="target-time-tab">Target Time</button>
+                </div>
+            </div>
+
+            <!-- Rolling Wheel Time Picker -->
+            <div class="picker-container" id="picker-container">
+                <div class="wheel-column">
+                    <div class="wheel" id="minutes-wheel"></div>
+                    <div class="wheel-label">Minutes</div>
+                </div>
+                <div class="wheel-separator">:</div>
+                <div class="wheel-column">
+                    <div class="wheel" id="seconds-wheel"></div>
+                    <div class="wheel-label">Seconds</div>
+                </div>
+            </div>
+
+            <!-- Target Time Input -->
+            <div class="target-time-container" id="target-time-container">
+                <input type="time" id="time-input">
+                <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
+            </div>
+
+            <!-- Clean Active Countdown Display -->
+            <div class="active-display" id="active-display">
+                <div class="active-box" id="box-sign" style="display:none;">
+                    <div class="active-value" id="active-sign">&nbsp;</div>
+                    <div class="active-label" id="active-mode-label">&nbsp;</div>
+                </div>
+                <div class="active-box" id="box-mins">
+                    <div class="active-value" id="active-mins">00</div>
+                    <div class="active-label">Minutes</div>
+                </div>
+                <div class="active-separator" id="box-sep">:</div>
+                <div class="active-box" id="box-secs">
+                    <div class="active-value" id="active-secs">00</div>
+                    <div class="active-label">Seconds</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="message" id="message">Scroll wheels to set duration</div>
+
+                <div class="controls">
+                    <button id="start-btn">Start Countdown</button>
+                    <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+                </div>
             </div>
         </div>
 
-        <!-- Rolling Wheel Time Picker -->
-        <div class="picker-container" id="picker-container">
-            <div class="wheel-column">
-                <div class="wheel" id="minutes-wheel"></div>
-                <div class="wheel-label">Minutes</div>
-            </div>
-            <div class="wheel-separator">:</div>
-            <div class="wheel-column">
-                <div class="wheel" id="seconds-wheel"></div>
-                <div class="wheel-label">Seconds</div>
-            </div>
-        </div>
-
-        <!-- Target Time Input -->
-        <div class="target-time-container" id="target-time-container">
-            <input type="time" id="time-input">
-            <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
-        </div>
-
-        <!-- Clean Active Countdown Display -->
-        <div class="active-display" id="active-display">
-            <div class="active-box" id="box-sign" style="display:none;">
-                <div class="active-value" id="active-sign">&nbsp;</div>
-                <div class="active-label" id="active-mode-label">&nbsp;</div>
-            </div>
-            <div class="active-box" id="box-mins">
-                <div class="active-value" id="active-mins">00</div>
-                <div class="active-label">Minutes</div>
-            </div>
-            <div class="active-separator" id="box-sep">:</div>
-            <div class="active-box" id="box-secs">
-                <div class="active-value" id="active-secs">00</div>
-                <div class="active-label">Seconds</div>
-            </div>
-        </div>
-
-        <!-- GPS Track Map Panel (Maximized in Overtime) -->
-        <div class="gps-logger-panel" id="gps-logger-panel">
-            <div class="gps-toggle-row">
-                <span>Record Live GPS Track</span>
-                <label class="switch">
-                    <input type="checkbox" id="gps-toggle" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
-            <div id="map-wrapper">
-                <div id="map-container"></div>
-            </div>
-            <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
-        </div>
-
-        <div>
-            <div class="message" id="message">Scroll wheels to set duration</div>
-
-            <div class="controls">
-                <button id="start-btn">Start Countdown</button>
-                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+        <!-- Right Column in Landscape / Full Stack in Portrait (Active in Overtime) -->
+        <div class="right-column">
+            <div class="gps-logger-panel" id="gps-logger-panel">
+                <div class="gps-toggle-row">
+                    <span>Record Live GPS Track</span>
+                    <label class="switch">
+                        <input type="checkbox" id="gps-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
+                <div id="map-wrapper">
+                    <div id="map-container"></div>
+                </div>
+                <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
             </div>
         </div>
     </div>
@@ -586,7 +621,7 @@
         let cachedVoice = null;
 
         let watchId = null;
-        let gpsTrackPoints = []; // Stores { lat, lon, knots }
+        let gpsTrackPoints = [];
         let isOvertimeActive = false;
         let leafletMap = null;
         let polylineGroup = null;
@@ -599,7 +634,6 @@
                 attributionControl: false
             }).setView([lat, lon], 16);
 
-            // Esri World Imagery Satellite Tiles
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
@@ -608,13 +642,12 @@
             polylineGroup = L.layerGroup().addTo(leafletMap);
         }
 
-        // Color coding function for speed (in knots)
         function getSpeedColor(knots) {
             const k = parseFloat(knots);
-            if (k < 3.0) return '#38bdf8'; // Blue / Cyan (Slow)
-            if (k < 6.0) return '#10b981'; // Green / Emerald (Medium)
-            if (k < 8.0) return '#f59e0b'; // Amber / Yellow (Fast)
-            return '#ef4444';             // Red (Max speed)
+            if (k < 3.0) return '#38bdf8'; // Blue (Slow)
+            if (k < 6.0) return '#10b981'; // Green (Medium)
+            if (k < 8.0) return '#f59e0b'; // Amber (Fast)
+            return '#ef4444';             // Red (Max)
         }
 
         function updateMapTrack() {
@@ -622,7 +655,6 @@
 
             polylineGroup.clearLayers();
 
-            // Draw color-coded track segments based on speed
             for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
                 const p1 = gpsTrackPoints[i];
                 const p2 = gpsTrackPoints[i + 1];
@@ -683,7 +715,6 @@
             }
         }
 
-        // PWA PNG Map Exporter Handler
         downloadTrackBtn.addEventListener('click', () => {
             const mapWrapper = document.getElementById('map-wrapper');
             html2canvas(mapWrapper, {
@@ -805,25 +836,25 @@
             wheelEl.innerHTML = html;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 50;
+                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 43;
                 });
             });
         }
 
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
-        minutesWheel.scrollTop = 5 * 50;
-        secondsWheel.scrollTop = 0 * 50;
+        minutesWheel.scrollTop = 5 * 43;
+        secondsWheel.scrollTop = 0 * 43;
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 50); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 50); }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 43); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 43); }
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * 50;
-            secondsWheel.scrollTop = secs * 50;
+            minutesWheel.scrollTop = mins * 43;
+            secondsWheel.scrollTop = secs * 43;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const index = Math.round(wheelEl.scrollTop / 50);
+            const index = Math.round(wheelEl.scrollTop / 43);
             wheelEl.querySelectorAll('.wheel-item').forEach((item, idx) => {
                 if (idx === index + 1) item.classList.add('selected');
                 else item.classList.remove('selected');
