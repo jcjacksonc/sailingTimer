@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.55">
+    <link rel="manifest" href="manifest.json?v=1.0.56">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.55">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.56">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -165,13 +165,14 @@
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
-            scroll-padding-top: 82.5px; /* Ensures items snap precisely to the optical center */
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
             border-radius: 14px;
             -webkit-overflow-scrolling: touch;
+            padding-top: calc(110px - 27.5px);
+            padding-bottom: calc(110px - 27.5px);
         }
 
         .wheel::-webkit-scrollbar {
@@ -188,13 +189,15 @@
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             scroll-snap-align: center;
+            scroll-snap-stop: always;
             cursor: pointer;
-            opacity: 0.4;
-            transition: opacity 0.15s;
+            opacity: 0.3;
+            transition: opacity 0.15s, transform 0.15s;
         }
 
         .wheel-item.selected {
             opacity: 1.0;
+            transform: scale(1.08);
         }
 
         .wheel-separator {
@@ -494,7 +497,6 @@
             .wheel {
                 width: 140px;
                 max-height: 180px;
-                scroll-padding-top: 62.5px;
             }
 
             .wheel-item {
@@ -1048,22 +1050,17 @@
         let scrollTimeouts = {};
 
         function populateWheel(wheelEl, maxVal) {
-            // Added multiple padding spacer items top & bottom so indices 0 and 59 can center precisely
-            let html = '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
-            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
+            let html = '';
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
-            html += '<div class="wheel-item" style="height:82.5px; pointer-events:none;"></div>';
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        // Offset by 2 spacer blocks (index + 2)
-                        wheelEl.scrollTo({ top: (targetVal + 2) * ITEM_HEIGHT, behavior: 'smooth' });
+                        wheelEl.scrollTo({ top: targetVal * ITEM_HEIGHT, behavior: 'smooth' });
                     }
                 });
             });
@@ -1071,28 +1068,19 @@
 
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
-        
-        // Synchronous initial placement to 05:00 right away without waiting for window load events
-        function initWheelPositions() {
-            minutesWheel.scrollTop = (5 + 2) * ITEM_HEIGHT;
-            secondsWheel.scrollTop = (0 + 2) * ITEM_HEIGHT;
-            updateWheelHighlight(minutesWheel);
-            updateWheelHighlight(secondsWheel);
-        }
-        initWheelPositions();
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT) - 2; }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT) - 2; }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT); }
         
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = (mins + 2) * ITEM_HEIGHT;
-            secondsWheel.scrollTop = (secs + 2) * ITEM_HEIGHT;
+            minutesWheel.scrollTop = mins * ITEM_HEIGHT;
+            secondsWheel.scrollTop = secs * ITEM_HEIGHT;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const rawIndex = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
+            const selectedIdx = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
-                if (idx === rawIndex - 2) item.classList.add('selected');
+                if (idx === selectedIdx) item.classList.add('selected');
                 else item.classList.remove('selected');
             });
         }
@@ -1109,11 +1097,18 @@
                 if (Math.abs(currentScroll - targetScroll) > 1) {
                     wheelEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
                 }
-            }, 250);
+            }, 200);
         }
 
         minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
         secondsWheel.addEventListener('scroll', () => handleWheelScroll(secondsWheel), { passive: true });
+
+        function initWheelPositions() {
+            setWheelValues(5, 0);
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+        }
+        initWheelPositions();
 
         function updateLiveClock() {
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
