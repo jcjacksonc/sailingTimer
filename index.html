@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.45">
+    <link rel="manifest" href="manifest.json?v=1.0.47">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.45">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.47">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -168,6 +168,7 @@
             position: relative;
             background: rgba(128, 128, 128, 0.06);
             border-radius: 14px;
+            scroll-behavior: smooth;
         }
 
         .wheel::-webkit-scrollbar {
@@ -184,13 +185,15 @@
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             scroll-snap-align: center;
+            scroll-snap-stop: always;
             cursor: pointer;
-            opacity: 0.4;
-            transition: opacity 0.15s;
+            opacity: 0.35;
+            transition: opacity 0.15s, transform 0.15s;
         }
 
         .wheel-item.selected {
             opacity: 1.0;
+            transform: scale(1.08);
         }
 
         .wheel-separator {
@@ -513,7 +516,7 @@
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & iOS FROSTED GLASS OVERLAYS */
+            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & ULTRA-TRANSLUCENT OVERLAYS */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -566,45 +569,45 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* True iOS Frosted Glass Translucent Timer Overlay */
+            /* Ultra-Translucent Floating Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
                 top: 24px !important;
                 left: 24px !important;
-                background: rgba(255, 255, 255, 0.22) !important;
-                backdrop-filter: blur(25px) saturate(180%) !important;
-                -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                background: rgba(0, 0, 0, 0.12) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
                 border-radius: 24px !important;
-                padding: 14px 28px !important;
+                padding: 12px 26px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
                 font-size: 3.2rem !important;
                 color: #ffffff !important;
-                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
+                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9);
             }
 
-            /* True iOS Frosted Glass Telemetry Badge (Speed Only) */
+            /* Ultra-Translucent Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
                 bottom: 24px !important; left: 24px !important;
-                background: rgba(255, 255, 255, 0.22) !important;
-                backdrop-filter: blur(25px) saturate(180%) !important;
-                -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+                background: rgba(0, 0, 0, 0.12) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
                 color: #ffffff !important;
-                padding: 12px 24px !important;
+                padding: 10px 22px !important;
                 border-radius: 20px !important;
-                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
                 font-size: 1.2rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
             }
 
             /* Hide PNG Download Button in Landscape */
@@ -780,7 +783,18 @@
         let isOvertimeActive = false;
         let leafletMap = null;
         let polylineGroup = null;
+        let latestLat = null;
+        let latestLon = null;
         let latestKnots = "0.0";
+
+        function updateTelemetryText() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && isOvertimeActive) {
+                gpsStats.textContent = `Speed: ${latestKnots} kts`;
+            } else if (latestLat !== null && latestLon !== null) {
+                gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | Speed: ${latestKnots} kts`;
+            }
+        }
 
         function checkOrientation() {
             const isLandscape = window.innerWidth > window.innerHeight;
@@ -805,6 +819,8 @@
                     activeDisplay.appendChild(boxSecs);
                 }
             }
+
+            updateTelemetryText();
 
             if (leafletMap) {
                 setTimeout(() => leafletMap.invalidateSize(), 150);
@@ -868,22 +884,17 @@
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
                         if (!isOvertimeActive || !gpsToggle.checked) return;
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
+                        latestLat = pos.coords.latitude;
+                        latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackPoints.push({ lat, lon, knots: latestKnots });
+                        gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots });
                         
-                        const isLandscape = window.innerWidth > window.innerHeight;
-                        if (isLandscape) {
-                            gpsStats.textContent = `Speed: ${latestKnots} kts`;
-                        } else {
-                            gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${latestKnots} kts`;
-                        }
+                        updateTelemetryText();
 
                         if (!leafletMap) {
-                            initLeafletMap(lat, lon);
+                            initLeafletMap(latestLat, latestLon);
                         } else {
                             leafletMap.invalidateSize();
                             updateMapTrack();
@@ -1024,6 +1035,8 @@
             messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
+        const ITEM_HEIGHT = 55;
+
         function populateWheel(wheelEl, maxVal) {
             let html = '<div class="wheel-item" style="pointer-events:none;"></div>';
             for (let i = 0; i <= maxVal; i++) {
@@ -1031,27 +1044,32 @@
             }
             html += '<div class="wheel-item" style="pointer-events:none;"></div>';
             wheelEl.innerHTML = html;
+            
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 55;
+                    if (!isRunning) {
+                        const targetVal = parseInt(item.dataset.value, 10);
+                        wheelEl.scrollTo({ top: targetVal * ITEM_HEIGHT, behavior: 'smooth' });
+                    }
                 });
             });
         }
 
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
-        minutesWheel.scrollTop = 5 * 55;
-        secondsWheel.scrollTop = 0 * 55;
+        minutesWheel.scrollTop = 5 * ITEM_HEIGHT;
+        secondsWheel.scrollTop = 0 * ITEM_HEIGHT;
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 55); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 55); }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT); }
+        
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * 55;
-            secondsWheel.scrollTop = secs * 55;
+            minutesWheel.scrollTop = mins * ITEM_HEIGHT;
+            secondsWheel.scrollTop = secs * ITEM_HEIGHT;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const index = Math.round(wheelEl.scrollTop / 55);
+            const index = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
             wheelEl.querySelectorAll('.wheel-item').forEach((item, idx) => {
                 if (idx === index + 1) item.classList.add('selected');
                 else item.classList.remove('selected');
@@ -1095,6 +1113,8 @@
                 isOvertimeActive = false;
                 stopGPSTracking();
                 gpsTrackPoints = [];
+                latestLat = null;
+                latestLon = null;
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
             }
