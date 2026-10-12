@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.53">
+    <link rel="manifest" href="manifest.json?v=1.0.54">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.53">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.54">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -570,22 +570,22 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Edge-to-Edge Floating Timer Overlay safely positioned inside Dynamic Island / Safe Area */
+            /* Compact Edge-to-Edge Floating Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: max(20px, env(safe-area-inset-top)) !important;
-                left: max(20px, env(safe-area-inset-left)) !important;
+                top: max(16px, env(safe-area-inset-top)) !important;
+                left: max(16px, env(safe-area-inset-left)) !important;
                 background: rgba(0, 0, 0, 0.25) !important;
                 backdrop-filter: blur(4px) !important;
                 -webkit-backdrop-filter: blur(4px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                border-radius: 20px !important;
-                padding: 14px 28px !important;
+                border-radius: 14px !important;
+                padding: 8px 16px !important; /* Reduced padding for smaller footprint */
                 z-index: 999999 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
                 align-items: center !important;
-                gap: 12px !important;
+                gap: 8px !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-box {
@@ -600,7 +600,7 @@
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 4.5rem !important;
+                font-size: 3.5rem !important; /* Scaled down from 4.5rem to 3.5rem */
                 line-height: 1 !important;
                 color: #ffffff !important;
                 text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
@@ -609,16 +609,16 @@
             /* Edge-to-Edge Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
-                bottom: max(20px, env(safe-area-inset-bottom)) !important; 
-                left: max(20px, env(safe-area-inset-left)) !important;
+                bottom: max(16px, env(safe-area-inset-bottom)) !important; 
+                left: max(16px, env(safe-area-inset-left)) !important;
                 background: rgba(0, 0, 0, 0.25) !important;
                 backdrop-filter: blur(4px) !important;
                 -webkit-backdrop-filter: blur(4px) !important;
                 color: #ffffff !important;
-                padding: 10px 20px !important;
-                border-radius: 16px !important;
+                padding: 8px 16px !important;
+                border-radius: 14px !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                font-size: 1rem !important;
+                font-size: 0.9rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
@@ -631,7 +631,6 @@
             }
         }
 
-        /* Default hidden state for standalone landscape timer overlay */
         #standalone-timer-overlay {
             display: none;
         }
@@ -639,24 +638,20 @@
 </head>
 <body>
 
-    <!-- Dedicated Floating Overlay for Race Mode Landscape -->
     <div id="standalone-timer-overlay" class="active-display"></div>
 
     <div class="container">
-        <!-- Left Column -->
         <div class="left-column">
             <div>
                 <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
                 <h1 id="event-title">Beta Timer</h1>
 
-                <!-- Mode Toggle Tabs -->
                 <div class="mode-tabs" id="mode-tabs">
                     <button class="tab-btn active" id="duration-tab">Duration</button>
                     <button class="tab-btn" id="target-time-tab">Target Time</button>
                 </div>
             </div>
 
-            <!-- Rolling Wheel Time Picker -->
             <div class="picker-container" id="picker-container">
                 <div class="wheel-column">
                     <div class="wheel" id="minutes-wheel"></div>
@@ -669,13 +664,11 @@
                 </div>
             </div>
 
-            <!-- Target Time Input -->
             <div class="target-time-container" id="target-time-container">
                 <input type="time" id="time-input">
                 <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
             </div>
 
-            <!-- Clean Active Countdown Display -->
             <div class="active-display" id="active-display">
                 <div class="active-box" id="box-sign" style="display:none;">
                     <div class="active-value" id="active-sign">&nbsp;</div>
@@ -702,7 +695,6 @@
             </div>
         </div>
 
-        <!-- Right Column (GPS Satellite Track Map Panel) -->
         <div class="right-column">
             <div class="gps-logger-panel" id="gps-logger-panel">
                 <div class="gps-toggle-row">
@@ -867,10 +859,10 @@
 
         function getSpeedColor(knots) {
             const k = parseFloat(knots);
-            if (k < 3.0) return '#38bdf8'; // Blue (Slow)
-            if (k < 6.0) return '#10b981'; // Green (Medium)
-            if (k < 8.0) return '#f59e0b'; // Amber (Fast)
-            return '#ef4444';             // Red (Max)
+            if (k < 3.0) return '#38bdf8';
+            if (k < 6.0) return '#10b981';
+            if (k < 8.0) return '#f59e0b';
+            return '#ef4444';
         }
 
         function updateMapTrack() {
@@ -1159,7 +1151,6 @@
             }
         }
 
-        // Helper to kill any active wheel momentum scroll inertia instantly when clicking start/5min
         function haltWheelInertia() {
             clearTimeout(scrollTimeouts['minutes-wheel']);
             clearTimeout(scrollTimeouts['seconds-wheel']);
@@ -1302,7 +1293,6 @@
             }
         }
 
-        // Throttled interval to 250ms (4 updates/sec) to stop phone from running hot while keeping timer silky smooth
         setInterval(updateCountdown, 250);
         checkOrientation();
     </script>
