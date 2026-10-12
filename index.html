@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.58">
+    <link rel="manifest" href="manifest.json?v=1.0.59">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.58">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.59">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -164,7 +164,8 @@
             width: 110px;
             overflow-y: auto;
             overflow-x: hidden;
-            scroll-snap-type: y proximity;
+            /* Changed to mandatory to strictly clamp and prevent scrolling past 0 and 59 */
+            scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
@@ -1066,7 +1067,6 @@
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        // Account for the top spacer node offset (+1 index)
                         wheelEl.scrollTo({ top: (targetVal + 1) * ITEM_HEIGHT, behavior: 'smooth' });
                     }
                 });
@@ -1240,7 +1240,7 @@
                 if (lastSpokenSecond !== 0) {
                     playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
                     setTimeout(() => speak(CONFIG.raceStartedSpeech, true), 1000);
-                    lastSpokenSecond = 0;
+                    lastSpoceneSecond = 0;
                 }
                 return;
             }
