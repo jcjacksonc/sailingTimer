@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.44">
+    <link rel="manifest" href="manifest.json?v=1.0.45">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.44">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.45">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -566,45 +566,45 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* iOS-Style Frosted Glass Timer Overlay */
+            /* True iOS Frosted Glass Translucent Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: 20px !important;
-                left: 20px !important;
-                background: rgba(30, 30, 35, 0.65) !important;
-                backdrop-filter: blur(20px) !important;
-                -webkit-backdrop-filter: blur(20px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-radius: 22px !important;
-                padding: 12px 26px !important;
+                top: 24px !important;
+                left: 24px !important;
+                background: rgba(255, 255, 255, 0.22) !important;
+                backdrop-filter: blur(25px) saturate(180%) !important;
+                -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                border-radius: 24px !important;
+                padding: 14px 28px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 3rem !important;
+                font-size: 3.2rem !important;
                 color: #ffffff !important;
-                text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
             }
 
-            /* iOS-Style Frosted Glass Telemetry Stats */
+            /* True iOS Frosted Glass Telemetry Badge (Speed Only) */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
-                bottom: 20px !important; left: 20px !important;
-                background: rgba(30, 30, 35, 0.65) !important;
-                backdrop-filter: blur(20px) !important;
-                -webkit-backdrop-filter: blur(20px) !important;
+                bottom: 24px !important; left: 24px !important;
+                background: rgba(255, 255, 255, 0.22) !important;
+                backdrop-filter: blur(25px) saturate(180%) !important;
+                -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
                 color: #ffffff !important;
-                padding: 12px 22px !important;
-                border-radius: 18px !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                font-size: 1rem !important;
+                padding: 12px 24px !important;
+                border-radius: 20px !important;
+                border: 1px solid rgba(255, 255, 255, 0.4) !important;
+                font-size: 1.2rem !important;
                 z-index: 999999 !important;
-                font-weight: 600 !important;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
-                text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+                font-weight: 700 !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
             }
 
             /* Hide PNG Download Button in Landscape */
@@ -780,6 +780,7 @@
         let isOvertimeActive = false;
         let leafletMap = null;
         let polylineGroup = null;
+        let latestKnots = "0.0";
 
         function checkOrientation() {
             const isLandscape = window.innerWidth > window.innerHeight;
@@ -870,10 +871,16 @@
                         const lat = pos.coords.latitude;
                         const lon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
-                        const knots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
+                        latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackPoints.push({ lat, lon, knots });
-                        gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${knots} kts`;
+                        gpsTrackPoints.push({ lat, lon, knots: latestKnots });
+                        
+                        const isLandscape = window.innerWidth > window.innerHeight;
+                        if (isLandscape) {
+                            gpsStats.textContent = `Speed: ${latestKnots} kts`;
+                        } else {
+                            gpsStats.textContent = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)} | Speed: ${latestKnots} kts`;
+                        }
 
                         if (!leafletMap) {
                             initLeafletMap(lat, lon);
