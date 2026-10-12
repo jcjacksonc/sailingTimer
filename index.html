@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.67">
+    <link rel="manifest" href="manifest.json?v=1.0.68">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.67">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.68">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -548,6 +548,13 @@
             .wheel {
                 width: 95px;
                 max-height: 95px;
+            }
+
+            /* Natural fit sizing for pre-race active countdown display in landscape mode */
+            .active-display {
+                width: fit-content !important;
+                margin: 0 auto 6px auto !important;
+                padding: 10px 20px !important;
             }
 
             .message {
@@ -1350,5 +1357,3 @@
     </script>
 </body>
 </html>
-
-```
