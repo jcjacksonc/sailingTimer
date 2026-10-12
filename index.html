@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.49">
+    <link rel="manifest" href="manifest.json?v=1.0.51">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.49">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.51">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -515,7 +515,7 @@
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & ULTRA-TRANSLUCENT OVERLAYS */
+            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & 2px BLUR OVERLAYS */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -568,44 +568,44 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Low-Blur Ultra-Transparent Floating Timer Overlay */
+            /* 2px Blur Ultra-Transparent Floating Timer Overlay (50% Smaller Digits) */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: 24px !important;
-                left: 24px !important;
+                top: 20px !important;
+                left: 20px !important;
                 background: rgba(0, 0, 0, 0.15) !important;
-                backdrop-filter: blur(3px) !important;
-                -webkit-backdrop-filter: blur(3px) !important;
+                backdrop-filter: blur(2px) !important;
+                -webkit-backdrop-filter: blur(2px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-radius: 24px !important;
-                padding: 12px 26px !important;
+                border-radius: 18px !important;
+                padding: 8px 18px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 3.2rem !important;
+                font-size: 1.6rem !important;
                 color: #ffffff !important;
-                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
             }
 
-            /* Low-Blur Ultra-Transparent Speed Badge */
+            /* 2px Blur Ultra-Transparent Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
-                bottom: 24px !important; left: 24px !important;
+                bottom: 20px !important; left: 20px !important;
                 background: rgba(0, 0, 0, 0.15) !important;
-                backdrop-filter: blur(3px) !important;
-                -webkit-backdrop-filter: blur(3px) !important;
+                backdrop-filter: blur(2px) !important;
+                -webkit-backdrop-filter: blur(2px) !important;
                 color: #ffffff !important;
-                padding: 10px 22px !important;
-                border-radius: 20px !important;
+                padding: 8px 18px !important;
+                border-radius: 16px !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                font-size: 1.2rem !important;
+                font-size: 0.95rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
             }
 
@@ -1058,7 +1058,6 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
         
-        // Initial setup and aligned startup
         minutesWheel.scrollTop = 5 * ITEM_HEIGHT;
         secondsWheel.scrollTop = 0 * ITEM_HEIGHT;
 
@@ -1090,7 +1089,7 @@
                 if (Math.abs(currentScroll - targetScroll) > 1) {
                     wheelEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
                 }
-            }, 180);
+            }, 250);
         }
 
         minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
@@ -1099,7 +1098,6 @@
         updateWheelHighlight(minutesWheel);
         updateWheelHighlight(secondsWheel);
 
-        // Ensure correct initial alignment after layout settles
         window.addEventListener('load', () => {
             setWheelValues(5, 0);
             updateWheelHighlight(minutesWheel);
