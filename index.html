@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.52">
+    <link rel="manifest" href="manifest.json?v=1.0.53">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.52">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.53">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -45,6 +45,7 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
+            touch-action: manipulation;
         }
 
         html, body {
@@ -63,7 +64,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: env(safe-area-inset-top, 10px) env(safe-area-inset-right, 10px) env(safe-area-inset-bottom, 10px) env(safe-area-inset-left, 10px);
         }
 
         .container {
@@ -443,6 +444,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
+            z-index: 10;
         }
 
         button:active {
@@ -515,7 +517,7 @@
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & 2px BLUR OVERLAYS */
+            /* RACE MODE - LANDSCAPE FULLSCREEN EDGE-TO-EDGE AROUND DYNAMIC ISLAND */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -568,20 +570,20 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Minimalist Full-Fill Floating Timer Overlay in Landscape Race Mode */
+            /* Edge-to-Edge Floating Timer Overlay safely positioned inside Dynamic Island / Safe Area */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: 20px !important;
-                left: 20px !important;
-                background: rgba(0, 0, 0, 0.15) !important;
-                backdrop-filter: blur(2px) !important;
-                -webkit-backdrop-filter: blur(2px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                top: max(20px, env(safe-area-inset-top)) !important;
+                left: max(20px, env(safe-area-inset-left)) !important;
+                background: rgba(0, 0, 0, 0.25) !important;
+                backdrop-filter: blur(4px) !important;
+                -webkit-backdrop-filter: blur(4px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 border-radius: 20px !important;
                 padding: 14px 28px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
                 align-items: center !important;
                 gap: 12px !important;
             }
@@ -604,21 +606,22 @@
                 text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
             }
 
-            /* 2px Blur Ultra-Transparent Speed Badge */
+            /* Edge-to-Edge Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
-                bottom: 20px !important; left: 20px !important;
-                background: rgba(0, 0, 0, 0.15) !important;
-                backdrop-filter: blur(2px) !important;
-                -webkit-backdrop-filter: blur(2px) !important;
+                bottom: max(20px, env(safe-area-inset-bottom)) !important; 
+                left: max(20px, env(safe-area-inset-left)) !important;
+                background: rgba(0, 0, 0, 0.25) !important;
+                backdrop-filter: blur(4px) !important;
+                -webkit-backdrop-filter: blur(4px) !important;
                 color: #ffffff !important;
                 padding: 10px 20px !important;
                 border-radius: 16px !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 font-size: 1rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
             }
 
@@ -1156,7 +1159,15 @@
             }
         }
 
+        // Helper to kill any active wheel momentum scroll inertia instantly when clicking start/5min
+        function haltWheelInertia() {
+            clearTimeout(scrollTimeouts['minutes-wheel']);
+            clearTimeout(scrollTimeouts['seconds-wheel']);
+            setWheelValues(getSelectedMinutes(), getSelectedSeconds());
+        }
+
         startBtn.addEventListener('click', async () => {
+            haltWheelInertia();
             unlockSpeechAudio();
             if (!isRunning) {
                 let totalMs = 0;
@@ -1193,8 +1204,18 @@
         });
 
         quick5Btn.addEventListener('click', async () => {
+            haltWheelInertia();
             unlockSpeechAudio();
+            currentMode = 'duration';
+            durationTab.classList.add('active');
+            targetTimeTab.classList.remove('active');
+            pickerContainer.style.display = 'none';
+            targetTimeContainer.style.display = 'none';
+            
             setWheelValues(5, 0);
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
             lastSpokenSecond = -1;
@@ -1281,7 +1302,8 @@
             }
         }
 
-        setInterval(updateCountdown, 100);
+        // Throttled interval to 250ms (4 updates/sec) to stop phone from running hot while keeping timer silky smooth
+        setInterval(updateCountdown, 250);
         checkOrientation();
     </script>
 </body>
