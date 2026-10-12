@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.43">
+    <link rel="manifest" href="manifest.json?v=1.0.44">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.43">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.44">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,7 +31,7 @@
             --muted-color: #9ca3af;
         }
 
-        /* Race Started Overtime Theme */
+        /* Race Mode Theme */
         body.race-active {
             --bg-color: #ffffff;
             --card-bg: #f3f4f6;
@@ -459,7 +459,7 @@
             background-color: var(--secondary-hover);
         }
 
-        /* LANDSCAPE MODE - PRE-RACE CENTERED EXTRA LARGE LAYOUT */
+        /* PRE-RACE MODE - LANDSCAPE CENTERED EXTRA LARGE LAYOUT */
         @media (orientation: landscape) {
             .container {
                 max-width: 95vw;
@@ -513,7 +513,7 @@
                 display: none;
             }
 
-            /* LANDSCAPE MODE - POST-RACE FULLSCREEN MAP */
+            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & iOS FROSTED GLASS OVERLAYS */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -566,37 +566,45 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Direct Floating Timer Overlay (Outside hidden parents) */
+            /* iOS-Style Frosted Glass Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
                 top: 20px !important;
                 left: 20px !important;
-                background: rgba(18, 18, 20, 0.88) !important;
-                backdrop-filter: blur(14px) !important;
-                -webkit-backdrop-filter: blur(14px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                border-radius: 20px !important;
+                background: rgba(30, 30, 35, 0.65) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                border-radius: 22px !important;
                 padding: 12px 26px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
             }
 
-            /* Floating Bottom-Left Telemetry Stats */
+            body.race-active.landscape-mode #standalone-timer-overlay .active-value,
+            body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
+                font-size: 3rem !important;
+                color: #ffffff !important;
+                text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+            }
+
+            /* iOS-Style Frosted Glass Telemetry Stats */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
                 bottom: 20px !important; left: 20px !important;
-                background: rgba(18, 18, 20, 0.88) !important;
-                backdrop-filter: blur(14px) !important;
-                -webkit-backdrop-filter: blur(14px) !important;
+                background: rgba(30, 30, 35, 0.65) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
                 color: #ffffff !important;
-                padding: 12px 20px !important;
-                border-radius: 16px !important;
-                border: 1px solid rgba(255, 255, 255, 0.25) !important;
+                padding: 12px 22px !important;
+                border-radius: 18px !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
                 font-size: 1rem !important;
                 z-index: 999999 !important;
                 font-weight: 600 !important;
-                box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
+                text-shadow: 0 1px 4px rgba(0,0,0,0.5);
             }
 
             /* Hide PNG Download Button in Landscape */
@@ -613,7 +621,7 @@
 </head>
 <body>
 
-    <!-- Dedicated Floating Overlay for Landscape Post-Race -->
+    <!-- Dedicated Floating Overlay for Race Mode Landscape -->
     <div id="standalone-timer-overlay" class="active-display"></div>
 
     <div class="container">
@@ -781,7 +789,6 @@
                 document.body.classList.remove('landscape-mode');
             }
 
-            // Sync active display into standalone overlay if landscape overtime active
             if (isLandscape && isOvertimeActive) {
                 if (standaloneTimerOverlay.children.length === 0) {
                     standaloneTimerOverlay.appendChild(boxSign);
