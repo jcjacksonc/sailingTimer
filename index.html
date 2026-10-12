@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.65">
+    <link rel="manifest" href="manifest.json?v=1.0.66">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.65">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.66">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -471,7 +471,7 @@
             background-color: var(--secondary-hover);
         }
 
-        /* LANDSCAPE ADAPTIVE RULES FOR PRE-RACE & ACTIVE TIMER */
+        /* LANDSCAPE ADAPTIVE RULES */
         @media (orientation: landscape) {
             html, body {
                 height: 100vh !important;
@@ -545,13 +545,12 @@
                 max-height: 95px;
             }
 
-            /* Perfectly centered active countdown display in landscape mode when running */
             .active-display {
-                width: 100% !important;
-                max-width: 480px;
+                width: auto !important;
+                max-width: none !important;
                 margin: 0 auto 6px auto !important;
-                padding: 12px !important;
-                justify-content: center !important;
+                padding: 10px 16px !important;
+                display: inline-flex !important;
             }
 
             .message {
@@ -632,11 +631,14 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
+            /* Compact Floating Timer Overlay in Landscape Race Mode */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
                 top: max(10px, env(safe-area-inset-top)) !important;
                 left: max(16px, env(safe-area-inset-left)) !important;
+                width: auto !important;
+                max-width: max-content !important;
                 background: rgba(0, 0, 0, 0.25) !important;
                 backdrop-filter: blur(4px) !important;
                 -webkit-backdrop-filter: blur(4px) !important;
