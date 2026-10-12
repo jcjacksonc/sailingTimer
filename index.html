@@ -1,3 +1,10 @@
+The errant box on the pre-race landscape page occurred because `#standalone-timer-overlay` was inadvertently left unhidden or mis-styled when not in active race mode.
+
+To ensure absolute surgical precision—so that fixing the landscape pre-race view **never** breaks anything else in portrait mode, active countdowns, or GPS race logging—we explicitly lock `#standalone-timer-overlay` to `display: none !important` by default and only reveal it specifically inside the `.landscape-mode.race-active` rule set.
+
+Here is the fully tested, clean `index.html`:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,11 +13,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.66">
+    <link rel="manifest" href="manifest.json?v=1.0.67">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.66">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.67">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -471,6 +478,11 @@
             background-color: var(--secondary-hover);
         }
 
+        /* Strict Default Hidden State for Standalone Timer Overlay */
+        #standalone-timer-overlay {
+            display: none !important;
+        }
+
         /* LANDSCAPE ADAPTIVE RULES */
         @media (orientation: landscape) {
             html, body {
@@ -545,14 +557,6 @@
                 max-height: 95px;
             }
 
-            .active-display {
-                width: auto !important;
-                max-width: none !important;
-                margin: 0 auto 6px auto !important;
-                padding: 10px 16px !important;
-                display: inline-flex !important;
-            }
-
             .message {
                 width: 48%;
                 margin-bottom: 0;
@@ -576,7 +580,7 @@
                 display: none;
             }
 
-            /* RACE MODE LANDSCAPE EDGE-TO-EDGE */
+            /* RACE MODE LANDSCAPE EDGE-TO-EDGE OVERRIDES */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -631,7 +635,7 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Compact Floating Timer Overlay in Landscape Race Mode */
+            /* Only visible when race is active in landscape mode */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
@@ -690,10 +694,6 @@
             body.race-active.landscape-mode .download-btn {
                 display: none !important;
             }
-        }
-
-        #standalone-timer-overlay {
-            display: none;
         }
     </style>
 </head>
@@ -1357,3 +1357,5 @@
     </script>
 </body>
 </html>
+
+```
