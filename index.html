@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.61">
+    <link rel="manifest" href="manifest.json?v=1.0.63">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.61">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.63">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -74,7 +74,7 @@
             max-height: calc(100vh - 20px);
             background-color: var(--card-bg);
             border-radius: 28px;
-            padding: 18px;
+            padding: 16px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -93,15 +93,15 @@
         .live-clock {
             font-size: 0.95rem;
             color: var(--muted-color);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
             flex-shrink: 0;
         }
 
         h1 {
-            font-size: 1.6rem;
-            margin-bottom: 12px;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
             font-weight: 700;
             letter-spacing: -0.5px;
             flex-shrink: 0;
@@ -112,18 +112,18 @@
             display: flex;
             background: rgba(0, 0, 0, 0.15);
             border-radius: 14px;
-            padding: 4px;
-            margin-bottom: 12px;
+            padding: 3px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             border-radius: 10px;
             cursor: pointer;
@@ -140,14 +140,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 22px;
-            padding: 15px;
+            padding: 12px;
             flex: 1;
-            min-height: 180px;
+            min-height: 140px;
         }
 
         .wheel-column {
@@ -160,8 +160,8 @@
 
         .wheel {
             height: 100%;
-            max-height: 220px;
-            width: 110px;
+            max-height: 100%;
+            width: 105px;
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
@@ -178,16 +178,15 @@
         }
 
         .wheel-spacer {
-            height: 82.5px;
             pointer-events: none;
         }
 
         .wheel-item {
-            height: 55px;
+            height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.5rem;
+            font-size: 2.3rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -203,18 +202,18 @@
         }
 
         .wheel-separator {
-            font-size: 2.8rem;
+            font-size: 2.5rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 12px;
+            padding-bottom: 10px;
         }
 
         .wheel-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 8px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
@@ -224,24 +223,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 22px;
-            padding: 20px;
+            padding: 15px;
             flex: 1;
-            min-height: 180px;
+            min-height: 140px;
         }
 
         input[type="time"] {
             width: 85%;
-            padding: 16px;
+            padding: 12px;
             border-radius: 14px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -249,7 +248,7 @@
         }
 
         .target-time-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -262,11 +261,11 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 22px;
-            padding: 20px;
+            padding: 16px;
             flex-shrink: 0;
         }
 
@@ -277,7 +276,7 @@
         }
 
         .active-value {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -285,28 +284,28 @@
         }
 
         .active-separator {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 20px;
+            padding: 16px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 8.5rem;
+            font-size: 7.5rem;
             letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
@@ -321,21 +320,21 @@
         .gps-logger-panel {
             display: none;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 10px;
+            padding: 8px;
             flex: 1;
-            min-height: 220px;
+            min-height: 180px;
         }
 
         .gps-toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--muted-color);
             padding: 0 4px;
@@ -345,8 +344,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 42px;
-            height: 22px;
+            width: 38px;
+            height: 20px;
         }
 
         .switch input {
@@ -361,14 +360,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 22px;
+            border-radius: 20px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
+            height: 14px;
+            width: 14px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -381,16 +380,16 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(20px);
+            transform: translateX(18px);
         }
 
         .gps-stats {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
-            padding: 6px;
-            border-radius: 8px;
+            padding: 4px;
+            border-radius: 6px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -398,8 +397,8 @@
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 160px;
-            border-radius: 12px;
+            min-height: 120px;
+            border-radius: 10px;
             overflow: hidden;
             position: relative;
         }
@@ -414,8 +413,8 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.9rem;
-            padding: 10px;
+            font-size: 0.85rem;
+            padding: 8px;
             flex-shrink: 0;
         }
 
@@ -424,10 +423,10 @@
         }
 
         .message {
-            font-size: 1rem;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
             color: var(--muted-color);
-            min-height: 22px;
+            min-height: 18px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -435,18 +434,18 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             flex-shrink: 0;
         }
 
         button {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             border-radius: 14px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -469,7 +468,7 @@
             background-color: var(--secondary-hover);
         }
 
-        /* PRE-RACE MODE - LANDSCAPE COMPACT ADAPTIVE LAYOUT */
+        /* LANDSCAPE ADAPTIVE RULES FOR PRE-RACE & RACE */
         @media (orientation: landscape) {
             html, body {
                 height: 100vh !important;
@@ -480,109 +479,82 @@
             }
 
             body {
-                padding: 6px !important;
-                justify-content: center !important;
-                align-items: center !important;
+                padding: 4px !important;
             }
 
             .container {
-                max-width: 96vw;
-                max-height: 96vh;
+                max-width: 98vw;
+                max-height: 98vh;
                 height: 100%;
                 margin: 0 auto;
-                padding: 10px 18px;
-                justify-content: space-between;
+                padding: 8px 16px;
             }
 
             .left-column {
-                width: 100%;
-                height: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
                 justify-content: space-between;
             }
 
+            .left-column > div:first-child {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 4px;
+            }
+
             .live-clock {
-                font-size: 0.8rem;
-                margin-bottom: 2px;
+                margin-bottom: 0;
             }
 
             h1 {
-                font-size: 1.2rem;
-                margin-bottom: 6px;
+                font-size: 1.1rem;
+                margin-bottom: 0;
             }
 
             .mode-tabs {
-                max-width: 320px;
-                margin: 0 auto 6px auto;
-                padding: 3px;
-            }
-
-            .tab-btn {
-                padding: 6px;
-                font-size: 0.9rem;
+                width: 48%;
+                margin-bottom: 4px;
             }
 
             .picker-container, .target-time-container {
-                max-width: 480px;
-                min-height: 110px;
-                max-height: 125px;
-                margin: 0 auto 6px auto;
-                padding: 6px 15px;
+                width: 100%;
+                min-height: 100px;
+                max-height: 115px;
+                margin-bottom: 4px;
+                padding: 6px;
             }
 
             .wheel {
-                width: 100px;
-                max-height: 110px;
-            }
-
-            .wheel-spacer {
-                height: 32.5px !important;
-            }
-
-            .wheel-item {
-                height: 45px;
-                font-size: 2.1rem;
-            }
-
-            .wheel-separator {
-                font-size: 2.2rem;
-                padding-bottom: 6px;
-            }
-
-            .wheel-label {
-                font-size: 0.65rem;
-                margin-top: 2px;
-            }
-
-            input[type="time"] {
-                padding: 8px;
-                font-size: 1.8rem;
+                width: 110px;
+                max-height: 100px;
             }
 
             .message {
-                font-size: 0.85rem;
-                margin-bottom: 6px;
-                min-height: 18px;
+                width: 50%;
+                margin-bottom: 0;
+                font-size: 0.8rem;
+                text-align: left;
             }
 
             .controls {
-                max-width: 440px;
-                margin: 0 auto;
+                width: 48%;
                 flex-direction: row;
-                gap: 10px;
+                gap: 6px;
             }
 
             .controls button {
-                flex: 1;
                 padding: 10px;
-                font-size: 0.95rem;
-                border-radius: 10px;
+                font-size: 0.9rem;
             }
 
             .right-column {
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN EDGE-TO-EDGE AROUND DYNAMIC ISLAND */
+            /* RACE MODE LANDSCAPE EDGE-TO-EDGE */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -637,18 +609,17 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Compact Edge-to-Edge Floating Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: max(16px, env(safe-area-inset-top)) !important;
+                top: max(12px, env(safe-area-inset-top)) !important;
                 left: max(16px, env(safe-area-inset-left)) !important;
                 background: rgba(0, 0, 0, 0.25) !important;
                 backdrop-filter: blur(4px) !important;
                 -webkit-backdrop-filter: blur(4px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 border-radius: 14px !important;
-                padding: 8px 16px !important;
+                padding: 6px 14px !important;
                 z-index: 999999 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
                 align-items: center !important;
@@ -667,25 +638,24 @@
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 3.5rem !important;
+                font-size: 3rem !important;
                 line-height: 1 !important;
                 color: #ffffff !important;
                 text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
             }
 
-            /* Edge-to-Edge Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
-                bottom: max(16px, env(safe-area-inset-bottom)) !important; 
+                bottom: max(12px, env(safe-area-inset-bottom)) !important; 
                 left: max(16px, env(safe-area-inset-left)) !important;
                 background: rgba(0, 0, 0, 0.25) !important;
                 backdrop-filter: blur(4px) !important;
                 -webkit-backdrop-filter: blur(4px) !important;
                 color: #ffffff !important;
-                padding: 8px 16px !important;
+                padding: 6px 14px !important;
                 border-radius: 14px !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                font-size: 0.9rem !important;
+                font-size: 0.85rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
@@ -711,11 +681,11 @@
             <div>
                 <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
                 <h1 id="event-title">Beta Timer</h1>
+            </div>
 
-                <div class="mode-tabs" id="mode-tabs">
-                    <button class="tab-btn active" id="duration-tab">Duration</button>
-                    <button class="tab-btn" id="target-time-tab">Target Time</button>
-                </div>
+            <div class="mode-tabs" id="mode-tabs">
+                <button class="tab-btn active" id="duration-tab">Duration</button>
+                <button class="tab-btn" id="target-time-tab">Target Time</button>
             </div>
 
             <div class="picker-container" id="picker-container">
@@ -751,13 +721,11 @@
                 </div>
             </div>
 
-            <div>
-                <div class="message" id="message">Scroll wheels to set duration</div>
+            <div class="message" id="message">Scroll wheels to set duration</div>
 
-                <div class="controls">
-                    <button id="start-btn">Start Countdown</button>
-                    <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
-                </div>
+            <div class="controls">
+                <button id="start-btn">Start Countdown</button>
+                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
             </div>
         </div>
 
@@ -902,7 +870,14 @@
         }
 
         window.addEventListener('resize', checkOrientation);
-        window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                checkOrientation();
+                populateWheel(minutesWheel, 59);
+                populateWheel(secondsWheel, 59);
+                setWheelValues(getSelectedMinutes() >= 0 ? getSelectedMinutes() : 5, getSelectedSeconds() >= 0 ? getSelectedSeconds() : 0);
+            }, 300);
+        });
 
         function initLeafletMap(lat, lon) {
             if (leafletMap) return;
@@ -1109,45 +1084,64 @@
             messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
-        function getCurrentItemHeight() {
-            return (window.innerWidth > window.innerHeight) ? 45 : 55;
+        // Dynamic measurement function: extracts item height and container height at runtime across any iPhone
+        function getItemHeight() {
+            const sampleItem = minutesWheel.querySelector('.wheel-item');
+            return sampleItem ? sampleItem.getBoundingClientRect().height : 50;
         }
 
         function populateWheel(wheelEl, maxVal) {
-            const itemH = getCurrentItemHeight();
-            const spacerH = (110 / 2) - (itemH / 2);
-            let html = `<div class="wheel-spacer" style="height: ${spacerH > 0 ? spacerH : 32.5}px;"></div>`;
+            // Clear existing content to measure accurately
+            wheelEl.innerHTML = '';
+            
+            // Create temporary sample to get exact rendered height
+            const tempItem = document.createElement('div');
+            tempItem.className = 'wheel-item';
+            tempItem.textContent = '00';
+            wheelEl.appendChild(tempItem);
+            const itemH = tempItem.getBoundingClientRect().height || 50;
+            wheelEl.removeChild(tempItem);
+
+            // Dynamically calculate padding spacers based on actual live container size and item size
+            const containerH = wheelEl.clientHeight || wheelEl.getBoundingClientRect().height;
+            const spacerH = Math.max(0, (containerH / 2) - (itemH / 2));
+
+            let html = `<div class="wheel-spacer" style="height: ${spacerH}px;"></div>`;
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += `<div class="wheel-spacer" style="height: ${spacerH > 0 ? spacerH : 32.5}px;"></div>`;
+            html += `<div class="wheel-spacer" style="height: ${spacerH}px;"></div>`;
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        const curH = getCurrentItemHeight();
+                        const curH = getItemHeight();
                         wheelEl.scrollTo({ top: (targetVal + 1) * curH, behavior: 'smooth' });
                     }
                 });
             });
         }
 
-        populateWheel(minutesWheel, 59);
-        populateWheel(secondsWheel, 59);
+        function populateWheels() {
+            populateWheel(minutesWheel, 59);
+            populateWheel(secondsWheel, 59);
+        }
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / getCurrentItemHeight()) - 1; }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / getCurrentItemHeight()) - 1; }
+        populateWheels();
+
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / getItemHeight()) - 1; }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / getItemHeight()) - 1; }
         
         function setWheelValues(mins, secs) {
-            const curH = getCurrentItemHeight();
+            const curH = getItemHeight();
             minutesWheel.scrollTop = (mins + 1) * curH;
             secondsWheel.scrollTop = (secs + 1) * curH;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const curH = getCurrentItemHeight();
+            const curH = getItemHeight();
             const rawIndex = Math.round(wheelEl.scrollTop / curH);
             const selectedIdx = rawIndex - 1;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
@@ -1207,6 +1201,12 @@
                 latestLon = null;
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
+                setTimeout(() => {
+                    populateWheels();
+                    setWheelValues(5, 0);
+                    updateWheelHighlight(minutesWheel);
+                    updateWheelHighlight(secondsWheel);
+                }, 50);
             }
         }
 
