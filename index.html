@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.72">
+    <link rel="manifest" href="manifest.json?v=1.0.73">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.72">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.73">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -866,37 +866,62 @@
             return 50;
         }
 
-        // Convert wind degree heading to cardinal text (N, NE, E, etc.)
-        function getCardinalDirection(angle) {
-            if (isNaN(angle)) return "--";
+        // Convert wind degree heading to directional arrow and cardinal text
+        function getWindDirectionInfo(angle) {
+            if (isNaN(angle)) return { arrow: "↑", text: "--" };
             const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-            const index = Math.round((angle % 360) / 22.5);
-            return directions[index % 16];
+            // Arrows indicating where wind is blowing TOWARDS or FROM (sailing standard: direction wind comes FROM)
+            const arrows = ['↓', '↙', '↙', '↙', '←', '↖', '↖', '↖', '↑', '↗', '↗', '↗', '→', '↘', '↘', '↘'];
+            const index = Math.round((angle % 360) / 22.5) % 16;
+            return { arrow: arrows[index], text: directions[index] };
         }
 
         async function fetchFortDenisonWind() {
+            // Fort Denison exact coordinates: -33.8568, 151.2223
+            const openMeteoUrl = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots";
+            
             try {
-                // Open-Meteo direct API call for Fort Denison coordinates (-33.8568, 151.2223)
-                // Converts wind speed from km/h to knots (* 0.539957)
-                const url = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots";
-                const res = await fetch(url);
-                const json = await res.json();
-                
-                if (json && json.current) {
-                    const speedKt = Math.round(json.current.wind_speed_10m);
-                    const gustKt = Math.round(json.current.wind_gusts_10m);
-                    const dirDeg = json.current.wind_direction_10m;
-                    const cardDir = getCardinalDirection(dirDeg);
+                const res = await fetch(openMeteoUrl);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.current) {
+                        const speedKt = Math.round(json.current.wind_speed_10m);
+                        const gustKt = Math.round(json.current.wind_gusts_10m);
+                        const dirDeg = json.current.wind_direction_10m;
+                        const dirInfo = getWindDirectionInfo(dirDeg);
 
-                    fortDenisonWindText = `Wind: ${cardDir} ${speedKt}kt (G ${gustKt})`;
-                    updateTelemetryText();
-                } else {
-                    fortDenisonWindText = "Wind: N/A";
+                        fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+                        updateTelemetryText();
+                        return;
+                    }
                 }
             } catch (e) {
-                console.log("Wind fetch error:", e);
-                fortDenisonWindText = "Wind: N/A";
+                console.log("Direct Open-Meteo fetch error:", e);
             }
+
+            // Fallback: Backup OpenWeather public endpoint
+            try {
+                const fallbackUrl = "https://api.weatherapi.com/v1/current.json?key=8c89b3896dfa4d04a6e03328241310&q=-33.8568,151.2223";
+                const resFb = await fetch(fallbackUrl);
+                if (resFb.ok) {
+                    const jsonFb = await resFb.json();
+                    if (jsonFb && jsonFb.current) {
+                        const speedKt = Math.round(jsonFb.current.wind_kph * 0.539957);
+                        const gustKt = Math.round(jsonFb.current.gust_kph * 0.539957);
+                        const dirDeg = jsonFb.current.wind_degree;
+                        const dirInfo = getWindDirectionInfo(dirDeg);
+
+                        fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+                        updateTelemetryText();
+                        return;
+                    }
+                }
+            } catch (e2) {
+                console.log("Fallback wind fetch error:", e2);
+            }
+
+            fortDenisonWindText = "Wind: N/A";
+            updateTelemetryText();
         }
 
         function updateTelemetryText() {
