@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.56">
+    <link rel="manifest" href="manifest.json?v=1.0.57">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.56">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.57">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -164,7 +164,7 @@
             width: 110px;
             overflow-y: auto;
             overflow-x: hidden;
-            scroll-snap-type: y mandatory;
+            scroll-snap-type: y proximity;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
@@ -189,7 +189,6 @@
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             scroll-snap-align: center;
-            scroll-snap-stop: always;
             cursor: pointer;
             opacity: 0.3;
             transition: opacity 0.15s, transform 0.15s;
@@ -1047,7 +1046,6 @@
         });
 
         const ITEM_HEIGHT = 55;
-        let scrollTimeouts = {};
 
         function populateWheel(wheelEl, maxVal) {
             let html = '';
@@ -1085,23 +1083,8 @@
             });
         }
 
-        function handleWheelScroll(wheelEl) {
-            updateWheelHighlight(wheelEl);
-            const wheelId = wheelEl.id;
-            clearTimeout(scrollTimeouts[wheelId]);
-            scrollTimeouts[wheelId] = setTimeout(() => {
-                if (isRunning) return;
-                const currentScroll = wheelEl.scrollTop;
-                const targetIndex = Math.round(currentScroll / ITEM_HEIGHT);
-                const targetScroll = targetIndex * ITEM_HEIGHT;
-                if (Math.abs(currentScroll - targetScroll) > 1) {
-                    wheelEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
-                }
-            }, 200);
-        }
-
-        minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
-        secondsWheel.addEventListener('scroll', () => handleWheelScroll(secondsWheel), { passive: true });
+        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel), { passive: true });
+        secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel), { passive: true });
 
         function initWheelPositions() {
             setWheelValues(5, 0);
@@ -1109,6 +1092,10 @@
             updateWheelHighlight(secondsWheel);
         }
         initWheelPositions();
+
+        function haltWheelInertia() {
+            setWheelValues(getSelectedMinutes(), getSelectedSeconds());
+        }
 
         function updateLiveClock() {
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
@@ -1147,12 +1134,6 @@
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
             }
-        }
-
-        function haltWheelInertia() {
-            clearTimeout(scrollTimeouts['minutes-wheel']);
-            clearTimeout(scrollTimeouts['seconds-wheel']);
-            setWheelValues(getSelectedMinutes(), getSelectedSeconds());
         }
 
         startBtn.addEventListener('click', async () => {
