@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.71">
+    <link rel="manifest" href="manifest.json?v=1.0.72">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.71">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.72">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -866,48 +866,37 @@
             return 50;
         }
 
+        // Convert wind degree heading to cardinal text (N, NE, E, etc.)
+        function getCardinalDirection(angle) {
+            if (isNaN(angle)) return "--";
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const index = Math.round((angle % 360) / 22.5);
+            return directions[index % 16];
+        }
+
         async function fetchFortDenisonWind() {
-            // Fort Denison Station Observation Feed (Station ID 066022 / IDN60801.94768)
-            const bomTarget = "https://reg.bom.gov.au/fwo/IDN60801/IDN60801.94768.json";
-            
-            // Primary CORS Proxy
-            const primaryProxy = `https://corsproxy.io/?${encodeURIComponent(bomTarget)}`;
-            // Fallback CORS Proxy
-            const fallbackProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(bomTarget)}`;
-
-            let obs = null;
-
             try {
-                const res = await fetch(primaryProxy, { cache: "no-store" });
-                if (res.ok) {
-                    const json = await res.json();
-                    obs = json?.observations?.data?.[0];
+                // Open-Meteo direct API call for Fort Denison coordinates (-33.8568, 151.2223)
+                // Converts wind speed from km/h to knots (* 0.539957)
+                const url = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots";
+                const res = await fetch(url);
+                const json = await res.json();
+                
+                if (json && json.current) {
+                    const speedKt = Math.round(json.current.wind_speed_10m);
+                    const gustKt = Math.round(json.current.wind_gusts_10m);
+                    const dirDeg = json.current.wind_direction_10m;
+                    const cardDir = getCardinalDirection(dirDeg);
+
+                    fortDenisonWindText = `Wind: ${cardDir} ${speedKt}kt (G ${gustKt})`;
+                    updateTelemetryText();
+                } else {
+                    fortDenisonWindText = "Wind: N/A";
                 }
             } catch (e) {
-                console.log("Primary proxy failed, trying fallback...", e);
-            }
-
-            if (!obs) {
-                try {
-                    const resFb = await fetch(fallbackProxy, { cache: "no-store" });
-                    if (resFb.ok) {
-                        const jsonFb = await resFb.json();
-                        obs = jsonFb?.observations?.data?.[0];
-                    }
-                } catch (e2) {
-                    console.log("Fallback proxy failed:", e2);
-                }
-            }
-
-            if (obs) {
-                const dir = obs.wind_dir || "--";
-                const kt = obs.wind_spd_kt !== undefined ? obs.wind_spd_kt : "--";
-                const gust = obs.gust_kt !== undefined ? obs.gust_kt : "--";
-                fortDenisonWindText = `Wind: ${dir} ${kt}kt (G ${gust})`;
-            } else {
+                console.log("Wind fetch error:", e);
                 fortDenisonWindText = "Wind: N/A";
             }
-            updateTelemetryText();
         }
 
         function updateTelemetryText() {
