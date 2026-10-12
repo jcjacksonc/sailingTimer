@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.59">
+    <link rel="manifest" href="manifest.json?v=1.0.60">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.59">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.60">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -164,7 +164,6 @@
             width: 110px;
             overflow-y: auto;
             overflow-x: hidden;
-            /* Changed to mandatory to strictly clamp and prevent scrolling past 0 and 59 */
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -470,20 +469,32 @@
             background-color: var(--secondary-hover);
         }
 
-        /* PRE-RACE MODE - LANDSCAPE CENTERED EXTRA LARGE LAYOUT */
+        /* PRE-RACE MODE - LANDSCAPE ADAPTIVE LAYOUT */
         @media (orientation: landscape) {
+            html, body {
+                height: 100% !important;
+                max-height: 100% !important;
+                width: 100% !important;
+                overflow-y: auto !important;
+                position: relative !important;
+            }
+
+            body {
+                padding: 10px !important;
+                justify-content: flex-start !important;
+            }
+
             .container {
-                max-width: 95vw;
-                max-height: 96vh;
+                max-width: 680px;
+                height: auto;
+                max-height: none;
                 margin: 0 auto;
                 padding: 15px 25px;
             }
 
             .left-column {
                 width: 100%;
-                max-width: 680px;
-                margin: 0 auto;
-                justify-content: space-around;
+                justify-content: flex-start;
             }
 
             .mode-tabs {
@@ -495,20 +506,21 @@
                 max-width: 580px;
                 margin: 0 auto 10px auto;
                 padding: 10px 20px;
+                min-height: 150px;
             }
 
             .wheel {
-                width: 140px;
-                max-height: 180px;
+                width: 130px;
+                max-height: 150px;
             }
 
             .wheel-spacer {
-                height: 60px;
+                height: 47.5px;
             }
 
             .wheel-item {
-                height: 60px;
-                font-size: 3.2rem;
+                height: 55px;
+                font-size: 2.8rem;
             }
 
             .controls {
@@ -534,6 +546,8 @@
                 margin: 0 !important;
                 width: 100vw !important;
                 height: 100vh !important;
+                overflow: hidden !important;
+                position: fixed !important;
             }
 
             body.race-active.landscape-mode .container {
@@ -636,7 +650,6 @@
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
             }
 
-            /* Hide PNG Download Button in Landscape */
             body.race-active.landscape-mode .download-btn {
                 display: none !important;
             }
@@ -791,6 +804,7 @@
         let targetTime = null;
         let isRunning = false;
         let lastSpokenSecond = -1;
+        let hasPlayedRaceStart = false;
         let currentMode = 'duration';
         let audioCtx = null;
         let wakeLock = null;
@@ -1053,21 +1067,24 @@
             messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
-        const ITEM_HEIGHT = 55;
+        function getItemHeight() {
+            return (window.innerWidth > window.innerHeight) ? 55 : 55;
+        }
 
         function populateWheel(wheelEl, maxVal) {
-            let html = '<div class="wheel-spacer"></div>';
+            let html = '<div class="wheel-spacer" style="height: 82.5px;"></div>';
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += '<div class="wheel-spacer"></div>';
+            html += '<div class="wheel-spacer" style="height: 82.5px;"></div>';
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        wheelEl.scrollTo({ top: (targetVal + 1) * ITEM_HEIGHT, behavior: 'smooth' });
+                        const itemH = 55;
+                        wheelEl.scrollTo({ top: (targetVal + 1) * itemH, behavior: 'smooth' });
                     }
                 });
             });
@@ -1076,16 +1093,16 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT) - 1; }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT) - 1; }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 55) - 1; }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 55) - 1; }
         
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = (mins + 1) * ITEM_HEIGHT;
-            secondsWheel.scrollTop = (secs + 1) * ITEM_HEIGHT;
+            minutesWheel.scrollTop = (mins + 1) * 55;
+            secondsWheel.scrollTop = (secs + 1) * 55;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const rawIndex = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
+            const rawIndex = Math.round(wheelEl.scrollTop / 55);
             const selectedIdx = rawIndex - 1;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
                 if (idx === selectedIdx) item.classList.add('selected');
@@ -1137,6 +1154,7 @@
                 boxSep.style.display = 'block';
                 gpsLoggerPanel.style.display = 'none';
                 isOvertimeActive = false;
+                hasPlayedRaceStart = false;
                 stopGPSTracking();
                 gpsTrackPoints = [];
                 latestLat = null;
@@ -1169,6 +1187,7 @@
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
                 lastSpokenSecond = -1;
+                hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.runningMsg;
                 setUIState(true);
                 await requestWakeLock();
@@ -1176,6 +1195,7 @@
             } else {
                 isRunning = false;
                 targetTime = null;
+                hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.stoppedMsg;
                 setUIState(false);
                 await releaseWakeLock();
@@ -1199,6 +1219,7 @@
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
             lastSpokenSecond = -1;
+            hasPlayedRaceStart = false;
             messageEl.textContent = CONFIG.runningMsg;
             setUIState(true);
             await requestWakeLock();
@@ -1237,10 +1258,10 @@
                 activeSecsEl.textContent = String(seconds).padStart(2, '0');
                 messageEl.textContent = CONFIG.raceStartedMsg;
 
-                if (lastSpokenSecond !== 0) {
+                if (!hasPlayedRaceStart) {
+                    hasPlayedRaceStart = true;
                     playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
-                    setTimeout(() => speak(CONFIG.raceStartedSpeech, true), 1000);
-                    lastSpoceneSecond = 0;
+                    setTimeout(() => speak(CONFIG.raceStartedSpeech, true), 800);
                 }
                 return;
             }
