@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.57">
+    <link rel="manifest" href="manifest.json?v=1.0.58">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.57">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.58">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -171,12 +171,15 @@
             background: rgba(128, 128, 128, 0.06);
             border-radius: 14px;
             -webkit-overflow-scrolling: touch;
-            padding-top: calc(110px - 27.5px);
-            padding-bottom: calc(110px - 27.5px);
         }
 
         .wheel::-webkit-scrollbar {
             display: none;
+        }
+
+        .wheel-spacer {
+            height: 82.5px;
+            pointer-events: none;
         }
 
         .wheel-item {
@@ -496,6 +499,10 @@
             .wheel {
                 width: 140px;
                 max-height: 180px;
+            }
+
+            .wheel-spacer {
+                height: 60px;
             }
 
             .wheel-item {
@@ -1048,17 +1055,19 @@
         const ITEM_HEIGHT = 55;
 
         function populateWheel(wheelEl, maxVal) {
-            let html = '';
+            let html = '<div class="wheel-spacer"></div>';
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
+            html += '<div class="wheel-spacer"></div>';
             wheelEl.innerHTML = html;
             
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        wheelEl.scrollTo({ top: targetVal * ITEM_HEIGHT, behavior: 'smooth' });
+                        // Account for the top spacer node offset (+1 index)
+                        wheelEl.scrollTo({ top: (targetVal + 1) * ITEM_HEIGHT, behavior: 'smooth' });
                     }
                 });
             });
@@ -1067,16 +1076,17 @@
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT); }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / ITEM_HEIGHT) - 1; }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / ITEM_HEIGHT) - 1; }
         
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * ITEM_HEIGHT;
-            secondsWheel.scrollTop = secs * ITEM_HEIGHT;
+            minutesWheel.scrollTop = (mins + 1) * ITEM_HEIGHT;
+            secondsWheel.scrollTop = (secs + 1) * ITEM_HEIGHT;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const selectedIdx = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
+            const rawIndex = Math.round(wheelEl.scrollTop / ITEM_HEIGHT);
+            const selectedIdx = rawIndex - 1;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
                 if (idx === selectedIdx) item.classList.add('selected');
                 else item.classList.remove('selected');
