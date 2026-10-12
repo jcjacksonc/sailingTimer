@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.38">
+    <link rel="manifest" href="manifest.json?v=1.0.39">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.38">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.39">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -62,17 +62,17 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 8px;
+            padding: 10px;
         }
 
         .container {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             height: 100%;
-            max-height: calc(100vh - 16px);
+            max-height: calc(100vh - 20px);
             background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 12px;
+            border-radius: 28px;
+            padding: 18px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -80,18 +80,26 @@
             justify-content: space-between;
         }
 
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+            min-height: 0;
+        }
+
         .live-clock {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: var(--muted-color);
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
             flex-shrink: 0;
         }
 
         h1 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
+            font-size: 1.6rem;
+            margin-bottom: 12px;
             font-weight: 700;
             letter-spacing: -0.5px;
             flex-shrink: 0;
@@ -101,21 +109,21 @@
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 10px;
-            padding: 3px;
-            margin-bottom: 8px;
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 6px;
+            padding: 12px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.85rem;
+            font-size: 1rem;
             font-weight: 600;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -125,36 +133,40 @@
             color: white;
         }
 
-        /* Rolling Wheel Time Picker */
+        /* Rolling Wheel Time Picker (Maximises Screen Fill) */
         .picker-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 15px;
+            margin-bottom: 12px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 16px;
-            padding: 10px;
-            flex-shrink: 0;
+            border-radius: 22px;
+            padding: 15px;
+            flex: 1;
+            min-height: 180px;
         }
 
         .wheel-column {
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100%;
+            justify-content: center;
         }
 
         .wheel {
-            height: 130px;
-            width: 85px;
+            height: 100%;
+            max-height: 220px;
+            width: 110px;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 10px;
+            border-radius: 14px;
         }
 
         .wheel::-webkit-scrollbar {
@@ -162,11 +174,11 @@
         }
 
         .wheel-item {
-            height: 43px;
+            height: 55px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.9rem;
+            font-size: 2.5rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -181,18 +193,18 @@
         }
 
         .wheel-separator {
-            font-size: 1.9rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 8px;
+            padding-bottom: 12px;
         }
 
         .wheel-label {
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
+            letter-spacing: 1.2px;
+            margin-top: 8px;
             font-weight: 600;
         }
 
@@ -201,23 +213,25 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 16px;
-            padding: 20px 10px;
-            flex-shrink: 0;
+            border-radius: 22px;
+            padding: 20px;
+            flex: 1;
+            min-height: 180px;
         }
 
         input[type="time"] {
-            width: 80%;
-            padding: 10px;
-            border-radius: 10px;
+            width: 85%;
+            padding: 16px;
+            border-radius: 14px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 1.6rem;
+            font-size: 2.4rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -225,10 +239,10 @@
         }
 
         .target-time-label {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             font-weight: 600;
         }
 
@@ -237,12 +251,12 @@
             display: none;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
+            gap: 12px;
+            margin-bottom: 12px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 16px;
-            padding: 12px 10px;
+            border-radius: 22px;
+            padding: 20px;
             flex-shrink: 0;
         }
 
@@ -253,7 +267,7 @@
         }
 
         .active-value {
-            font-size: 2.8rem;
+            font-size: 4rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -261,50 +275,57 @@
         }
 
         .active-separator {
-            font-size: 2.8rem;
+            font-size: 4rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 6px;
+            padding-bottom: 10px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 12px 10px;
+            padding: 20px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 6rem;
-            letter-spacing: -3px;
+            font-size: 8.5rem;
+            letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.65rem;
+            font-size: 0.75rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
+            letter-spacing: 1.2px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
-        /* GPS Track Map Panel */
+        /* GPS Track Map Panel (Fix for Portrait Display) */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
         .gps-logger-panel {
             display: none;
             flex-direction: column;
-            gap: 6px;
-            margin-bottom: 6px;
+            gap: 8px;
+            margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 16px;
-            padding: 8px;
+            border-radius: 20px;
+            padding: 10px;
             flex: 1;
-            min-height: 0;
+            min-height: 220px;
         }
 
         .gps-toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--muted-color);
             padding: 0 4px;
@@ -314,8 +335,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 36px;
-            height: 20px;
+            width: 42px;
+            height: 22px;
         }
 
         .switch input {
@@ -330,14 +351,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 20px;
+            border-radius: 22px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 16px;
+            width: 16px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -350,16 +371,16 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(16px);
+            transform: translateX(20px);
         }
 
         .gps-stats {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
-            padding: 5px;
-            border-radius: 6px;
+            padding: 6px;
+            border-radius: 8px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -367,8 +388,8 @@
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 140px;
-            border-radius: 10px;
+            min-height: 160px;
+            border-radius: 12px;
             overflow: hidden;
             position: relative;
         }
@@ -377,13 +398,14 @@
             width: 100%;
             height: 100%;
             z-index: 1;
+            background: #0f172a;
         }
 
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.8rem;
-            padding: 8px;
+            font-size: 0.9rem;
+            padding: 10px;
             flex-shrink: 0;
         }
 
@@ -392,10 +414,10 @@
         }
 
         .message {
-            font-size: 0.85rem;
-            margin-bottom: 6px;
+            font-size: 1rem;
+            margin-bottom: 10px;
             color: var(--muted-color);
-            min-height: 18px;
+            min-height: 22px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -403,18 +425,18 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 16px;
+            border-radius: 14px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 0.95rem;
+            font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -436,18 +458,18 @@
             background-color: var(--secondary-hover);
         }
 
-        /* LANDSCAPE MODE OPTIMIZATIONS */
+        /* LANDSCAPE MODE SPLIT LAYOUT */
         @media (orientation: landscape) {
             .container {
                 max-width: 98vw;
                 max-height: 98vh;
                 flex-direction: row;
                 text-align: left;
-                gap: 12px;
-                padding: 10px;
+                gap: 15px;
+                padding: 12px;
             }
             .left-column {
-                width: 310px;
+                width: 320px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -465,13 +487,20 @@
                 height: 100%;
                 margin-bottom: 0;
             }
+            .picker-container, .target-time-container {
+                min-height: 140px;
+            }
+            .wheel-item {
+                height: 45px;
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Left Column in Landscape / Full Stack in Portrait -->
+        <!-- Left Column -->
         <div class="left-column">
             <div>
                 <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
@@ -530,7 +559,7 @@
             </div>
         </div>
 
-        <!-- Right Column in Landscape / Full Stack in Portrait (Active in Overtime) -->
+        <!-- Right Column (GPS Satellite Track Map Panel) -->
         <div class="right-column">
             <div class="gps-logger-panel" id="gps-logger-panel">
                 <div class="gps-toggle-row">
@@ -640,6 +669,10 @@
             }).addTo(leafletMap);
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
+
+            setTimeout(() => {
+                leafletMap.invalidateSize();
+            }, 200);
         }
 
         function getSpeedColor(knots) {
@@ -836,25 +869,25 @@
             wheelEl.innerHTML = html;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 43;
+                    if (!isRunning) wheelEl.scrollTop = parseInt(item.dataset.value) * 55;
                 });
             });
         }
 
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
-        minutesWheel.scrollTop = 5 * 43;
-        secondsWheel.scrollTop = 0 * 43;
+        minutesWheel.scrollTop = 5 * 55;
+        secondsWheel.scrollTop = 0 * 55;
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 43); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 43); }
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 55); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 55); }
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * 43;
-            secondsWheel.scrollTop = secs * 43;
+            minutesWheel.scrollTop = mins * 55;
+            secondsWheel.scrollTop = secs * 55;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const index = Math.round(wheelEl.scrollTop / 43);
+            const index = Math.round(wheelEl.scrollTop / 55);
             wheelEl.querySelectorAll('.wheel-item').forEach((item, idx) => {
                 if (idx === index + 1) item.classList.add('selected');
                 else item.classList.remove('selected');
@@ -966,6 +999,9 @@
                     isOvertimeActive = true;
                     gpsLoggerPanel.style.display = 'flex';
                     startGPSTracking();
+                    setTimeout(() => {
+                        if (leafletMap) leafletMap.invalidateSize();
+                    }, 300);
                 }
 
                 activeDisplay.classList.remove('seconds-only');
@@ -1027,6 +1063,10 @@
         }
 
         setInterval(updateCountdown, 100);
+
+        window.addEventListener('resize', () => {
+            if (leafletMap) leafletMap.invalidateSize();
+        });
     </script>
 </body>
 </html>
