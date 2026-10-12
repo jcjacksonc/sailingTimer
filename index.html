@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.42">
+    <link rel="manifest" href="manifest.json?v=1.0.43">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.42">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.43">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -513,7 +513,7 @@
                 display: none;
             }
 
-            /* LANDSCAPE MODE - POST-RACE EDGE-TO-EDGE FULLSCREEN MAP & OVERLAYS */
+            /* LANDSCAPE MODE - POST-RACE FULLSCREEN MAP */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -566,31 +566,20 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Floating Translucent Top-Left Timer Pill Overlay */
-            body.race-active.landscape-mode .active-display {
+            /* Direct Floating Timer Overlay (Outside hidden parents) */
+            body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
-                top: 20px !important; left: 20px !important;
+                top: 20px !important;
+                left: 20px !important;
                 background: rgba(18, 18, 20, 0.88) !important;
                 backdrop-filter: blur(14px) !important;
                 -webkit-backdrop-filter: blur(14px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 border-radius: 20px !important;
                 padding: 12px 26px !important;
-                z-index: 9999 !important;
-                margin: 0 !important;
+                z-index: 999999 !important;
                 box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
-            }
-
-            body.race-active.landscape-mode .active-value,
-            body.race-active.landscape-mode .active-separator {
-                font-size: 3rem !important;
-                color: #ffffff !important;
-                text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-            }
-
-            body.race-active.landscape-mode .active-label {
-                display: none !important;
             }
 
             /* Floating Bottom-Left Telemetry Stats */
@@ -605,7 +594,7 @@
                 border-radius: 16px !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
                 font-size: 1rem !important;
-                z-index: 9999 !important;
+                z-index: 999999 !important;
                 font-weight: 600 !important;
                 box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
             }
@@ -615,9 +604,17 @@
                 display: none !important;
             }
         }
+
+        /* Default hidden state for standalone landscape timer overlay */
+        #standalone-timer-overlay {
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Dedicated Floating Overlay for Landscape Post-Race -->
+    <div id="standalone-timer-overlay" class="active-display"></div>
 
     <div class="container">
         <!-- Left Column -->
@@ -738,6 +735,7 @@
         const targetTimeContainer = document.getElementById('target-time-container');
         const timeInput = document.getElementById('time-input');
         const activeDisplay = document.getElementById('active-display');
+        const standaloneTimerOverlay = document.getElementById('standalone-timer-overlay');
         const activeSignEl = document.getElementById('active-sign');
         const activeModeLabelEl = document.getElementById('active-mode-label');
         const activeMinsEl = document.getElementById('active-mins');
@@ -776,11 +774,30 @@
         let polylineGroup = null;
 
         function checkOrientation() {
-            if (window.innerWidth > window.innerHeight) {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape) {
                 document.body.classList.add('landscape-mode');
             } else {
                 document.body.classList.remove('landscape-mode');
             }
+
+            // Sync active display into standalone overlay if landscape overtime active
+            if (isLandscape && isOvertimeActive) {
+                if (standaloneTimerOverlay.children.length === 0) {
+                    standaloneTimerOverlay.appendChild(boxSign);
+                    standaloneTimerOverlay.appendChild(boxMins);
+                    standaloneTimerOverlay.appendChild(boxSep);
+                    standaloneTimerOverlay.appendChild(boxSecs);
+                }
+            } else {
+                if (standaloneTimerOverlay.children.length > 0) {
+                    activeDisplay.appendChild(boxSign);
+                    activeDisplay.appendChild(boxMins);
+                    activeDisplay.appendChild(boxSep);
+                    activeDisplay.appendChild(boxSecs);
+                }
+            }
+
             if (leafletMap) {
                 setTimeout(() => leafletMap.invalidateSize(), 150);
             }
@@ -788,7 +805,6 @@
 
         window.addEventListener('resize', checkOrientation);
         window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
-        checkOrientation();
 
         function initLeafletMap(lat, lon) {
             if (leafletMap) return;
@@ -1066,6 +1082,7 @@
                 stopGPSTracking();
                 gpsTrackPoints = [];
                 startBtn.textContent = CONFIG.startBtnText;
+                checkOrientation();
             }
         }
 
@@ -1133,9 +1150,7 @@
                     gpsLoggerPanel.style.display = 'flex';
                     downloadTrackBtn.style.display = 'block';
                     startGPSTracking();
-                    setTimeout(() => {
-                        if (leafletMap) leafletMap.invalidateSize();
-                    }, 300);
+                    checkOrientation();
                 }
 
                 activeDisplay.classList.remove('seconds-only');
@@ -1197,10 +1212,7 @@
         }
 
         setInterval(updateCountdown, 100);
-
-        window.addEventListener('resize', () => {
-            if (leafletMap) leafletMap.invalidateSize();
-        });
+        checkOrientation();
     </script>
 </body>
 </html>
