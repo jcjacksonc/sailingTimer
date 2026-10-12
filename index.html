@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.47">
+    <link rel="manifest" href="manifest.json?v=1.0.48">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.47">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.48">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -162,13 +162,14 @@
             max-height: 220px;
             width: 110px;
             overflow-y: scroll;
+            overflow-x: hidden;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
             border-radius: 14px;
-            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         .wheel::-webkit-scrollbar {
@@ -185,15 +186,13 @@
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             scroll-snap-align: center;
-            scroll-snap-stop: always;
             cursor: pointer;
-            opacity: 0.35;
-            transition: opacity 0.15s, transform 0.15s;
+            opacity: 0.4;
+            transition: opacity 0.15s;
         }
 
         .wheel-item.selected {
             opacity: 1.0;
-            transform: scale(1.08);
         }
 
         .wheel-separator {
@@ -516,7 +515,7 @@
                 display: none;
             }
 
-            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & ULTRA-TRANSLUCENT OVERLAYS */
+            /* RACE MODE - LANDSCAPE FULLSCREEN MAP & LOW-BLUR TRANSLUCENT OVERLAYS */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -569,45 +568,45 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Ultra-Translucent Floating Timer Overlay */
+            /* Low-Blur Ultra-Transparent Floating Timer Overlay */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
                 top: 24px !important;
                 left: 24px !important;
-                background: rgba(0, 0, 0, 0.12) !important;
-                backdrop-filter: blur(12px) !important;
-                -webkit-backdrop-filter: blur(12px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                background: rgba(0, 0, 0, 0.15) !important;
+                backdrop-filter: blur(3px) !important;
+                -webkit-backdrop-filter: blur(3px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
                 border-radius: 24px !important;
                 padding: 12px 26px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
                 font-size: 3.2rem !important;
                 color: #ffffff !important;
-                text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9);
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
             }
 
-            /* Ultra-Translucent Speed Badge */
+            /* Low-Blur Ultra-Transparent Speed Badge */
             body.race-active.landscape-mode .gps-stats {
                 position: fixed !important;
                 bottom: 24px !important; left: 24px !important;
-                background: rgba(0, 0, 0, 0.12) !important;
-                backdrop-filter: blur(12px) !important;
-                -webkit-backdrop-filter: blur(12px) !important;
+                background: rgba(0, 0, 0, 0.15) !important;
+                backdrop-filter: blur(3px) !important;
+                -webkit-backdrop-filter: blur(3px) !important;
                 color: #ffffff !important;
                 padding: 10px 22px !important;
                 border-radius: 20px !important;
-                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
                 font-size: 1.2rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25) !important;
-                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
             }
 
             /* Hide PNG Download Button in Landscape */
@@ -667,7 +666,7 @@
                     <div class="active-label" id="active-mode-label">&nbsp;</div>
                 </div>
                 <div class="active-box" id="box-mins">
-                    <div class="active-value" id="active-mins">00</div>
+                    <div class="active-value" id="active-mins">05</div>
                     <div class="active-label">Minutes</div>
                 </div>
                 <div class="active-separator" id="box-sep">:</div>
@@ -1036,6 +1035,7 @@
         });
 
         const ITEM_HEIGHT = 55;
+        let scrollTimeouts = {};
 
         function populateWheel(wheelEl, maxVal) {
             let html = '<div class="wheel-item" style="pointer-events:none;"></div>';
@@ -1057,6 +1057,8 @@
 
         populateWheel(minutesWheel, 59);
         populateWheel(secondsWheel, 59);
+        
+        // Initial set and startup alignment
         minutesWheel.scrollTop = 5 * ITEM_HEIGHT;
         secondsWheel.scrollTop = 0 * ITEM_HEIGHT;
 
@@ -1076,8 +1078,24 @@
             });
         }
 
-        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel));
-        secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel));
+        function handleWheelScroll(wheelEl) {
+            updateWheelHighlight(wheelEl);
+            const wheelId = wheelEl.id;
+            clearTimeout(scrollTimeouts[wheelId]);
+            scrollTimeouts[wheelId] = setTimeout(() => {
+                if (isRunning) return;
+                const currentScroll = wheelEl.scrollTop;
+                const targetIndex = Math.round(currentScroll / ITEM_HEIGHT);
+                const targetScroll = targetIndex * ITEM_HEIGHT;
+                if (Math.abs(currentScroll - targetScroll) > 1) {
+                    wheelEl.scrollTo({ top: targetScroll, behavior: 'smooth' });
+                }
+            }, 120);
+        }
+
+        minutesWheel.addEventListener('scroll', () => handleWheelScroll(minutesWheel), { passive: true });
+        secondsWheel.addEventListener('scroll', () => handleWheelScroll(secondsWheel), { passive: true });
+        
         updateWheelHighlight(minutesWheel);
         updateWheelHighlight(secondsWheel);
 
