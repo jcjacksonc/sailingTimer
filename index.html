@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.51">
+    <link rel="manifest" href="manifest.json?v=1.0.52">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.51">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.52">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -568,7 +568,7 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* 2px Blur Ultra-Transparent Floating Timer Overlay (50% Smaller Digits) */
+            /* Minimalist Full-Fill Floating Timer Overlay in Landscape Race Mode */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
@@ -578,17 +578,30 @@
                 backdrop-filter: blur(2px) !important;
                 -webkit-backdrop-filter: blur(2px) !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-radius: 18px !important;
-                padding: 8px 18px !important;
+                border-radius: 20px !important;
+                padding: 14px 28px !important;
                 z-index: 999999 !important;
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+                align-items: center !important;
+                gap: 12px !important;
+            }
+
+            body.race-active.landscape-mode #standalone-timer-overlay .active-box {
+                display: flex !important;
+                flex-direction: row !important;
+            }
+
+            body.race-active.landscape-mode #standalone-timer-overlay #box-sign,
+            body.race-active.landscape-mode #standalone-timer-overlay .active-label {
+                display: none !important;
             }
 
             body.race-active.landscape-mode #standalone-timer-overlay .active-value,
             body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
-                font-size: 1.6rem !important;
+                font-size: 4.5rem !important;
+                line-height: 1 !important;
                 color: #ffffff !important;
-                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
             }
 
             /* 2px Blur Ultra-Transparent Speed Badge */
@@ -599,10 +612,10 @@
                 backdrop-filter: blur(2px) !important;
                 -webkit-backdrop-filter: blur(2px) !important;
                 color: #ffffff !important;
-                padding: 8px 18px !important;
+                padding: 10px 20px !important;
                 border-radius: 16px !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                font-size: 0.95rem !important;
+                font-size: 1rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
