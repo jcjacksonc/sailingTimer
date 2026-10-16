@@ -6,11 +6,14 @@
     <title>Countdown Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.23">
+    <link rel="manifest" href="manifest.json?v=1.0.24">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.23">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.24">
+
+    <!-- Leaflet CSS for Race Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
     <style>
         :root {
@@ -208,6 +211,35 @@
             font-weight: 600;
         }
 
+        /* Race Map Container */
+        .map-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(128, 128, 128, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        #map {
+            width: 100%;
+            height: 250px;
+            border-radius: 14px;
+            z-index: 1;
+        }
+
+        .map-label {
+            font-size: 0.75rem;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
         /* Active Countdown Display */
         .active-display {
             display: none;
@@ -228,7 +260,6 @@
             align-items: center;
         }
 
-        /* Standard Multi-Column Sizes */
         .active-value {
             font-size: 3.8rem;
             font-weight: 800;
@@ -246,7 +277,6 @@
             line-height: 1;
         }
 
-        /* Single Column / Final Minute Super Size */
         .active-display.seconds-only {
             padding: 20px 10px;
         }
@@ -319,6 +349,7 @@
         <div class="mode-tabs" id="mode-tabs">
             <button class="tab-btn active" id="duration-tab">Duration</button>
             <button class="tab-btn" id="target-time-tab">Target Time</button>
+            <button class="tab-btn" id="map-tab">Race Map</button>
         </div>
 
         <!-- Rolling Wheel Time Picker (Duration Mode) -->
@@ -338,6 +369,12 @@
         <div class="target-time-container" id="target-time-container">
             <input type="time" id="time-input">
             <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
+        </div>
+
+        <!-- Race Map Container -->
+        <div class="map-container" id="map-container">
+            <div id="map"></div>
+            <div class="map-label">Sydney Harbour Course Marks</div>
         </div>
 
         <!-- Clean Active Countdown Display (Shown when running) -->
@@ -365,6 +402,9 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <script>
         // ==========================================
         // CONFIGURABLE TEXT STRINGS, AUDIO & VOICE
@@ -382,6 +422,7 @@
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
+            mapMsg: "Viewing Sydney Harbour course marks",
 
             // Pip Tone Settings (20s - 11s)
             pipFreq: 440,          // A4 (440.00 Hz)
@@ -408,8 +449,10 @@
         const modeTabs = document.getElementById('mode-tabs');
         const durationTab = document.getElementById('duration-tab');
         const targetTimeTab = document.getElementById('target-time-tab');
+        const mapTab = document.getElementById('map-tab');
         const pickerContainer = document.getElementById('picker-container');
         const targetTimeContainer = document.getElementById('target-time-container');
+        const mapContainer = document.getElementById('map-container');
         const timeInput = document.getElementById('time-input');
         const activeDisplay = document.getElementById('active-display');
         const activeSignEl = document.getElementById('active-sign');
@@ -437,6 +480,38 @@
         let audioCtx = null;
         let wakeLock = null;
         let cachedVoice = null;
+        let map = null;
+
+        // Initialize Leaflet Map
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([-33.849, 151.255], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Buoys data
+            const buoys = [
+                {
+                    name: "Beashels Buoy",
+                    lat: -(33 + 50.305 / 60),
+                    lng: 151 + 16.177 / 60,
+                    desc: "Lat: 33° 50.305' S, Lon: 151° 16.177' E"
+                },
+                {
+                    name: "N3",
+                    lat: -(33 + 51/60 + 34.3/3600),
+                    lng: 151 + 14/60 + 32.2/3600,
+                    desc: "Lat: 33°51'34.3\"S, Lon: 151°14'32.2\"E"
+                }
+            ];
+
+            buoys.forEach(buoy => {
+                L.marker([buoy.lat, buoy.lng]).addTo(map)
+                    .bindPopup(`<b>${buoy.name}</b><br>${buoy.desc}`);
+            });
+        }
 
         // Screen Wake Lock API
         async function requestWakeLock() {
@@ -541,8 +616,10 @@
             currentMode = 'duration';
             durationTab.classList.add('active');
             targetTimeTab.classList.remove('active');
+            mapTab.classList.remove('active');
             pickerContainer.style.display = 'flex';
             targetTimeContainer.style.display = 'none';
+            mapContainer.style.display = 'none';
             quick5Btn.style.display = 'block';
             messageEl.textContent = CONFIG.defaultDurationMsg;
         });
@@ -552,10 +629,29 @@
             currentMode = 'target';
             targetTimeTab.classList.add('active');
             durationTab.classList.remove('active');
+            mapTab.classList.remove('active');
             pickerContainer.style.display = 'none';
             targetTimeContainer.style.display = 'flex';
+            mapContainer.style.display = 'none';
             quick5Btn.style.display = 'none';
             messageEl.textContent = CONFIG.targetTimeMsg;
+        });
+
+        mapTab.addEventListener('click', () => {
+            if (isRunning) return;
+            currentMode = 'map';
+            mapTab.classList.add('active');
+            durationTab.classList.remove('active');
+            targetTimeTab.classList.remove('active');
+            pickerContainer.style.display = 'none';
+            targetTimeContainer.style.display = 'none';
+            mapContainer.style.display = 'flex';
+            quick5Btn.style.display = 'none';
+            messageEl.textContent = CONFIG.mapMsg;
+            setTimeout(() => {
+                initMap();
+                map.invalidateSize();
+            }, 100);
         });
 
         function populateWheel(wheelEl, maxVal) {
@@ -614,6 +710,7 @@
                 modeTabs.style.display = 'none';
                 pickerContainer.style.display = 'none';
                 targetTimeContainer.style.display = 'none';
+                mapContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
                 startBtn.textContent = CONFIG.stopBtnText;
@@ -623,8 +720,11 @@
                 if (currentMode === 'duration') {
                     pickerContainer.style.display = 'flex';
                     quick5Btn.style.display = 'block';
-                } else {
+                } else if (currentMode === 'target') {
                     targetTimeContainer.style.display = 'flex';
+                } else if (currentMode === 'map') {
+                    mapContainer.style.display = 'flex';
+                    setTimeout(() => { if(map) map.invalidateSize(); }, 100);
                 }
                 activeDisplay.style.display = 'none';
                 activeDisplay.classList.remove('seconds-only');
@@ -643,7 +743,7 @@
                     const mins = getSelectedMinutes();
                     const secs = getSelectedSeconds();
                     totalMs = (mins * 60 + secs) * 1000;
-                } else {
+                } else if (currentMode === 'target') {
                     const timeVal = timeInput.value;
                     if (!timeVal) {
                         messageEl.textContent = "Please set a target time";
@@ -657,6 +757,9 @@
                         targetDate.setDate(targetDate.getDate() + 1);
                     }
                     totalMs = targetDate.getTime() - now.getTime();
+                } else {
+                    messageEl.textContent = "Switch to Duration or Target Time to start";
+                    return;
                 }
 
                 if (totalMs <= 0) {
@@ -706,7 +809,6 @@
                 const minutes = Math.floor(totalElapsedSeconds / 60);
                 const seconds = totalElapsedSeconds % 60;
 
-                // Restore minute box layout for overtime tracking (with leading zeros)
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'flex';
                 boxMins.style.display = 'flex';
@@ -735,20 +837,19 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
 
-            // Below 1 minute: Hide minutes & separator, scale up seconds, single digit when < 10
             if (minutes === 0) {
                 activeDisplay.classList.add('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'none';
                 boxSep.style.display = 'none';
-                activeSecsEl.textContent = String(seconds); // Single digit (9, 8, 7...)
+                activeSecsEl.textContent = String(seconds);
             } else {
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 activeMinsEl.textContent = String(minutes).padStart(2, '0');
-                activeSecsEl.textContent = String(seconds).padStart(2, '0'); // Two digits (09, 08...)
+                activeSecsEl.textContent = String(seconds).padStart(2, '0');
             }
 
             setWheelValues(minutes, seconds);
@@ -761,10 +862,11 @@
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    // FIXED: Now correctly announces both minutes and seconds (e.g. "5 minutes 30 seconds")
+                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
                     speak(speechText, true);
                 } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
-                    let speechText = minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`;
+                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
                     speak(speechText, true);
                 }
 
