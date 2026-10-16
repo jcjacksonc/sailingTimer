@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.76">
+    <link rel="manifest" href="manifest.json?v=1.0.77">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.76">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.77">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -965,16 +965,54 @@
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
 
-            // Add Course Marks (Beashels Buoy & N3)
-            const beashelsLat = -(33 + 50.305 / 60);
-            const beashelsLon = 151 + 16.177 / 60;
-            L.marker([beashelsLat, beashelsLon]).addTo(leafletMap)
-                .bindPopup("<b>Beashels Buoy</b><br>Lat: 33° 50.305' S<br>Lon: 151° 16.177' E");
+            // Custom Idealised Orange Buoy Icon generator
+            const buoyIcon = L.divIcon({
+                className: 'custom-buoy-marker',
+                html: `<div style="
+                    width: 26px; 
+                    height: 26px; 
+                    background: radial-gradient(circle at 30% 30%, #ff7800, #cc4400); 
+                    border: 2px solid #ffffff; 
+                    border-radius: 50%; 
+                    box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+                "></div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13],
+                popupAnchor: [0, -14]
+            });
 
-            const n3Lat = -(33 + 51/60 + 34.3/3600);
-            const n3Lon = 151 + 14/60 + 32.2/3600;
-            L.marker([n3Lat, n3Lon]).addTo(leafletMap)
-                .bindPopup("<b>N3</b><br>Lat: 33°51'34.3\"S<br>Lon: 151°14'32.2\"E");
+            // Course Marks Data
+            const courseMarks = [
+                {
+                    name: "Beashels Buoy",
+                    lat: -(33 + 50.305 / 60),
+                    lon: 151 + 16.177 / 60,
+                    desc: "Lat: 33° 50.305' S<br>Lon: 151° 16.177' E"
+                },
+                {
+                    name: "N3",
+                    lat: -(33 + 51/60 + 34.3/3600),
+                    lon: 151 + 14/60 + 32.2/3600,
+                    desc: "Lat: 33°51'34.3\"S<br>Lon: 151°14'32.2\"E"
+                },
+                {
+                    name: "EC",
+                    lat: -(33 + 50.439 / 60),
+                    lon: 151 + 16.249 / 60,
+                    desc: "Lat: 33° 50.439' S<br>Lon: 151° 16.249' E"
+                },
+                {
+                    name: "SM",
+                    lat: -(33 + 51.520 / 60),
+                    lon: 151 + 15.601 / 60,
+                    desc: "Lat: 33° 51.520' S<br>Lon: 151° 15.601' E"
+                }
+            ];
+
+            courseMarks.forEach(mark => {
+                L.marker([mark.lat, mark.lon], { icon: buoyIcon }).addTo(leafletMap)
+                    .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
+            });
 
             setTimeout(() => {
                 leafletMap.invalidateSize();
