@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.77">
+    <link rel="manifest" href="manifest.json?v=1.0.78">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.77">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.78">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -965,20 +965,28 @@
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
 
-            // Custom Idealised Orange Buoy Icon generator
-            const buoyIcon = L.divIcon({
-                className: 'custom-buoy-marker',
-                html: `<div style="
-                    width: 26px; 
-                    height: 26px; 
-                    background: radial-gradient(circle at 30% 30%, #ff7800, #cc4400); 
-                    border: 2px solid #ffffff; 
-                    border-radius: 50%; 
-                    box-shadow: 0 3px 8px rgba(0,0,0,0.6);
-                "></div>`,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13],
-                popupAnchor: [0, -14]
+            // Detailed SVG Racing Buoy Icon
+            const orangeBuoyIcon = L.divIcon({
+                className: 'racing-buoy-marker',
+                html: `<svg width="32" height="36" viewBox="0 0 32 36" style="filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.6));">
+                    <!-- Buoy Top Loop / Eye -->
+                    <circle cx="16" cy="4" r="3" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+                    <!-- Main Inflatable Buoy Body (Orange Cylinder/Cone Shape with 3D gradient) -->
+                    <path d="M 10 7 Q 16 6 22 7 L 26 26 Q 16 32 6 26 Z" fill="url(#buoyGrad)" stroke="#b33b00" stroke-width="1"/>
+                    <!-- Reflective White Stripe Band -->
+                    <path d="M 12 14 Q 16 13.5 20 14 L 21 19 Q 16 20.5 11 19 Z" fill="#ffffff" opacity="0.9"/>
+                    <!-- Definitions for Realistic Shading -->
+                    <defs>
+                        <radialGradient id="buoyGrad" cx="35%" cy="35%" r="65%">
+                            <stop offset="0%" stop-color="#ff9933"/>
+                            <stop offset="55%" stop-color="#ff5500"/>
+                            <stop offset="100%" stop-color="#cc3300"/>
+                        </radialGradient>
+                    </defs>
+                </svg>`,
+                iconSize: [32, 36],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
             });
 
             // Course Marks Data
@@ -1010,7 +1018,7 @@
             ];
 
             courseMarks.forEach(mark => {
-                L.marker([mark.lat, mark.lon], { icon: buoyIcon }).addTo(leafletMap)
+                L.marker([mark.lat, mark.lon], { icon: orangeBuoyIcon }).addTo(leafletMap)
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
             });
 
