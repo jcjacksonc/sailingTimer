@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.78">
+    <link rel="manifest" href="manifest.json?v=1.0.79">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.78">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.79">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -792,6 +792,9 @@
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
 
+            // Buoy Marker Size Control (multiplier, e.g., 0.45 for much smaller icons)
+            buoyMarkerScale: 0.45,
+
             pipFreq: 440,
             pipDuration: 0.200,
             pipType: "sine",
@@ -965,13 +968,19 @@
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
 
-            // Detailed SVG Racing Buoy Icon
+            // Compute scaled dimensions using CONFIG.buoyMarkerScale
+            const baseW = 32;
+            const baseH = 36;
+            const scaledW = Math.round(baseW * CONFIG.buoyMarkerScale);
+            const scaledH = Math.round(baseH * CONFIG.buoyMarkerScale);
+
+            // Custom Scaled Idealised Orange Racing Buoy Icon
             const orangeBuoyIcon = L.divIcon({
                 className: 'racing-buoy-marker',
-                html: `<svg width="32" height="36" viewBox="0 0 32 36" style="filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.6));">
+                html: `<svg width="${scaledW}" height="${scaledH}" viewBox="0 0 32 36" style="filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.6));">
                     <!-- Buoy Top Loop / Eye -->
                     <circle cx="16" cy="4" r="3" fill="none" stroke="#ffffff" stroke-width="2.5"/>
-                    <!-- Main Inflatable Buoy Body (Orange Cylinder/Cone Shape with 3D gradient) -->
+                    <!-- Main Inflatable Buoy Body -->
                     <path d="M 10 7 Q 16 6 22 7 L 26 26 Q 16 32 6 26 Z" fill="url(#buoyGrad)" stroke="#b33b00" stroke-width="1"/>
                     <!-- Reflective White Stripe Band -->
                     <path d="M 12 14 Q 16 13.5 20 14 L 21 19 Q 16 20.5 11 19 Z" fill="#ffffff" opacity="0.9"/>
@@ -984,9 +993,9 @@
                         </radialGradient>
                     </defs>
                 </svg>`,
-                iconSize: [32, 36],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
+                iconSize: [scaledW, scaledH],
+                iconAnchor: [Math.round(scaledW / 2), scaledH],
+                popupAnchor: [0, -scaledH]
             });
 
             // Course Marks Data
