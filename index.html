@@ -2,18 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Countdown Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.24">
+    <link rel="manifest" href="manifest.json?v=1.0.75">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Countdown">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.24">
+    <meta name="apple-mobile-web-app-title" content="Beta Timer">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.75">
 
-    <!-- Leaflet CSS for Race Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet.js Map Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- HTML2Canvas Library for PNG Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -25,9 +29,10 @@
             --secondary-btn: #374151;
             --secondary-hover: #4b5563;
             --muted-color: #9ca3af;
+            --item-height: 50px;
         }
 
-        /* Race Started Overtime Theme */
+        /* Race Mode Theme */
         body.race-active {
             --bg-color: #ffffff;
             --card-bg: #f3f4f6;
@@ -41,62 +46,87 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             transition: background-color 0.3s ease, color 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        html, body {
+            height: 100vh;
+            max-height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+            top: 0; left: 0;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
             width: 100%;
             max-width: 440px;
+            height: 100%;
+            max-height: calc(100vh - 16px);
             background-color: var(--card-bg);
-            border-radius: 28px;
-            padding: 25px 20px;
+            border-radius: 24px;
+            padding: 14px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex: 1;
+            min-height: 0;
         }
 
         .live-clock {
-            font-size: 1rem;
+            font-size: 0.9rem;
             color: var(--muted-color);
-            margin-bottom: 10px;
+            margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         h1 {
-            font-size: 1.65rem;
-            margin-bottom: 15px;
+            font-size: 1.4rem;
+            margin-bottom: 6px;
             font-weight: 700;
             letter-spacing: -0.5px;
+            flex-shrink: 0;
         }
 
         /* Mode Selector Tabs */
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 14px;
-            padding: 5px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 3px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 10px;
+            padding: 8px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            border-radius: 10px;
+            border-radius: 9px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -106,35 +136,46 @@
             color: white;
         }
 
-        /* Rolling Wheel Time Picker (Duration Mode) */
+        /* Rolling Wheel Time Picker */
         .picker-container {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 20px 10px;
+            padding: 10px;
+            flex: 1;
+            min-height: 130px;
+            max-height: 170px;
         }
 
         .wheel-column {
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100%;
+            justify-content: center;
         }
 
         .wheel {
-            height: 150px;
+            height: 100%;
             width: 100px;
-            overflow-y: scroll;
+            overflow-y: auto;
+            overflow-x: hidden;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 14px;
+            border-radius: 12px;
+            -webkit-overflow-scrolling: touch;
+            scroll-padding-top: calc(50% - (var(--item-height) / 2));
+            scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
+            padding-top: calc(50% - (var(--item-height) / 2));
+            padding-bottom: calc(50% - (var(--item-height) / 2));
         }
 
         .wheel::-webkit-scrollbar {
@@ -142,7 +183,8 @@
         }
 
         .wheel-item {
-            height: 50px;
+            height: var(--item-height);
+            min-height: var(--item-height);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -152,27 +194,28 @@
             color: var(--text-color);
             scroll-snap-align: center;
             cursor: pointer;
-            opacity: 0.4;
-            transition: opacity 0.15s;
+            opacity: 0.3;
+            transition: opacity 0.15s, transform 0.15s;
         }
 
         .wheel-item.selected {
             opacity: 1.0;
+            transform: scale(1.08);
         }
 
         .wheel-separator {
             font-size: 2.4rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .wheel-label {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 8px;
+            letter-spacing: 1.2px;
+            margin-top: 6px;
             font-weight: 600;
         }
 
@@ -181,22 +224,25 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 30px 15px;
+            padding: 12px;
+            flex: 1;
+            min-height: 130px;
         }
 
         input[type="time"] {
-            width: 85%;
-            padding: 16px;
-            border-radius: 14px;
+            width: 80%;
+            padding: 10px;
+            border-radius: 12px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 2rem;
+            font-size: 2.1rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -204,39 +250,10 @@
         }
 
         .target-time-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
-        }
-
-        /* Race Map Container */
-        .map-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            overflow: hidden;
-            padding: 10px;
-        }
-
-        #map {
-            width: 100%;
-            height: 250px;
-            border-radius: 14px;
-            z-index: 1;
-        }
-
-        .map-label {
-            font-size: 0.75rem;
-            color: var(--muted-color);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 8px;
+            letter-spacing: 1.2px;
             font-weight: 600;
         }
 
@@ -246,12 +263,13 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 22px;
-            padding: 35px 15px;
-            transition: padding 0.2s ease;
+            border-radius: 20px;
+            padding: 14px;
+            flex-shrink: 0;
+            width: 100%;
         }
 
         .active-box {
@@ -261,65 +279,180 @@
         }
 
         .active-value {
-            font-size: 3.8rem;
+            font-size: 3.5rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
             line-height: 1;
-            transition: font-size 0.2s ease;
         }
 
         .active-separator {
-            font-size: 3.8rem;
+            font-size: 3.5rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 12px;
+            padding-bottom: 8px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 20px 10px;
+            padding: 14px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 10rem;
-            letter-spacing: -5px;
+            font-size: 7.5rem;
+            letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-top: 10px;
+            letter-spacing: 1.2px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
-        .message {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
+        /* GPS Track Map Panel */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .gps-logger-panel {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 6px;
+            background: rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(128, 128, 128, 0.2);
+            border-radius: 18px;
+            padding: 8px;
+            flex: 1;
+            min-height: 160px;
+        }
+
+        .gps-toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--muted-color);
-            min-height: 28px;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        .gps-stats {
+            font-size: 0.75rem;
+            color: var(--text-color);
+            font-variant-numeric: tabular-nums;
+            background: rgba(0,0,0,0.12);
+            padding: 4px;
+            border-radius: 6px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #map-wrapper {
+            width: 100%;
+            flex: 1;
+            min-height: 100px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #map-container {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #0f172a;
+        }
+
+        .download-btn {
+            display: none;
+            background-color: #059669;
+            font-size: 0.85rem;
+            padding: 8px;
+            flex-shrink: 0;
+        }
+
+        .download-btn:hover {
+            background-color: #047857;
+        }
+
+        .message {
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: var(--muted-color);
+            min-height: 16px;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 6px;
+            flex-shrink: 0;
         }
 
         button {
             width: 100%;
-            padding: 18px;
-            border-radius: 14px;
+            padding: 12px;
+            border-radius: 12px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1.15rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
+            z-index: 10;
         }
 
         button:active {
@@ -337,80 +470,316 @@
         .btn-secondary:hover {
             background-color: var(--secondary-hover);
         }
+
+        /* Strict Default Hidden State for Standalone Timer Overlay */
+        #standalone-timer-overlay {
+            display: none !important;
+        }
+
+        /* LANDSCAPE ADAPTIVE RULES */
+        @media (orientation: landscape) {
+            html, body {
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100vw !important;
+                overflow: hidden !important;
+                position: fixed !important;
+            }
+
+            body {
+                padding: 4px !important;
+                justify-content: center !important;
+                align-items: center !important;
+            }
+
+            .container {
+                max-width: 96vw;
+                max-height: 96vh;
+                height: 100%;
+                margin: 0 auto;
+                padding: 8px 14px;
+            }
+
+            .left-column {
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: space-between;
+                align-content: center;
+            }
+
+            .left-column > div:first-child {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2px;
+            }
+
+            .live-clock {
+                margin-bottom: 0;
+                font-size: 0.75rem;
+            }
+
+            h1 {
+                font-size: 1rem;
+                margin-bottom: 0;
+            }
+
+            .mode-tabs {
+                width: 48%;
+                margin-bottom: 2px;
+                padding: 2px;
+            }
+
+            .tab-btn {
+                padding: 5px;
+                font-size: 0.8rem;
+            }
+
+            .picker-container, .target-time-container {
+                width: 100%;
+                min-height: 90px;
+                max-height: 110px;
+                margin-bottom: 2px;
+                padding: 4px;
+            }
+
+            .wheel {
+                width: 95px;
+                max-height: 95px;
+            }
+
+            /* Natural fit sizing for pre-race active countdown display in landscape mode */
+            .active-display {
+                width: fit-content !important;
+                margin: 0 auto 6px auto !important;
+                padding: 10px 20px !important;
+            }
+
+            .message {
+                width: 48%;
+                margin-bottom: 0;
+                font-size: 0.75rem;
+                text-align: left;
+            }
+
+            .controls {
+                width: 48%;
+                flex-direction: row;
+                gap: 6px;
+            }
+
+            .controls button {
+                padding: 8px;
+                font-size: 0.85rem;
+                border-radius: 9px;
+            }
+
+            .right-column {
+                display: none;
+            }
+
+            /* RACE MODE LANDSCAPE EDGE-TO-EDGE OVERRIDES */
+            body.race-active.landscape-mode {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                overflow: hidden !important;
+                position: fixed !important;
+            }
+
+            body.race-active.landscape-mode .container {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important; left: 0 !important;
+                width: 100vw !important; height: 100vh !important;
+                max-width: 100vw !important; max-height: 100vh !important;
+                border-radius: 0 !important; padding: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+
+            body.race-active.landscape-mode .left-column {
+                display: none !important;
+            }
+
+            body.race-active.landscape-mode .right-column {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important; left: 0 !important;
+                width: 100vw !important; height: 100vh !important;
+                z-index: 100;
+            }
+
+            body.race-active.landscape-mode .gps-logger-panel {
+                display: block !important;
+                position: absolute !important;
+                top: 0 !important; left: 0 !important;
+                width: 100vw !important; height: 100vh !important;
+                border-radius: 0 !important; border: none !important;
+                background: #000 !important; padding: 0 !important; margin: 0 !important;
+            }
+
+            body.race-active.landscape-mode .gps-toggle-row { display: none !important; }
+
+            body.race-active.landscape-mode #map-wrapper {
+                position: absolute !important;
+                top: 0 !important; left: 0 !important;
+                width: 100vw !important; height: 100vh !important;
+                border-radius: 0 !important; margin: 0 !important; padding: 0 !important;
+            }
+
+            body.race-active.landscape-mode #map-container {
+                width: 100vw !important; height: 100vh !important;
+            }
+
+            /* Only visible when race is active in landscape mode */
+            body.race-active.landscape-mode #standalone-timer-overlay {
+                display: flex !important;
+                position: fixed !important;
+                top: max(10px, env(safe-area-inset-top)) !important;
+                left: max(16px, env(safe-area-inset-left)) !important;
+                width: auto !important;
+                max-width: max-content !important;
+                background: rgba(0, 0, 0, 0.25) !important;
+                backdrop-filter: blur(4px) !important;
+                -webkit-backdrop-filter: blur(4px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.25) !important;
+                border-radius: 12px !important;
+                padding: 6px 14px !important;
+                z-index: 999999 !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+
+            body.race-active.landscape-mode #standalone-timer-overlay .active-box {
+                display: flex !important;
+                flex-direction: row !important;
+            }
+
+            body.race-active.landscape-mode #standalone-timer-overlay #box-sign,
+            body.race-active.landscape-mode #standalone-timer-overlay .active-label {
+                display: none !important;
+            }
+
+            body.race-active.landscape-mode #standalone-timer-overlay .active-value,
+            body.race-active.landscape-mode #standalone-timer-overlay .active-separator {
+                font-size: 2.8rem !important;
+                line-height: 1 !important;
+                color: #ffffff !important;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
+            }
+
+            body.race-active.landscape-mode .gps-stats {
+                position: fixed !important;
+                bottom: max(10px, env(safe-area-inset-bottom)) !important; 
+                left: max(16px, env(safe-area-inset-left)) !important;
+                background: rgba(0, 0, 0, 0.25) !important;
+                backdrop-filter: blur(4px) !important;
+                -webkit-backdrop-filter: blur(4px) !important;
+                color: #ffffff !important;
+                padding: 6px 14px !important;
+                border-radius: 12px !important;
+                border: 1px solid rgba(255, 255, 255, 0.25) !important;
+                font-size: 0.8rem !important;
+                z-index: 999999 !important;
+                font-weight: 700 !important;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25) !important;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+            }
+
+            body.race-active.landscape-mode .download-btn {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Hidden video element to prevent iOS display sleep in all modes -->
+    <video id="wake-lock-video" playsinline loop muted style="display:none;">
+        <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAptZGF0AAAAAA==" type="video/mp4">
+    </video>
+
+    <div id="standalone-timer-overlay" class="active-display"></div>
+
     <div class="container">
-        <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
-        <h1 id="event-title">Countdown Timer</h1>
+        <div class="left-column">
+            <div>
+                <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
+                <h1 id="event-title">Beta Timer</h1>
+            </div>
 
-        <!-- Mode Toggle Tabs -->
-        <div class="mode-tabs" id="mode-tabs">
-            <button class="tab-btn active" id="duration-tab">Duration</button>
-            <button class="tab-btn" id="target-time-tab">Target Time</button>
-            <button class="tab-btn" id="map-tab">Race Map</button>
+            <div class="mode-tabs" id="mode-tabs">
+                <button class="tab-btn active" id="duration-tab">Duration</button>
+                <button class="tab-btn" id="target-time-tab">Target Time</button>
+            </div>
+
+            <div class="picker-container" id="picker-container">
+                <div class="wheel-column">
+                    <div class="wheel" id="minutes-wheel"></div>
+                    <div class="wheel-label">Minutes</div>
+                </div>
+                <div class="wheel-separator">:</div>
+                <div class="wheel-column">
+                    <div class="wheel" id="seconds-wheel"></div>
+                    <div class="wheel-label">Seconds</div>
+                </div>
+            </div>
+
+            <div class="target-time-container" id="target-time-container">
+                <input type="time" id="time-input">
+                <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
+            </div>
+
+            <div class="active-display" id="active-display">
+                <div class="active-box" id="box-sign" style="display:none;">
+                    <div class="active-value" id="active-sign">&nbsp;</div>
+                    <div class="active-label" id="active-mode-label">&nbsp;</div>
+                </div>
+                <div class="active-box" id="box-mins">
+                    <div class="active-value" id="active-mins">05</div>
+                    <div class="active-label">Minutes</div>
+                </div>
+                <div class="active-separator" id="box-sep">:</div>
+                <div class="active-box" id="box-secs">
+                    <div class="active-value" id="active-secs">00</div>
+                    <div class="active-label">Seconds</div>
+                </div>
+            </div>
+
+            <div class="message" id="message">Scroll wheels to set duration</div>
+
+            <div class="controls">
+                <button id="start-btn">Start Countdown</button>
+                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+            </div>
         </div>
 
-        <!-- Rolling Wheel Time Picker (Duration Mode) -->
-        <div class="picker-container" id="picker-container">
-            <div class="wheel-column">
-                <div class="wheel" id="minutes-wheel"></div>
-                <div class="wheel-label">Minutes</div>
+        <div class="right-column">
+            <div class="gps-logger-panel" id="gps-logger-panel">
+                <div class="gps-toggle-row">
+                    <span>Record Live GPS Track</span>
+                    <label class="switch">
+                        <input type="checkbox" id="gps-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
+                <div id="map-wrapper">
+                    <div id="map-container"></div>
+                </div>
+                <button class="download-btn" id="download-track-btn">Download Track Map (PNG)</button>
             </div>
-            <div class="wheel-separator">:</div>
-            <div class="wheel-column">
-                <div class="wheel" id="seconds-wheel"></div>
-                <div class="wheel-label">Seconds</div>
-            </div>
-        </div>
-
-        <!-- Target Time Input (Target Time Mode) -->
-        <div class="target-time-container" id="target-time-container">
-            <input type="time" id="time-input">
-            <div class="target-time-label">Set Target Time (Hours : Minutes)</div>
-        </div>
-
-        <!-- Race Map Container -->
-        <div class="map-container" id="map-container">
-            <div id="map"></div>
-            <div class="map-label">Sydney Harbour Course Marks</div>
-        </div>
-
-        <!-- Clean Active Countdown Display (Shown when running) -->
-        <div class="active-display" id="active-display">
-            <div class="active-box" id="box-sign" style="display:none;">
-                <div class="active-value" id="active-sign">&nbsp;</div>
-                <div class="active-label" id="active-mode-label">&nbsp;</div>
-            </div>
-            <div class="active-box" id="box-mins">
-                <div class="active-value" id="active-mins">00</div>
-                <div class="active-label">Minutes</div>
-            </div>
-            <div class="active-separator" id="box-sep">:</div>
-            <div class="active-box" id="box-secs">
-                <div class="active-value" id="active-secs">00</div>
-                <div class="active-label">Seconds</div>
-            </div>
-        </div>
-
-        <div class="message" id="message">Scroll wheels to set duration</div>
-
-        <div class="controls">
-            <button id="start-btn">Start Countdown</button>
-            <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
     <script>
-        // ==========================================
-        // CONFIGURABLE TEXT STRINGS, AUDIO & VOICE
-        // ==========================================
         const CONFIG = {
-            appTitle: "Countdown Timer",
+            appTitle: "Beta Timer",
             startBtnText: "Start Countdown",
             stopBtnText: "Reset / Stop",
             quick5BtnText: "Quick 5 Min Timer",
@@ -422,26 +791,21 @@
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
-            mapMsg: "Viewing Sydney Harbour course marks",
 
-            // Pip Tone Settings (20s - 11s)
-            pipFreq: 440,          // A4 (440.00 Hz)
-            pipDuration: 0.200,    // Duration in seconds
-            pipType: "sine",       // Oscillator type
-            pipVolume: 2.0,        // Gain volume
+            pipFreq: 440,
+            pipDuration: 0.200,
+            pipType: "sine",
+            pipVolume: 2.0,
 
-            // Doop Tone Settings (0s)
-            doopFreq: 659.25,      // E5 (659.25 Hz)
-            doopDuration: 0.75,    // Duration in seconds
-            doopType: "triangle",  // Oscillator type
-            doopVolume: 2.0,       // Gain volume
+            doopFreq: 659.25,
+            doopDuration: 0.75,
+            doopType: "triangle",
+            doopVolume: 2.0,
 
-            // Speech Settings
             speechRate: 1.0,        
             speechPitch: 1.0,       
             speechVoiceLang: "en-GB" 
         };
-        // ==========================================
 
         const liveClockEl = document.getElementById('live-clock');
         const messageEl = document.getElementById('message');
@@ -449,12 +813,11 @@
         const modeTabs = document.getElementById('mode-tabs');
         const durationTab = document.getElementById('duration-tab');
         const targetTimeTab = document.getElementById('target-time-tab');
-        const mapTab = document.getElementById('map-tab');
         const pickerContainer = document.getElementById('picker-container');
         const targetTimeContainer = document.getElementById('target-time-container');
-        const mapContainer = document.getElementById('map-container');
         const timeInput = document.getElementById('time-input');
         const activeDisplay = document.getElementById('active-display');
+        const standaloneTimerOverlay = document.getElementById('standalone-timer-overlay');
         const activeSignEl = document.getElementById('active-sign');
         const activeModeLabelEl = document.getElementById('active-mode-label');
         const activeMinsEl = document.getElementById('active-mins');
@@ -467,6 +830,12 @@
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
+        
+        const gpsLoggerPanel = document.getElementById('gps-logger-panel');
+        const gpsToggle = document.getElementById('gps-toggle');
+        const gpsStats = document.getElementById('gps-stats');
+        const downloadTrackBtn = document.getElementById('download-track-btn');
+        const wakeVideo = document.getElementById('wake-lock-video');
 
         eventTitleEl.textContent = CONFIG.appTitle;
         startBtn.textContent = CONFIG.startBtnText;
@@ -476,78 +845,254 @@
         let targetTime = null;
         let isRunning = false;
         let lastSpokenSecond = -1;
+        let hasPlayedRaceStart = false;
         let currentMode = 'duration';
         let audioCtx = null;
         let wakeLock = null;
         let cachedVoice = null;
-        let map = null;
 
-        // Initialize Leaflet Map
-        function initMap() {
-            if (map) return;
-            map = L.map('map').setView([-33.849, 151.255], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+        let watchId = null;
+        let gpsTrackPoints = [];
+        let isOvertimeActive = false;
+        let leafletMap = null;
+        let polylineGroup = null;
+        let latestLat = null;
+        let latestLon = null;
+        let latestKnots = "0.0";
+        let fortDenisonWindText = "Wind: Loading...";
+        let windIntervalId = null;
 
-            // Buoys data
-            const buoys = [
-                {
-                    name: "Beashels Buoy",
-                    lat: -(33 + 50.305 / 60),
-                    lng: 151 + 16.177 / 60,
-                    desc: "Lat: 33° 50.305' S, Lon: 151° 16.177' E"
-                },
-                {
-                    name: "N3",
-                    lat: -(33 + 51/60 + 34.3/3600),
-                    lng: 151 + 14/60 + 32.2/3600,
-                    desc: "Lat: 33°51'34.3\"S, Lon: 151°14'32.2\"E"
-                }
-            ];
-
-            buoys.forEach(buoy => {
-                L.marker([buoy.lat, buoy.lng]).addTo(map)
-                    .bindPopup(`<b>${buoy.name}</b><br>${buoy.desc}`);
-            });
+        function getItemHeight() {
+            return 50;
         }
 
-        // Screen Wake Lock API
+        function getWindDirectionInfo(angle) {
+            if (isNaN(angle)) return { arrow: "↑", text: "--" };
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const arrows = ['↓', '↙', '↙', '↙', '←', '↖', '↖', '↖', '↑', '↗', '↗', '↗', '→', '↘', '↘', '↘'];
+            const index = Math.round((angle % 360) / 22.5) % 16;
+            return { arrow: arrows[index], text: directions[index] };
+        }
+
+        // Global JSONP callback handler to bypass iOS Web View cross-origin fetch blocking
+        window.handleWindData = function(data) {
+            if (data && data.current) {
+                const speedKt = Math.round(data.current.wind_speed_10m);
+                const gustKt = Math.round(data.current.wind_gusts_10m);
+                const dirDeg = data.current.wind_direction_10m;
+                const dirInfo = getWindDirectionInfo(dirDeg);
+
+                fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+                updateTelemetryText();
+            }
+        };
+
+        function fetchFortDenisonWind() {
+            // Remove previous script tag if present
+            const oldScript = document.getElementById('jsonp-wind-script');
+            if (oldScript) oldScript.remove();
+
+            // Inject script tag using Open-Meteo Fort Denison coordinates (-33.8568, 151.2223)
+            const script = document.createElement('script');
+            script.id = 'jsonp-wind-script';
+            script.src = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots&apikey=&format=jsonp&jsonp=handleWindData";
+            
+            script.onerror = function() {
+                fortDenisonWindText = "Wind: N/A";
+                updateTelemetryText();
+            };
+
+            document.body.appendChild(script);
+        }
+
+        function updateTelemetryText() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape && isOvertimeActive) {
+                gpsStats.textContent = `SOG: ${latestKnots} kts | ${fortDenisonWindText}`;
+            } else if (latestLat !== null && latestLon !== null) {
+                gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | SOG: ${latestKnots} kts`;
+            }
+        }
+
+        function checkOrientation() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape) {
+                document.body.classList.add('landscape-mode');
+            } else {
+                document.body.classList.remove('landscape-mode');
+            }
+
+            if (isLandscape && isOvertimeActive) {
+                if (standaloneTimerOverlay.children.length === 0) {
+                    standaloneTimerOverlay.appendChild(boxSign);
+                    standaloneTimerOverlay.appendChild(boxMins);
+                    standaloneTimerOverlay.appendChild(boxSep);
+                    standaloneTimerOverlay.appendChild(boxSecs);
+                }
+            } else {
+                if (standaloneTimerOverlay.children.length > 0) {
+                    activeDisplay.appendChild(boxSign);
+                    activeDisplay.appendChild(boxMins);
+                    activeDisplay.appendChild(boxSep);
+                    activeDisplay.appendChild(boxSecs);
+                }
+            }
+
+            updateTelemetryText();
+
+            if (leafletMap) {
+                setTimeout(() => leafletMap.invalidateSize(), 150);
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                checkOrientation();
+                setWheelValues(getSelectedMinutes() >= 0 ? getSelectedMinutes() : 5, getSelectedSeconds() >= 0 ? getSelectedSeconds() : 0);
+            }, 300);
+        });
+
+        function initLeafletMap(lat, lon) {
+            if (leafletMap) return;
+
+            leafletMap = L.map('map-container', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([lat, lon], 16);
+
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 19,
+                crossOrigin: true
+            }).addTo(leafletMap);
+
+            polylineGroup = L.layerGroup().addTo(leafletMap);
+
+            setTimeout(() => {
+                leafletMap.invalidateSize();
+            }, 250);
+        }
+
+        function getSpeedColor(knots) {
+            const k = parseFloat(knots);
+            if (k < 3.0) return '#38bdf8';
+            if (k < 6.0) return '#10b981';
+            if (k < 8.0) return '#f59e0b';
+            return '#ef4444';
+        }
+
+        function updateMapTrack() {
+            if (!leafletMap || gpsTrackPoints.length === 0) return;
+
+            polylineGroup.clearLayers();
+
+            for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
+                const p1 = gpsTrackPoints[i];
+                const p2 = gpsTrackPoints[i + 1];
+                const segmentColor = getSpeedColor(p2.knots);
+
+                L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+                    color: segmentColor,
+                    weight: 6,
+                    opacity: 0.95
+                }).addTo(polylineGroup);
+            }
+
+            const latest = gpsTrackPoints[gpsTrackPoints.length - 1];
+            leafletMap.setView([latest.lat, latest.lon]);
+        }
+
+        function startGPSTracking() {
+            if ('geolocation' in navigator) {
+                watchId = navigator.geolocation.watchPosition(
+                    (pos) => {
+                        if (!isOvertimeActive || !gpsToggle.checked) return;
+                        latestLat = pos.coords.latitude;
+                        latestLon = pos.coords.longitude;
+                        const speedMs = pos.coords.speed;
+                        latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
+
+                        gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots });
+                        
+                        updateTelemetryText();
+
+                        if (!leafletMap) {
+                            initLeafletMap(latestLat, latestLon);
+                        } else {
+                            leafletMap.invalidateSize();
+                            updateMapTrack();
+                        }
+                    },
+                    (err) => {
+                        console.log("GPS error:", err);
+                        gpsStats.textContent = "GPS signal unavailable";
+                    },
+                    { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+                );
+            } else {
+                gpsStats.textContent = "Geolocation not supported";
+            }
+        }
+
+        function stopGPSTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            if (leafletMap) {
+                leafletMap.remove();
+                leafletMap = null;
+                polylineGroup = null;
+            }
+        }
+
+        downloadTrackBtn.addEventListener('click', () => {
+            const mapWrapper = document.getElementById('map-wrapper');
+            html2canvas(mapWrapper, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2
+            }).then(canvas => {
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `beta-timer-track-${Date.now()}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+            });
+        });
+
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (err) {
-                    console.log("Wake Lock error:", err);
-                }
+                try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
+            }
+            if (wakeVideo) {
+                wakeVideo.play().catch(() => {});
             }
         }
 
         async function releaseWakeLock() {
             if (wakeLock !== null) {
-                try {
-                    await wakeLock.release();
-                    wakeLock = null;
-                } catch (err) {
-                    console.log("Wake Lock release error:", err);
-                }
+                try { await wakeLock.release(); wakeLock = null; } catch (err) {}
+            }
+            if (wakeVideo) {
+                wakeVideo.pause();
             }
         }
 
         document.addEventListener('visibilitychange', async () => {
-            if (wakeLock !== null && document.visibilityState === 'visible' && isRunning) {
+            if (document.visibilityState === 'visible' && isRunning) {
                 await requestWakeLock();
             }
         });
 
         function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
         function playTone(freq, duration, type, volume) {
@@ -555,21 +1100,15 @@
                 initAudioContext();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                
                 gain.gain.setValueAtTime(volume, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Audio play error:", e);
-            }
+            } catch (e) {}
         }
 
         function loadVoice() {
@@ -588,13 +1127,11 @@
         function speak(text, forceCancel = false) {
             if (!('speechSynthesis' in window)) return;
             if (forceCancel) window.speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = CONFIG.speechRate;
             utterance.pitch = CONFIG.speechPitch;
             utterance.lang = CONFIG.speechVoiceLang;
             if (cachedVoice) utterance.voice = cachedVoice;
-
             window.speechSynthesis.speak(utterance);
         }
 
@@ -616,10 +1153,8 @@
             currentMode = 'duration';
             durationTab.classList.add('active');
             targetTimeTab.classList.remove('active');
-            mapTab.classList.remove('active');
             pickerContainer.style.display = 'flex';
             targetTimeContainer.style.display = 'none';
-            mapContainer.style.display = 'none';
             quick5Btn.style.display = 'block';
             messageEl.textContent = CONFIG.defaultDurationMsg;
         });
@@ -629,78 +1164,71 @@
             currentMode = 'target';
             targetTimeTab.classList.add('active');
             durationTab.classList.remove('active');
-            mapTab.classList.remove('active');
             pickerContainer.style.display = 'none';
             targetTimeContainer.style.display = 'flex';
-            mapContainer.style.display = 'none';
             quick5Btn.style.display = 'none';
             messageEl.textContent = CONFIG.targetTimeMsg;
         });
 
-        mapTab.addEventListener('click', () => {
-            if (isRunning) return;
-            currentMode = 'map';
-            mapTab.classList.add('active');
-            durationTab.classList.remove('active');
-            targetTimeTab.classList.remove('active');
-            pickerContainer.style.display = 'none';
-            targetTimeContainer.style.display = 'none';
-            mapContainer.style.display = 'flex';
-            quick5Btn.style.display = 'none';
-            messageEl.textContent = CONFIG.mapMsg;
-            setTimeout(() => {
-                initMap();
-                map.invalidateSize();
-            }, 100);
-        });
-
         function populateWheel(wheelEl, maxVal) {
-            let html = '<div class="wheel-item" style="pointer-events:none;"></div>';
+            let html = '';
             for (let i = 0; i <= maxVal; i++) {
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
-            html += '<div class="wheel-item" style="pointer-events:none;"></div>';
             wheelEl.innerHTML = html;
-
+            
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
-                        const val = parseInt(item.dataset.value);
-                        wheelEl.scrollTop = val * 50;
+                        const targetVal = parseInt(item.dataset.value, 10);
+                        const itemH = getItemHeight();
+                        wheelEl.scrollTo({ top: targetVal * itemH, behavior: 'smooth' });
                     }
                 });
             });
         }
 
-        populateWheel(minutesWheel, 59);
-        populateWheel(secondsWheel, 59);
-        minutesWheel.scrollTop = 5 * 50;
-        secondsWheel.scrollTop = 0 * 50;
+        function populateWheels() {
+            populateWheel(minutesWheel, 59);
+            populateWheel(secondsWheel, 59);
+        }
 
-        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / 50); }
-        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / 50); }
+        populateWheels();
+
+        function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / getItemHeight()); }
+        function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / getItemHeight()); }
+        
         function setWheelValues(mins, secs) {
-            minutesWheel.scrollTop = mins * 50;
-            secondsWheel.scrollTop = secs * 50;
+            const itemH = getItemHeight();
+            minutesWheel.scrollTop = mins * itemH;
+            secondsWheel.scrollTop = secs * itemH;
         }
 
         function updateWheelHighlight(wheelEl) {
-            const index = Math.round(wheelEl.scrollTop / 50);
-            const items = wheelEl.querySelectorAll('.wheel-item');
-            items.forEach((item, idx) => {
-                if (idx === index + 1) item.classList.add('selected');
+            const itemH = getItemHeight();
+            const selectedIdx = Math.round(wheelEl.scrollTop / itemH);
+            wheelEl.querySelectorAll('.wheel-item[data-value]').forEach((item, idx) => {
+                if (idx === selectedIdx) item.classList.add('selected');
                 else item.classList.remove('selected');
             });
         }
 
-        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel));
-        secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel));
-        updateWheelHighlight(minutesWheel);
-        updateWheelHighlight(secondsWheel);
+        minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel), { passive: true });
+        secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel), { passive: true });
+
+        function initWheelPositions() {
+            setWheelValues(5, 0);
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+        }
+        initWheelPositions();
+
+        function haltWheelInertia() {
+            setWheelValues(getSelectedMinutes(), getSelectedSeconds());
+        }
 
         function updateLiveClock() {
-            const now = new Date();
-            liveClockEl.textContent = `Current Time: ${now.toLocaleTimeString()}`;
+            liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
         }
         setInterval(updateLiveClock, 1000);
         updateLiveClock();
@@ -710,7 +1238,6 @@
                 modeTabs.style.display = 'none';
                 pickerContainer.style.display = 'none';
                 targetTimeContainer.style.display = 'none';
-                mapContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
                 startBtn.textContent = CONFIG.stopBtnText;
@@ -720,56 +1247,59 @@
                 if (currentMode === 'duration') {
                     pickerContainer.style.display = 'flex';
                     quick5Btn.style.display = 'block';
-                } else if (currentMode === 'target') {
+                } else {
                     targetTimeContainer.style.display = 'flex';
-                } else if (currentMode === 'map') {
-                    mapContainer.style.display = 'flex';
-                    setTimeout(() => { if(map) map.invalidateSize(); }, 100);
                 }
                 activeDisplay.style.display = 'none';
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
+                gpsLoggerPanel.style.display = 'none';
+                isOvertimeActive = false;
+                hasPlayedRaceStart = false;
+                stopGPSTracking();
+                gpsTrackPoints = [];
+                latestLat = null;
+                latestLon = null;
+                if (windIntervalId) {
+                    clearInterval(windIntervalId);
+                    windIntervalId = null;
+                }
                 startBtn.textContent = CONFIG.startBtnText;
+                checkOrientation();
+                setTimeout(() => {
+                    setWheelValues(5, 0);
+                    updateWheelHighlight(minutesWheel);
+                    updateWheelHighlight(secondsWheel);
+                }, 50);
             }
         }
 
         startBtn.addEventListener('click', async () => {
+            haltWheelInertia();
             unlockSpeechAudio();
             if (!isRunning) {
                 let totalMs = 0;
                 if (currentMode === 'duration') {
-                    const mins = getSelectedMinutes();
-                    const secs = getSelectedSeconds();
-                    totalMs = (mins * 60 + secs) * 1000;
-                } else if (currentMode === 'target') {
+                    totalMs = (getSelectedMinutes() * 60 + getSelectedSeconds()) * 1000;
+                } else {
                     const timeVal = timeInput.value;
-                    if (!timeVal) {
-                        messageEl.textContent = "Please set a target time";
-                        return;
-                    }
+                    if (!timeVal) { messageEl.textContent = "Please set a target time"; return; }
                     const [targetHours, targetMins] = timeVal.split(':').map(Number);
                     const now = new Date();
                     const targetDate = new Date();
                     targetDate.setHours(targetHours, targetMins, 0, 0);
-                    if (targetDate.getTime() <= now.getTime()) {
-                        targetDate.setDate(targetDate.getDate() + 1);
-                    }
+                    if (targetDate.getTime() <= now.getTime()) targetDate.setDate(targetDate.getDate() + 1);
                     totalMs = targetDate.getTime() - now.getTime();
-                } else {
-                    messageEl.textContent = "Switch to Duration or Target Time to start";
-                    return;
                 }
 
-                if (totalMs <= 0) {
-                    messageEl.textContent = "Target time must be in the future";
-                    return;
-                }
+                if (totalMs <= 0) { messageEl.textContent = "Target time must be in the future"; return; }
 
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
                 lastSpokenSecond = -1;
+                hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.runningMsg;
                 setUIState(true);
                 await requestWakeLock();
@@ -777,6 +1307,7 @@
             } else {
                 isRunning = false;
                 targetTime = null;
+                hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.stoppedMsg;
                 setUIState(false);
                 await releaseWakeLock();
@@ -785,11 +1316,22 @@
         });
 
         quick5Btn.addEventListener('click', async () => {
+            haltWheelInertia();
             unlockSpeechAudio();
+            currentMode = 'duration';
+            durationTab.classList.add('active');
+            targetTimeTab.classList.remove('active');
+            pickerContainer.style.display = 'none';
+            targetTimeContainer.style.display = 'none';
+            
             setWheelValues(5, 0);
+            updateWheelHighlight(minutesWheel);
+            updateWheelHighlight(secondsWheel);
+
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
             lastSpokenSecond = -1;
+            hasPlayedRaceStart = false;
             messageEl.textContent = CONFIG.runningMsg;
             setUIState(true);
             await requestWakeLock();
@@ -799,15 +1341,23 @@
         function updateCountdown() {
             if (!isRunning || !targetTime) return;
 
-            const now = Date.now();
-            const distance = targetTime - now;
+            const distance = targetTime - Date.now();
             
-            // Overtime mode (past zero)
             if (distance <= 0) {
                 const elapsedMs = Math.abs(distance);
                 const totalElapsedSeconds = Math.floor(elapsedMs / 1000);
                 const minutes = Math.floor(totalElapsedSeconds / 60);
                 const seconds = totalElapsedSeconds % 60;
+
+                if (!isOvertimeActive) {
+                    isOvertimeActive = true;
+                    gpsLoggerPanel.style.display = 'flex';
+                    downloadTrackBtn.style.display = 'block';
+                    startGPSTracking();
+                    fetchFortDenisonWind();
+                    windIntervalId = setInterval(fetchFortDenisonWind, 5 * 60 * 1000); // refresh every 5 mins
+                    checkOrientation();
+                }
 
                 activeDisplay.classList.remove('seconds-only');
                 boxSign.style.display = 'flex';
@@ -822,13 +1372,10 @@
                 activeSecsEl.textContent = String(seconds).padStart(2, '0');
                 messageEl.textContent = CONFIG.raceStartedMsg;
 
-                if (lastSpokenSecond !== 0) {
+                if (!hasPlayedRaceStart) {
+                    hasPlayedRaceStart = true;
                     playTone(CONFIG.doopFreq, CONFIG.doopDuration, CONFIG.doopType, CONFIG.doopVolume);
-                    setTimeout(() => {
-                        speak(CONFIG.raceStartedSpeech, true);
-                    }, 1000);
-
-                    lastSpokenSecond = 0;
+                    setTimeout(() => speak(CONFIG.raceStartedSpeech, true), 800);
                 }
                 return;
             }
@@ -862,19 +1409,16 @@
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
-                    // FIXED: Now correctly announces both minutes and seconds (e.g. "5 minutes 30 seconds")
-                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
-                    speak(speechText, true);
+                    speak(minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`, true);
                 } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
-                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
-                    speak(speechText, true);
+                    speak(minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`, true);
                 }
-
                 lastSpokenSecond = totalSeconds;
             }
         }
 
-        setInterval(updateCountdown, 100);
+        setInterval(updateCountdown, 250);
+        checkOrientation();
     </script>
 </body>
 </html>
