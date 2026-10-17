@@ -859,6 +859,7 @@
         let isOvertimeActive = false;
         let leafletMap = null;
         let polylineGroup = null;
+        let sectorLayer = null;
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
@@ -867,6 +868,89 @@
 
         function getItemHeight() {
             return 50;
+        }
+
+        // --- Circular Statistics & Sector Cone Helpers ---
+        function calculateHeadingStats(bearings, scaleFactor = 1.5) {
+            if (!bearings || bearings.length === 0) return { mean: 0, spread: 0 };
+
+            let sumSin = 0;
+            let sumCos = 0;
+
+            for (let b of bearings) {
+                const rad = (b * Math.PI) / 180;
+                sumSin += Math.sin(rad);
+                sumCos += Math.cos(rad);
+            }
+
+            const n = bearings.length;
+            const meanSin = sumSin / n;
+            const meanCos = sumCos / n;
+
+            let meanRad = Math.atan2(meanSin, meanCos);
+            let meanDeg = (meanRad * 180) / Math.PI;
+            if (meanDeg < 0) meanDeg += 360;
+
+            const R = Math.sqrt(meanSin * meanSin + meanCos * meanCos);
+            const circStdDevRad = R > 0 ? Math.sqrt(-2 * Math.log(R)) : 0;
+            const circStdDevDeg = (circStdDevRad * 180) / Math.PI;
+
+            const halfWidth = circStdDevDeg * scaleFactor;
+
+            return {
+                mean: meanDeg,
+                spread: Math.min(halfWidth, 90)
+            };
+        }
+
+        function getDestinationPoint(lat, lon, bearingDeg, distanceMeters) {
+            const R = 6371000;
+            const δ = distanceMeters / R;
+            const θ = (bearingDeg * Math.PI) / 180;
+
+            const φ1 = (lat * Math.PI) / 180;
+            const λ1 = (lon * Math.PI) / 180;
+
+            const sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1);
+            const sind = Math.sin(δ), cosd = Math.cos(δ);
+
+            const sinφ2 = sinφ1 * cosd + cosφ1 * sind * Math.cos(θ);
+            const φ2 = Math.asin(sinφ2);
+            const y = Math.sin(θ) * sind * cosφ1;
+            const x = cosd - sinφ1 * sinφ2;
+            const λ2 = λ1 + Math.atan2(y, x);
+
+            return [(φ2 * 180) / Math.PI, (λ2 * 180) / Math.PI];
+        }
+
+        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 150, numArcPoints = 12) {
+            const { mean, spread } = calculateHeadingStats(bearings);
+            
+            const startBearing = mean - spread;
+            const endBearing = mean + spread;
+            const step = (endBearing - startBearing) / (numArcPoints - 1);
+
+            const polygonCoords = [[boatLat, boatLon]];
+
+            for (let i = 0; i < numArcPoints; i++) {
+                const currentBearing = startBearing + (step * i);
+                const dest = getDestinationPoint(boatLat, boatLon, currentBearing, radiusMeters);
+                polygonCoords.push(dest);
+            }
+
+            polygonCoords.push([boatLat, boatLon]);
+            return polygonCoords;
+        }
+
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const φ1 = (lat1 * Math.PI) / 180;
+            const φ2 = (lat2 * Math.PI) / 180;
+            const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+            const y = Math.sin(Δλ) * Math.cos(φ2);
+            const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+            let θ = Math.atan2(y, x);
+            let bearing = (θ * 180) / Math.PI;
+            return (bearing + 360) % 360;
         }
 
         function getWindDirectionInfo(angle) {
@@ -1060,6 +1144,23 @@
                     opacity: 0.95
                 }).addTo(polylineGroup);
             }
+
+            // Update Sector Cone using recent headings
+            if (latestLat !== null && latestLon !== null) {
+                const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
+                const sectorCoords = generateSectorPolygon(latestLat, latestLon, recentHeadings, 150, 12);
+
+                if (!sectorLayer) {
+                    sectorLayer = L.polygon(sectorCoords, {
+                        color: '#4f46e5',
+                        weight: 1,
+                        fillColor: '#4f46e5',
+                        fillOpacity: 0.25
+                    }).addTo(leafletMap);
+                } else {
+                    sectorLayer.setLatLngs(sectorCoords);
+                }
+            }
         }
 
         function startGPSTracking() {
@@ -1072,7 +1173,17 @@
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots });
+                        let heading = pos.coords.heading;
+                        if (heading === null || isNaN(heading)) {
+                            if (gpsTrackPoints.length > 0) {
+                                const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
+                                heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
+                            } else {
+                                heading = 0;
+                            }
+                        }
+
+                        gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
                         
                         updateTelemetryText();
 
@@ -1098,6 +1209,10 @@
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
+            }
+            if (sectorLayer) {
+                sectorLayer.remove();
+                sectorLayer = null;
             }
             if (leafletMap) {
                 leafletMap.remove();
