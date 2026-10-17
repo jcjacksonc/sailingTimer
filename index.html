@@ -1145,7 +1145,7 @@
                 }).addTo(polylineGroup);
             }
 
-            // Update Sector Cone using recent headings
+            // Update Sector Cone using recent calculated movement headings
             if (latestLat !== null && latestLon !== null) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
                 const sectorCoords = generateSectorPolygon(latestLat, latestLon, recentHeadings, 150, 12);
@@ -1173,14 +1173,11 @@
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
 
-                        let heading = pos.coords.heading;
-                        if (heading === null || isNaN(heading)) {
-                            if (gpsTrackPoints.length > 0) {
-                                const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
-                                heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
-                            } else {
-                                heading = 0;
-                            }
+                        // Calculate heading strictly from movement over ground (previous position to current)
+                        let heading = 0;
+                        if (gpsTrackPoints.length > 0) {
+                            const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
+                            heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
                         }
 
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
