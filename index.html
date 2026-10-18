@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.85">
+    <link rel="manifest" href="manifest.json?v=1.0.86">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.85">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.86">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1004,20 +1004,19 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // Clean, uncluttered normal map layer (CartoDB Positron - free, no API key required)
-            normalLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            // 1. Normal View: OpenStreetMap tiles (Free, no API key)
+            normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                subdomains: 'abcd',
                 crossOrigin: true
             });
 
-            // Clean satellite imagery layer (Esri World Imagery - free, no API key required)
+            // 2. Satellite View: Esri World Imagery (Free public tile server, no API key)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // Default to Normal layer
+            // Default to Normal Layer
             normalLayer.addTo(leafletMap);
 
             mapStyleToggle.addEventListener('change', () => {
