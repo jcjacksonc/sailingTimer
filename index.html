@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.82">
+    <link rel="manifest" href="manifest.json?v=1.0.83">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.82">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.83">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -769,7 +769,7 @@
                     </label>
                 </div>
                 <div class="gps-toggle-row" style="margin-top: 4px;">
-                    <span>Satellite Map View</span>
+                    <span>High-Contrast Dark Mode</span>
                     <label class="switch">
                         <input type="checkbox" id="map-style-toggle" checked>
                         <span class="slider"></span>
@@ -799,7 +799,6 @@
             defaultDurationMsg: "Scroll wheels to set duration",
             targetTimeMsg: "Set target hours and minutes",
 
-            // Buoy Marker Size Control (multiplier, e.g., 0.45 for much smaller icons)
             buoyMarkerScale: 0.45,
 
             pipFreq: 440,
@@ -866,8 +865,8 @@
         let gpsTrackPoints = [];
         let isOvertimeActive = false;
         let leafletMap = null;
-        let satelliteLayer = null;
-        let normalLayer = null;
+        let darkLayer = null;
+        let standardLayer = null;
         let polylineGroup = null;
         let sectorLayer = null;
         let latestLat = null;
@@ -880,87 +879,55 @@
             return 50;
         }
 
-        // --- Circular Statistics & Sector Cone Helpers ---
         function calculateHeadingStats(bearings, scaleFactor = 1.5) {
             if (!bearings || bearings.length === 0) return { mean: 0, spread: 0 };
-
-            let sumSin = 0;
-            let sumCos = 0;
-
+            let sumSin = 0, sumCos = 0;
             for (let b of bearings) {
                 const rad = (b * Math.PI) / 180;
                 sumSin += Math.sin(rad);
                 sumCos += Math.cos(rad);
             }
-
             const n = bearings.length;
-            const meanSin = sumSin / n;
-            const meanCos = sumCos / n;
-
-            let meanRad = Math.atan2(meanSin, meanCos);
+            const meanRad = Math.atan2(sumSin / n, sumCos / n);
             let meanDeg = (meanRad * 180) / Math.PI;
             if (meanDeg < 0) meanDeg += 360;
-
-            const R = Math.sqrt(meanSin * meanSin + meanCos * meanCos);
-            const circStdDevRad = R > 0 ? Math.sqrt(-2 * Math.log(R)) : 0;
-            const circStdDevDeg = (circStdDevRad * 180) / Math.PI;
-
-            const halfWidth = circStdDevDeg * scaleFactor;
-
-            return {
-                mean: meanDeg,
-                spread: Math.min(halfWidth, 90)
-            };
+            const R = Math.sqrt((sumSin/n)**2 + (sumCos/n)**2);
+            const circStdDevDeg = (R > 0 ? Math.sqrt(-2 * Math.log(R)) : 0) * 180 / Math.PI;
+            return { mean: meanDeg, spread: Math.min(circStdDevDeg * scaleFactor, 90) };
         }
 
         function getDestinationPoint(lat, lon, bearingDeg, distanceMeters) {
             const R = 6371000;
             const δ = distanceMeters / R;
             const θ = (bearingDeg * Math.PI) / 180;
-
-            const φ1 = (lat * Math.PI) / 180;
-            const λ1 = (lon * Math.PI) / 180;
-
+            const φ1 = (lat * Math.PI) / 180, λ1 = (lon * Math.PI) / 180;
             const sinφ1 = Math.sin(φ1), cosφ1 = Math.cos(φ1);
             const sind = Math.sin(δ), cosd = Math.cos(δ);
-
             const sinφ2 = sinφ1 * cosd + cosφ1 * sind * Math.cos(θ);
             const φ2 = Math.asin(sinφ2);
             const y = Math.sin(θ) * sind * cosφ1;
             const x = cosd - sinφ1 * sinφ2;
-            const λ2 = λ1 + Math.atan2(y, x);
-
-            return [(φ2 * 180) / Math.PI, (λ2 * 180) / Math.PI];
+            return [(φ2 * 180) / Math.PI, ((λ1 + Math.atan2(y, x)) * 180) / Math.PI];
         }
 
         function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 150, numArcPoints = 12) {
             const { mean, spread } = calculateHeadingStats(bearings);
-            
-            const startBearing = mean - spread;
-            const endBearing = mean + spread;
+            const startBearing = mean - spread, endBearing = mean + spread;
             const step = (endBearing - startBearing) / (numArcPoints - 1);
-
             const polygonCoords = [[boatLat, boatLon]];
-
             for (let i = 0; i < numArcPoints; i++) {
-                const currentBearing = startBearing + (step * i);
-                const dest = getDestinationPoint(boatLat, boatLon, currentBearing, radiusMeters);
-                polygonCoords.push(dest);
+                polygonCoords.push(getDestinationPoint(boatLat, boatLon, startBearing + (step * i), radiusMeters));
             }
-
             polygonCoords.push([boatLat, boatLon]);
             return polygonCoords;
         }
 
         function calculateBearing(lat1, lon1, lat2, lon2) {
-            const φ1 = (lat1 * Math.PI) / 180;
-            const φ2 = (lat2 * Math.PI) / 180;
+            const φ1 = (lat1 * Math.PI) / 180, φ2 = (lat2 * Math.PI) / 180;
             const Δλ = ((lon2 - lon1) * Math.PI) / 180;
             const y = Math.sin(Δλ) * Math.cos(φ2);
             const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-            let θ = Math.atan2(y, x);
-            let bearing = (θ * 180) / Math.PI;
-            return (bearing + 360) % 360;
+            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         }
 
         function getWindDirectionInfo(angle) {
@@ -975,9 +942,7 @@
             if (data && data.current) {
                 const speedKt = Math.round(data.current.wind_speed_10m);
                 const gustKt = Math.round(data.current.wind_gusts_10m);
-                const dirDeg = data.current.wind_direction_10m;
-                const dirInfo = getWindDirectionInfo(dirDeg);
-
+                const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
                 fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
                 updateTelemetryText();
             }
@@ -986,16 +951,10 @@
         function fetchFortDenisonWind() {
             const oldScript = document.getElementById('jsonp-wind-script');
             if (oldScript) oldScript.remove();
-
             const script = document.createElement('script');
             script.id = 'jsonp-wind-script';
             script.src = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots&apikey=&format=jsonp&jsonp=handleWindData";
-            
-            script.onerror = function() {
-                fortDenisonWindText = "Wind: N/A";
-                updateTelemetryText();
-            };
-
+            script.onerror = () => { fortDenisonWindText = "Wind: N/A"; updateTelemetryText(); };
             document.body.appendChild(script);
         }
 
@@ -1010,11 +969,8 @@
 
         function checkOrientation() {
             const isLandscape = window.innerWidth > window.innerHeight;
-            if (isLandscape) {
-                document.body.classList.add('landscape-mode');
-            } else {
-                document.body.classList.remove('landscape-mode');
-            }
+            if (isLandscape) document.body.classList.add('landscape-mode');
+            else document.body.classList.remove('landscape-mode');
 
             if (isLandscape && isOvertimeActive) {
                 if (standaloneTimerOverlay.children.length === 0) {
@@ -1031,12 +987,8 @@
                     activeDisplay.appendChild(boxSecs);
                 }
             }
-
             updateTelemetryText();
-
-            if (leafletMap) {
-                setTimeout(() => leafletMap.invalidateSize(), 150);
-            }
+            if (leafletMap) setTimeout(() => leafletMap.invalidateSize(), 150);
         }
 
         window.addEventListener('resize', checkOrientation);
@@ -1055,54 +1007,47 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // Clear, high-res USGS Orthorectified Imagery (Free of cloud patches over Sydney Harbour)
-            satelliteLayer = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 16,
-                crossOrigin: true
-            });
-
-            // Clean CartoDB Positron No-Labels Basemap (Free of ferry routes and transit line clutter)
-            normalLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                maxZoom: 20,
+            // 1. High-contrast Dark Canvas Layer (API-less, clean vector style)
+            darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
                 subdomains: 'abcd',
                 crossOrigin: true
             });
 
+            // 2. Standard OpenStreetMap Layer (API-less, public public tiles)
+            standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                crossOrigin: true
+            });
+
             if (mapStyleToggle.checked) {
-                satelliteLayer.addTo(leafletMap);
+                darkLayer.addTo(leafletMap);
             } else {
-                normalLayer.addTo(leafletMap);
+                standardLayer.addTo(leafletMap);
             }
 
             mapStyleToggle.addEventListener('change', () => {
                 if (mapStyleToggle.checked) {
-                    if (leafletMap.hasLayer(normalLayer)) leafletMap.removeLayer(normalLayer);
-                    if (!leafletMap.hasLayer(satelliteLayer)) satelliteLayer.addTo(leafletMap);
+                    if (leafletMap.hasLayer(standardLayer)) leafletMap.removeLayer(standardLayer);
+                    if (!leafletMap.hasLayer(darkLayer)) darkLayer.addTo(leafletMap);
                 } else {
-                    if (leafletMap.hasLayer(satelliteLayer)) leafletMap.removeLayer(satelliteLayer);
-                    if (!leafletMap.hasLayer(normalLayer)) normalLayer.addTo(leafletMap);
+                    if (leafletMap.hasLayer(darkLayer)) leafletMap.removeLayer(darkLayer);
+                    if (!leafletMap.hasLayer(standardLayer)) standardLayer.addTo(leafletMap);
                 }
             });
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
 
-            // Compute scaled dimensions using CONFIG.buoyMarkerScale
-            const baseW = 32;
-            const baseH = 36;
+            const baseW = 32, baseH = 36;
             const scaledW = Math.round(baseW * CONFIG.buoyMarkerScale);
             const scaledH = Math.round(baseH * CONFIG.buoyMarkerScale);
 
-            // Custom Scaled Idealised Orange Racing Buoy Icon
             const orangeBuoyIcon = L.divIcon({
                 className: 'racing-buoy-marker',
                 html: `<svg width="${scaledW}" height="${scaledH}" viewBox="0 0 32 36" style="filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.6));">
-                    <!-- Buoy Top Loop / Eye -->
                     <circle cx="16" cy="4" r="3" fill="none" stroke="#ffffff" stroke-width="2.5"/>
-                    <!-- Main Inflatable Buoy Body -->
                     <path d="M 10 7 Q 16 6 22 7 L 26 26 Q 16 32 6 26 Z" fill="url(#buoyGrad)" stroke="#b33b00" stroke-width="1"/>
-                    <!-- Reflective White Stripe Band -->
                     <path d="M 12 14 Q 16 13.5 20 14 L 21 19 Q 16 20.5 11 19 Z" fill="#ffffff" opacity="0.9"/>
-                    <!-- Definitions for Realistic Shading -->
                     <defs>
                         <radialGradient id="buoyGrad" cx="35%" cy="35%" r="65%">
                             <stop offset="0%" stop-color="#ff9933"/>
@@ -1116,32 +1061,11 @@
                 popupAnchor: [0, -scaledH]
             });
 
-            // Course Marks Data (with your exact requested coordinates)
             const courseMarks = [
-                {
-                    name: "Beashel",
-                    lat: -33.838867,
-                    lon: 151.269750,
-                    desc: "Lat: -33.838867°<br>Lon: 151.269750°"
-                },
-                {
-                    name: "Shark Mark",
-                    lat: -33.860150,
-                    lon: 151.259533,
-                    desc: "Lat: -33.860150°<br>Lon: 151.259533°"
-                },
-                {
-                    name: "N3",
-                    lat: -33.859517,
-                    lon: 151.242283,
-                    desc: "Lat: -33.859517°<br>Lon: 151.242283°"
-                },
-                {
-                    name: "EC",
-                    lat: -33.840650,
-                    lon: 151.270817,
-                    desc: "Lat: -33.840650°<br>Lon: 151.270817°"
-                }
+                { name: "Beashel", lat: -33.838867, lon: 151.269750, desc: "Lat: -33.838867°<br>Lon: 151.269750°" },
+                { name: "Shark Mark", lat: -33.860150, lon: 151.259533, desc: "Lat: -33.860150°<br>Lon: 151.259533°" },
+                { name: "N3", lat: -33.859517, lon: 151.242283, desc: "Lat: -33.859517°<br>Lon: 151.242283°" },
+                { name: "EC", lat: -33.840650, lon: 151.270817, desc: "Lat: -33.840650°<br>Lon: 151.270817°" }
             ];
 
             courseMarks.forEach(mark => {
@@ -1149,9 +1073,7 @@
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
             });
 
-            setTimeout(() => {
-                leafletMap.invalidateSize();
-            }, 250);
+            setTimeout(() => leafletMap.invalidateSize(), 250);
         }
 
         function getSpeedColor(knots) {
@@ -1164,33 +1086,20 @@
 
         function updateMapTrack() {
             if (!leafletMap || gpsTrackPoints.length === 0) return;
-
             polylineGroup.clearLayers();
-
             for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
-                const p1 = gpsTrackPoints[i];
-                const p2 = gpsTrackPoints[i + 1];
-                const segmentColor = getSpeedColor(p2.knots);
-
+                const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
                 L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
-                    color: segmentColor,
+                    color: getSpeedColor(p2.knots),
                     weight: 6,
                     opacity: 0.95
                 }).addTo(polylineGroup);
             }
-
-            // Update Sector Cone using recent calculated movement headings
             if (latestLat !== null && latestLon !== null) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
                 const sectorCoords = generateSectorPolygon(latestLat, latestLon, recentHeadings, 150, 12);
-
                 if (!sectorLayer) {
-                    sectorLayer = L.polygon(sectorCoords, {
-                        color: '#4f46e5',
-                        weight: 1,
-                        fillColor: '#4f46e5',
-                        fillOpacity: 0.25
-                    }).addTo(leafletMap);
+                    sectorLayer = L.polygon(sectorCoords, { color: '#4f46e5', weight: 1, fillColor: '#4f46e5', fillOpacity: 0.25 }).addTo(leafletMap);
                 } else {
                     sectorLayer.setLatLngs(sectorCoords);
                 }
@@ -1206,29 +1115,17 @@
                         latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
-
-                        // Calculate heading strictly from movement over ground (previous position to current)
                         let heading = 0;
                         if (gpsTrackPoints.length > 0) {
                             const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
                             heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
                         }
-
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
-                        
                         updateTelemetryText();
-
-                        if (!leafletMap) {
-                            initLeafletMap(latestLat, latestLon);
-                        } else {
-                            leafletMap.invalidateSize();
-                            updateMapTrack();
-                        }
+                        if (!leafletMap) initLeafletMap(latestLat, latestLon);
+                        else { leafletMap.invalidateSize(); updateMapTrack(); }
                     },
-                    (err) => {
-                        console.log("GPS error:", err);
-                        gpsStats.textContent = "GPS signal unavailable";
-                    },
+                    (err) => { gpsStats.textContent = "GPS signal unavailable"; },
                     { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
                 );
             } else {
@@ -1237,28 +1134,13 @@
         }
 
         function stopGPSTracking() {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            if (sectorLayer) {
-                sectorLayer.remove();
-                sectorLayer = null;
-            }
-            if (leafletMap) {
-                leafletMap.remove();
-                leafletMap = null;
-                polylineGroup = null;
-            }
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+            if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
 
         downloadTrackBtn.addEventListener('click', () => {
-            const mapWrapper = document.getElementById('map-wrapper');
-            html2canvas(mapWrapper, {
-                useCORS: true,
-                allowTaint: true,
-                scale: 2
-            }).then(canvas => {
+            html2canvas(document.getElementById('map-wrapper'), { useCORS: true, allowTaint: true, scale: 2 }).then(canvas => {
                 canvas.toBlob((blob) => {
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -1273,27 +1155,17 @@
         });
 
         async function requestWakeLock() {
-            if ('wakeLock' in navigator) {
-                try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
-            }
-            if (wakeVideo) {
-                wakeVideo.play().catch(() => {});
-            }
+            if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} }
+            if (wakeVideo) wakeVideo.play().catch(() => {});
         }
 
         async function releaseWakeLock() {
-            if (wakeLock !== null) {
-                try { await wakeLock.release(); wakeLock = null; } catch (err) {}
-            }
-            if (wakeVideo) {
-                wakeVideo.pause();
-            }
+            if (wakeLock !== null) { try { await wakeLock.release(); wakeLock = null; } catch (err) {} }
+            if (wakeVideo) wakeVideo.pause();
         }
 
         document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState === 'visible' && isRunning) {
-                await requestWakeLock();
-            }
+            if (document.visibilityState === 'visible' && isRunning) await requestWakeLock();
         });
 
         function initAudioContext() {
@@ -1317,14 +1189,12 @@
             } catch (e) {}
         }
 
+        let cachedVoice = null;
         function loadVoice() {
             if (!('speechSynthesis' in window)) return;
             const voices = window.speechSynthesis.getVoices();
-            if (voices.length > 0) {
-                cachedVoice = voices.find(v => v.lang.startsWith(CONFIG.speechVoiceLang)) || voices[0];
-            }
+            if (voices.length > 0) cachedVoice = voices.find(v => v.lang.startsWith(CONFIG.speechVoiceLang)) || voices[0];
         }
-
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = loadVoice;
             loadVoice();
@@ -1382,24 +1252,18 @@
                 html += `<div class="wheel-item" data-value="${i}">${String(i).padStart(2, '0')}</div>`;
             }
             wheelEl.innerHTML = html;
-            
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
                     if (!isRunning) {
                         const targetVal = parseInt(item.dataset.value, 10);
-                        const itemH = getItemHeight();
-                        wheelEl.scrollTo({ top: targetVal * itemH, behavior: 'smooth' });
+                        wheelEl.scrollTo({ top: targetVal * getItemHeight(), behavior: 'smooth' });
                     }
                 });
             });
         }
 
-        function populateWheels() {
-            populateWheel(minutesWheel, 59);
-            populateWheel(secondsWheel, 59);
-        }
-
-        populateWheels();
+        populateWheel(minutesWheel, 59);
+        populateWheel(secondsWheel, 59);
 
         function getSelectedMinutes() { return Math.round(minutesWheel.scrollTop / getItemHeight()); }
         function getSelectedSeconds() { return Math.round(secondsWheel.scrollTop / getItemHeight()); }
@@ -1422,22 +1286,17 @@
         minutesWheel.addEventListener('scroll', () => updateWheelHighlight(minutesWheel), { passive: true });
         secondsWheel.addEventListener('scroll', () => updateWheelHighlight(secondsWheel), { passive: true });
 
-        function initWheelPositions() {
-            setWheelValues(5, 0);
-            updateWheelHighlight(minutesWheel);
-            updateWheelHighlight(secondsWheel);
-        }
-        initWheelPositions();
+        setWheelValues(5, 0);
+        updateWheelHighlight(minutesWheel);
+        updateWheelHighlight(secondsWheel);
 
         function haltWheelInertia() {
             setWheelValues(getSelectedMinutes(), getSelectedSeconds());
         }
 
-        function updateLiveClock() {
+        setInterval(() => {
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
-        }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
+        }, 1000);
 
         function setUIState(running) {
             if (running) {
@@ -1468,10 +1327,7 @@
                 gpsTrackPoints = [];
                 latestLat = null;
                 latestLon = null;
-                if (windIntervalId) {
-                    clearInterval(windIntervalId);
-                    windIntervalId = null;
-                }
+                if (windIntervalId) { clearInterval(windIntervalId); windIntervalId = null; }
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
                 setTimeout(() => {
@@ -1499,9 +1355,7 @@
                     if (targetDate.getTime() <= now.getTime()) targetDate.setDate(targetDate.getDate() + 1);
                     totalMs = targetDate.getTime() - now.getTime();
                 }
-
                 if (totalMs <= 0) { messageEl.textContent = "Target time must be in the future"; return; }
-
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
                 lastSpokenSecond = -1;
@@ -1529,11 +1383,9 @@
             targetTimeTab.classList.remove('active');
             pickerContainer.style.display = 'none';
             targetTimeContainer.style.display = 'none';
-            
             setWheelValues(5, 0);
             updateWheelHighlight(minutesWheel);
             updateWheelHighlight(secondsWheel);
-
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
             lastSpokenSecond = -1;
@@ -1546,7 +1398,6 @@
 
         function updateCountdown() {
             if (!isRunning || !targetTime) return;
-
             const distance = targetTime - Date.now();
             
             if (distance <= 0) {
@@ -1569,7 +1420,6 @@
                 boxSign.style.display = 'flex';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
-
                 document.body.classList.add('race-active');
 
                 activeSignEl.textContent = "+";
@@ -1615,11 +1465,9 @@
                 } else if (totalSeconds >= 1 && totalSeconds <= 10) {
                     speak(String(totalSeconds), false);
                 } else if (totalSeconds < 180 && totalSeconds % 15 === 0) {
-                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
-                    speak(speechText, true);
+                    speak((minutes > 0 ? `${minutes} minutes ` : '') + `${seconds} seconds`, true);
                 } else if (totalSeconds >= 180 && totalSeconds % 30 === 0) {
-                    let speechText = (minutes > 0 && seconds > 0) ? `${minutes} minutes ${seconds} seconds` : (minutes > 0 ? `${minutes} minutes` : `${seconds} seconds`);
-                    speak(speechText, true);
+                    speak((minutes > 0 ? `${minutes} minutes ` : '') + `${seconds} seconds`, true);
                 }
                 lastSpokenSecond = totalSeconds;
             }
