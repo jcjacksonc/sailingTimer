@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.87">
+    <link rel="manifest" href="manifest.json?v=1.0.88">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.87">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.88">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -869,7 +869,7 @@
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
-        let fortDenisonWindText = "Wind: Loading...";
+        let fortDenisonWindText = "Wind: N/A (Offline)";
         let windIntervalId = null;
 
         function getItemHeight() {
