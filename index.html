@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.80">
+    <link rel="manifest" href="manifest.json?v=1.0.81">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.80">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.81">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1055,6 +1055,7 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
+            // Clean Ortho/Satellite Imagery Source (Free of overlay routes/ferry lines)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
@@ -1113,7 +1114,7 @@
                 popupAnchor: [0, -scaledH]
             });
 
-            // Course Marks Data (with updated coordinates)
+            // Course Marks Data (with your exact requested coordinates)
             const courseMarks = [
                 {
                     name: "Beashel",
