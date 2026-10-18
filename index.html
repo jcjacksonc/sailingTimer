@@ -1082,34 +1082,34 @@
                 popupAnchor: [0, -scaledH]
             });
 
-            // Course Marks Data
+          // Course Marks Data
             const courseMarks = [
                 {
-                    name: "Beashels Buoy",
-                    lat: -(33 + 50.305 / 60),
-                    lon: 151 + 16.177 / 60,
-                    desc: "Lat: 33° 50.305' S<br>Lon: 151° 16.177' E"
+                    name: "Beashel",
+                    lat: -33.838867,
+                    lon: 151.269750,
+                    desc: "Lat: -33.838867°<br>Lon: 151.269750°"
+                },
+                {
+                    name: "Shark Mark",
+                    lat: -33.860150,
+                    lon: 151.259533,
+                    desc: "Lat: -33.860150°<br>Lon: 151.259533°"
                 },
                 {
                     name: "N3",
-                    lat: -(33 + 51/60 + 34.3/3600),
-                    lon: 151 + 14/60 + 32.2/3600,
-                    desc: "Lat: 33°51'34.3\"S<br>Lon: 151°14'32.2\"E"
+                    lat: -33.859517,
+                    lon: 151.242283,
+                    desc: "Lat: -33.859517°<br>Lon: 151.242283°"
                 },
                 {
                     name: "EC",
-                    lat: -(33 + 50.439 / 60),
-                    lon: 151 + 16.249 / 60,
-                    desc: "Lat: 33° 50.439' S<br>Lon: 151° 16.249' E"
-                },
-                {
-                    name: "SM",
-                    lat: -(33 + 51.520 / 60),
-                    lon: 151 + 15.601 / 60,
-                    desc: "Lat: 33° 51.520' S<br>Lon: 151° 15.601' E"
+                    lat: -33.840650,
+                    lon: 151.270817,
+                    desc: "Lat: -33.840650°<br>Lon: 151.270817°"
                 }
             ];
-
+            
             courseMarks.forEach(mark => {
                 L.marker([mark.lat, mark.lon], { icon: orangeBuoyIcon }).addTo(leafletMap)
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
