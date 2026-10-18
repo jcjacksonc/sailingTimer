@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.79">
+    <link rel="manifest" href="manifest.json?v=1.0.80">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.79">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.80">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -768,6 +768,13 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="gps-toggle-row" style="margin-top: 4px;">
+                    <span>Satellite Map View</span>
+                    <label class="switch">
+                        <input type="checkbox" id="map-style-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
                 <div id="map-wrapper">
                     <div id="map-container"></div>
@@ -836,6 +843,7 @@
         
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
         const gpsToggle = document.getElementById('gps-toggle');
+        const mapStyleToggle = document.getElementById('map-style-toggle');
         const gpsStats = document.getElementById('gps-stats');
         const downloadTrackBtn = document.getElementById('download-track-btn');
         const wakeVideo = document.getElementById('wake-lock-video');
@@ -858,6 +866,8 @@
         let gpsTrackPoints = [];
         let isOvertimeActive = false;
         let leafletMap = null;
+        let satelliteLayer = null;
+        let normalLayer = null;
         let polylineGroup = null;
         let sectorLayer = null;
         let latestLat = null;
@@ -1045,10 +1055,31 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
-            }).addTo(leafletMap);
+            });
+
+            normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                crossOrigin: true
+            });
+
+            if (mapStyleToggle.checked) {
+                satelliteLayer.addTo(leafletMap);
+            } else {
+                normalLayer.addTo(leafletMap);
+            }
+
+            mapStyleToggle.addEventListener('change', () => {
+                if (mapStyleToggle.checked) {
+                    if (leafletMap.hasLayer(normalLayer)) leafletMap.removeLayer(normalLayer);
+                    if (!leafletMap.hasLayer(satelliteLayer)) satelliteLayer.addTo(leafletMap);
+                } else {
+                    if (leafletMap.hasLayer(satelliteLayer)) leafletMap.removeLayer(satelliteLayer);
+                    if (!leafletMap.hasLayer(normalLayer)) normalLayer.addTo(leafletMap);
+                }
+            });
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
 
@@ -1082,7 +1113,7 @@
                 popupAnchor: [0, -scaledH]
             });
 
-          // Course Marks Data
+            // Course Marks Data (with updated coordinates)
             const courseMarks = [
                 {
                     name: "Beashel",
@@ -1109,7 +1140,7 @@
                     desc: "Lat: -33.840650°<br>Lon: 151.270817°"
                 }
             ];
-            
+
             courseMarks.forEach(mark => {
                 L.marker([mark.lat, mark.lon], { icon: orangeBuoyIcon }).addTo(leafletMap)
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
