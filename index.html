@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.86">
+    <link rel="manifest" href="manifest.json?v=1.0.87">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.86">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.87">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -935,24 +935,21 @@
             return { arrow: arrows[index], text: directions[index] };
         }
 
-        window.handleWindData = function(data) {
-            if (data && data.current) {
-                const speedKt = Math.round(data.current.wind_speed_10m);
-                const gustKt = Math.round(data.current.wind_gusts_10m);
-                const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
-                fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+        async function fetchFortDenisonWind() {
+            try {
+                const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots");
+                const data = await response.json();
+                if (data && data.current) {
+                    const speedKt = Math.round(data.current.wind_speed_10m);
+                    const gustKt = Math.round(data.current.wind_gusts_10m);
+                    const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
+                    fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+                    updateTelemetryText();
+                }
+            } catch (err) {
+                fortDenisonWindText = "Wind: N/A";
                 updateTelemetryText();
             }
-        };
-
-        function fetchFortDenisonWind() {
-            const oldScript = document.getElementById('jsonp-wind-script');
-            if (oldScript) oldScript.remove();
-            const script = document.createElement('script');
-            script.id = 'jsonp-wind-script';
-            script.src = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots&apikey=&format=jsonp&jsonp=handleWindData";
-            script.onerror = () => { fortDenisonWindText = "Wind: N/A"; updateTelemetryText(); };
-            document.body.appendChild(script);
         }
 
         function updateTelemetryText() {
@@ -1004,19 +1001,16 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // 1. Normal View: OpenStreetMap tiles (Free, no API key)
             normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // 2. Satellite View: Esri World Imagery (Free public tile server, no API key)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // Default to Normal Layer
             normalLayer.addTo(leafletMap);
 
             mapStyleToggle.addEventListener('change', () => {
