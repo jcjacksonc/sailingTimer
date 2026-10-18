@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.81">
+    <link rel="manifest" href="manifest.json?v=1.0.82">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.81">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.82">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -1055,14 +1055,16 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // Clean Ortho/Satellite Imagery Source (Free of overlay routes/ferry lines)
-            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                maxZoom: 19,
+            // Clear, high-res USGS Orthorectified Imagery (Free of cloud patches over Sydney Harbour)
+            satelliteLayer = L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 16,
                 crossOrigin: true
             });
 
-            normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
+            // Clean CartoDB Positron No-Labels Basemap (Free of ferry routes and transit line clutter)
+            normalLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                maxZoom: 20,
+                subdomains: 'abcd',
                 crossOrigin: true
             });
 
