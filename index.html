@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.83">
+    <link rel="manifest" href="manifest.json?v=1.0.84">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.83">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.84">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -550,7 +550,6 @@
                 max-height: 95px;
             }
 
-            /* Natural fit sizing for pre-race active countdown display in landscape mode */
             .active-display {
                 width: fit-content !important;
                 margin: 0 auto 6px auto !important;
@@ -580,7 +579,6 @@
                 display: none;
             }
 
-            /* RACE MODE LANDSCAPE EDGE-TO-EDGE OVERRIDES */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -635,7 +633,6 @@
                 width: 100vw !important; height: 100vh !important;
             }
 
-            /* Only visible when race is active in landscape mode */
             body.race-active.landscape-mode #standalone-timer-overlay {
                 display: flex !important;
                 position: fixed !important;
@@ -699,7 +696,6 @@
 </head>
 <body>
 
-    <!-- Hidden video element to prevent iOS display sleep in all modes -->
     <video id="wake-lock-video" playsinline loop muted style="display:none;">
         <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAAptZGF0AAAAAA==" type="video/mp4">
     </video>
@@ -1007,14 +1003,12 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // 1. High-contrast Dark Canvas Layer (API-less, clean vector style)
             darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
                 subdomains: 'abcd',
                 crossOrigin: true
             });
 
-            // 2. Standard OpenStreetMap Layer (API-less, public public tiles)
             standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 crossOrigin: true
@@ -1189,7 +1183,6 @@
             } catch (e) {}
         }
 
-        let cachedVoice = null;
         function loadVoice() {
             if (!('speechSynthesis' in window)) return;
             const voices = window.speechSynthesis.getVoices();
