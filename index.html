@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.86">
+    <link rel="manifest" href="manifest.json?v=1.0.90">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.86">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.90">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -866,17 +866,19 @@
         let satelliteLayer = null;
         let polylineGroup = null;
         let sectorLayer = null;
+        let meanHeadingLineLayer = null;
+        let perpendicularLineLayer = null;
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
-        let fortDenisonWindText = "Wind: Loading...";
+        let fortDenisonWindText = "Wind: N/A (Offline)";
         let windIntervalId = null;
 
         function getItemHeight() {
             return 50;
         }
 
-        function calculateHeadingStats(bearings, scaleFactor = 1.5) {
+        function calculateHeadingStats(bearings, scaleFactor = 0.5) {
             if (!bearings || bearings.length === 0) return { mean: 0, spread: 0 };
             let sumSin = 0, sumCos = 0;
             for (let b of bearings) {
@@ -890,7 +892,7 @@
             if (meanDeg < 0) meanDeg += 360;
             const R = Math.sqrt((sumSin/n)**2 + (sumCos/n)**2);
             const circStdDevDeg = (R > 0 ? Math.sqrt(-2 * Math.log(R)) : 0) * 180 / Math.PI;
-            return { mean: meanDeg, spread: Math.min(circStdDevDeg * scaleFactor, 90) };
+            return { mean: meanDeg, spread: Math.min(Math.max(circStdDevDeg * scaleFactor, 3), 30) };
         }
 
         function getDestinationPoint(lat, lon, bearingDeg, distanceMeters) {
@@ -907,7 +909,7 @@
             return [(φ2 * 180) / Math.PI, ((λ1 + Math.atan2(y, x)) * 180) / Math.PI];
         }
 
-        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 150, numArcPoints = 12) {
+        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 5556, numArcPoints = 16) {
             const { mean, spread } = calculateHeadingStats(bearings);
             const startBearing = mean - spread, endBearing = mean + spread;
             const step = (endBearing - startBearing) / (numArcPoints - 1);
@@ -916,7 +918,7 @@
                 polygonCoords.push(getDestinationPoint(boatLat, boatLon, startBearing + (step * i), radiusMeters));
             }
             polygonCoords.push([boatLat, boatLon]);
-            return polygonCoords;
+            return { polygonCoords, meanHeading: mean };
         }
 
         function calculateBearing(lat1, lon1, lat2, lon2) {
@@ -935,24 +937,21 @@
             return { arrow: arrows[index], text: directions[index] };
         }
 
-        window.handleWindData = function(data) {
-            if (data && data.current) {
-                const speedKt = Math.round(data.current.wind_speed_10m);
-                const gustKt = Math.round(data.current.wind_gusts_10m);
-                const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
-                fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+        async function fetchFortDenisonWind() {
+            try {
+                const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots");
+                const data = await response.json();
+                if (data && data.current) {
+                    const speedKt = Math.round(data.current.wind_speed_10m);
+                    const gustKt = Math.round(data.current.wind_gusts_10m);
+                    const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
+                    fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
+                    updateTelemetryText();
+                }
+            } catch (err) {
+                fortDenisonWindText = "Wind: N/A";
                 updateTelemetryText();
             }
-        };
-
-        function fetchFortDenisonWind() {
-            const oldScript = document.getElementById('jsonp-wind-script');
-            if (oldScript) oldScript.remove();
-            const script = document.createElement('script');
-            script.id = 'jsonp-wind-script';
-            script.src = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots&apikey=&format=jsonp&jsonp=handleWindData";
-            script.onerror = () => { fortDenisonWindText = "Wind: N/A"; updateTelemetryText(); };
-            document.body.appendChild(script);
         }
 
         function updateTelemetryText() {
@@ -1004,19 +1003,16 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // 1. Normal View: OpenStreetMap tiles (Free, no API key)
             normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // 2. Satellite View: Esri World Imagery (Free public tile server, no API key)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // Default to Normal Layer
             normalLayer.addTo(leafletMap);
 
             mapStyleToggle.addEventListener('change', () => {
@@ -1090,11 +1086,33 @@
             }
             if (latestLat !== null && latestLon !== null) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
-                const sectorCoords = generateSectorPolygon(latestLat, latestLon, recentHeadings, 150, 12);
+                const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
+                const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
+                
+                // Draw sector cone (opacity increased to 0.22)
                 if (!sectorLayer) {
-                    sectorLayer = L.polygon(sectorCoords, { color: '#4f46e5', weight: 1, fillColor: '#4f46e5', fillOpacity: 0.25 }).addTo(leafletMap);
+                    sectorLayer = L.polygon(polygonCoords, { color: '#ef4444', weight: 1, stroke: false, fillColor: '#ef4444', fillOpacity: 0.22 }).addTo(leafletMap);
                 } else {
-                    sectorLayer.setLatLngs(sectorCoords);
+                    sectorLayer.setLatLngs(polygonCoords);
+                }
+
+                // Draw 3nm Mean Heading line in Red
+                const meanEnd = getDestinationPoint(latestLat, latestLon, meanHeading, radiusMeters);
+                const meanLineCoords = [[latestLat, latestLon], meanEnd];
+                if (!meanHeadingLineLayer) {
+                    meanHeadingLineLayer = L.polyline(meanLineCoords, { color: '#ef4444', weight: 3, dashArray: '8, 6', opacity: 0.95 }).addTo(leafletMap);
+                } else {
+                    meanHeadingLineLayer.setLatLngs(meanLineCoords);
+                }
+
+                // Draw 3nm Perpendicular line (3nm Port to 3nm Starboard)
+                const portEnd = getDestinationPoint(latestLat, latestLon, (meanHeading - 90 + 360) % 360, radiusMeters);
+                const stbdEnd = getDestinationPoint(latestLat, latestLon, (meanHeading + 90) % 360, radiusMeters);
+                const perpLineCoords = [portEnd, [latestLat, latestLon], stbdEnd];
+                if (!perpendicularLineLayer) {
+                    perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2.5, opacity: 0.85 }).addTo(leafletMap);
+                } else {
+                    perpendicularLineLayer.setLatLngs(perpLineCoords);
                 }
             }
         }
@@ -1129,6 +1147,8 @@
         function stopGPSTracking() {
             if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+            if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+            if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
             if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
 
