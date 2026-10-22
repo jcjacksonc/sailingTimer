@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.92">
+    <link rel="manifest" href="manifest.json?v=1.0.93">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.92">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.93">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -451,8 +451,8 @@
             height: 17px;
             background: #38bdf8;
             border-radius: 2px;
-            transform-origin: 50% 0%;
-            transform: translate(-50%, 0) rotate(0deg);
+            transform-origin: 50% 100%;
+            transform: translate(-50%, -100%) rotate(0deg);
             box-shadow: 0 0 5px #38bdf8;
         }
 
@@ -935,7 +935,7 @@
         let perpendicularLineLayer = null;
         let windGridGroup = null;
         let windDialWidget = null;
-        let manualWindDeg = 0; // Wind flow direction (where air particles move towards)
+        let manualWindDeg = 0; // Wind flow direction (0 = North, pointing UP)
         let perpAngleOffset = 90;
         let isPerpEnabled = true;
 
@@ -1067,7 +1067,7 @@
             const label = document.getElementById('wind-dial-label');
 
             function updateDialUI() {
-                pointer.style.transform = `translate(-50%, 0) rotate(${manualWindDeg}deg)`;
+                pointer.style.transform = `translate(-50%, -100%) rotate(${manualWindDeg}deg)`;
                 label.textContent = `${manualWindDeg}° Flow`;
             }
             updateDialUI();
@@ -1080,6 +1080,7 @@
                 const centerY = rect.top + rect.height / 2;
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                // Standard math: angle from center to touch point
                 const rad = Math.atan2(clientX - centerX, -(clientY - centerY));
                 let deg = Math.round((rad * 180) / Math.PI);
                 if (deg < 0) deg += 360;
@@ -1113,12 +1114,21 @@
 
             for (let lat = sw.lat + latStep/2; lat < ne.lat; lat += latStep) {
                 for (let lon = sw.lng + lonStep/2; lon < ne.lng; lon += lonStep) {
-                    // Wind flow direction: line points towards manualWindDeg (where air particles move)
                     const tip = getDestinationPoint(lat, lon, manualWindDeg, 180);
+                    // Main arrow shaft
                     L.polyline([[lat, lon], tip], {
                         color: '#38bdf8',
                         weight: 2,
-                        opacity: 0.45
+                        opacity: 0.6
+                    }).addTo(windGridGroup);
+
+                    // Arrowhead wings (angled 145° and 215° relative to flow vector)
+                    const wing1 = getDestinationPoint(tip[0], tip[1], (manualWindDeg + 145) % 360, 45);
+                    const wing2 = getDestinationPoint(tip[0], tip[1], (manualWindDeg - 145 + 360) % 360, 45);
+                    L.polyline([wing1, tip, wing2], {
+                        color: '#38bdf8',
+                        weight: 2,
+                        opacity: 0.6
                     }).addTo(windGridGroup);
                 }
             }
@@ -1152,6 +1162,8 @@
                     if (leafletMap.hasLayer(satelliteLayer)) leafletMap.removeLayer(satelliteLayer);
                     if (!leafletMap.hasLayer(normalLayer)) normalLayer.addTo(leafletMap);
                 }
+                // Ensure wind grid stays on top regardless of tile layer changes
+                if (windGridGroup) windGridGroup.bringToFront();
             });
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
