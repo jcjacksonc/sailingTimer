@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.91">
+    <link rel="manifest" href="manifest.json?v=1.0.92">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.91">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.92">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -413,51 +413,51 @@
             background: #0f172a;
         }
 
-        /* Top Right Wind Dial Widget Overlay */
+        /* Repositioned & More Transparent Wind Dial Widget */
         .wind-dial-widget {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(28, 28, 33, 0.85);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 14px;
-            padding: 6px;
+            top: 65px;
+            right: 16px;
+            background: rgba(28, 28, 33, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 5px;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
             cursor: pointer;
-            width: 65px;
+            width: 60px;
         }
 
         .wind-dial-face {
-            width: 44px;
-            height: 44px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.25);
             position: relative;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .wind-dial-pointer {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 4px;
-            height: 20px;
+            width: 3px;
+            height: 17px;
             background: #38bdf8;
             border-radius: 2px;
             transform-origin: 50% 0%;
             transform: translate(-50%, 0) rotate(0deg);
-            box-shadow: 0 0 6px #38bdf8;
+            box-shadow: 0 0 5px #38bdf8;
         }
 
         .wind-dial-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #f4f4f6;
             font-weight: 700;
             text-transform: uppercase;
@@ -935,7 +935,7 @@
         let perpendicularLineLayer = null;
         let windGridGroup = null;
         let windDialWidget = null;
-        let manualWindDeg = 0; // Direction wind is going (0 = North, 90 = East, etc.)
+        let manualWindDeg = 0; // Wind flow direction (where air particles move towards)
         let perpAngleOffset = 90;
         let isPerpEnabled = true;
 
@@ -1012,7 +1012,7 @@
         function updateTelemetryText() {
             const isLandscape = window.innerWidth > window.innerHeight;
             if (isLandscape && isOvertimeActive) {
-                gpsStats.textContent = `SOG: ${latestKnots} kts | Wind Dir: ${manualWindDeg}°`;
+                gpsStats.textContent = `SOG: ${latestKnots} kts | Wind Flow: ${manualWindDeg}°`;
             } else if (latestLat !== null && latestLon !== null) {
                 gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | SOG: ${latestKnots} kts`;
             }
@@ -1058,7 +1058,7 @@
                 <div class="wind-dial-face" id="wind-dial-face">
                     <div class="wind-dial-pointer" id="wind-dial-pointer"></div>
                 </div>
-                <div class="wind-dial-label" id="wind-dial-label">0° Wind</div>
+                <div class="wind-dial-label" id="wind-dial-label">0° Flow</div>
             `;
             document.getElementById('map-wrapper').appendChild(windDialWidget);
 
@@ -1068,7 +1068,7 @@
 
             function updateDialUI() {
                 pointer.style.transform = `translate(-50%, 0) rotate(${manualWindDeg}deg)`;
-                label.textContent = `${manualWindDeg}° Wind`;
+                label.textContent = `${manualWindDeg}° Flow`;
             }
             updateDialUI();
 
@@ -1086,6 +1086,7 @@
                 manualWindDeg = deg;
                 updateDialUI();
                 updateWindGrid();
+                updateTelemetryText();
             }
 
             dialFace.addEventListener('mousedown', (e) => { isDragging = true; handlePointerMove(e); });
@@ -1110,14 +1111,14 @@
             const latStep = (ne.lat - sw.lat) / 5;
             const lonStep = (ne.lng - sw.lng) / 5;
 
-            // Draw regular grid of subtle wind arrows pointing in manualWindDeg direction
             for (let lat = sw.lat + latStep/2; lat < ne.lat; lat += latStep) {
                 for (let lon = sw.lng + lonStep/2; lon < ne.lng; lon += lonStep) {
-                    const tip = getDestinationPoint(lat, lon, manualWindDeg, 150);
+                    // Wind flow direction: line points towards manualWindDeg (where air particles move)
+                    const tip = getDestinationPoint(lat, lon, manualWindDeg, 180);
                     L.polyline([[lat, lon], tip], {
                         color: '#38bdf8',
-                        weight: 1.5,
-                        opacity: 0.35
+                        weight: 2,
+                        opacity: 0.45
                     }).addTo(windGridGroup);
                 }
             }
@@ -1192,6 +1193,7 @@
 
             createWindDialWidget();
             leafletMap.on('moveend', updateWindGrid);
+            leafletMap.on('zoomend', updateWindGrid);
 
             setTimeout(() => {
                 leafletMap.invalidateSize();
@@ -1208,17 +1210,20 @@
         }
 
         function updateMapTrack() {
-            if (!leafletMap || gpsTrackPoints.length === 0) return;
-            polylineGroup.clearLayers();
-            for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
-                const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
-                L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
-                    color: getSpeedColor(p2.knots),
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(polylineGroup);
+            if (!leafletMap) return;
+            if (gpsTrackPoints.length > 0) {
+                polylineGroup.clearLayers();
+                for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
+                    const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
+                    L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+                        color: getSpeedColor(p2.knots),
+                        weight: 6,
+                        opacity: 0.95
+                    }).addTo(polylineGroup);
+                }
             }
-            if (latestLat !== null && latestLon !== null) {
+
+            if (latestLat !== null && latestLon !== null && gpsTrackPoints.length > 0) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
                 const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
                 const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
@@ -1253,6 +1258,7 @@
                     if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
                 }
             }
+            updateWindGrid();
         }
 
         function startGPSTracking() {
@@ -1272,7 +1278,7 @@
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
                         updateTelemetryText();
                         if (!leafletMap) initLeafletMap(latestLat, latestLon);
-                        else { leafletMap.invalidateSize(); updateMapTrack(); updateWindGrid(); }
+                        else { leafletMap.invalidateSize(); updateMapTrack(); }
                     },
                     (err) => { gpsStats.textContent = "GPS signal unavailable"; },
                     { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
