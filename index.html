@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.90">
+    <link rel="manifest" href="manifest.json?v=1.0.91">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.90">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.91">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -413,6 +413,57 @@
             background: #0f172a;
         }
 
+        /* Top Right Wind Dial Widget Overlay */
+        .wind-dial-widget {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(28, 28, 33, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            padding: 6px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+            width: 65px;
+        }
+
+        .wind-dial-face {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.3);
+            position: relative;
+            margin-bottom: 3px;
+        }
+
+        .wind-dial-pointer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 20px;
+            background: #38bdf8;
+            border-radius: 2px;
+            transform-origin: 50% 0%;
+            transform: translate(-50%, 0) rotate(0deg);
+            box-shadow: 0 0 6px #38bdf8;
+        }
+
+        .wind-dial-label {
+            font-size: 0.6rem;
+            color: #f4f4f6;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .download-btn {
             display: none;
             background-color: #059669;
@@ -772,6 +823,17 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="gps-toggle-row" style="margin-top: 4px;">
+                    <span>Perpendicular Line (Cross)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="perp-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="gps-toggle-row" style="margin-top: 4px;">
+                    <span>Cross Angle Offset: <span id="angle-val">90</span>°</span>
+                    <input type="range" id="perp-angle-slider" min="0" max="180" value="90" style="width: 100px; accent-color: var(--accent-color);">
+                </div>
                 <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
                 <div id="map-wrapper">
                     <div id="map-container"></div>
@@ -840,6 +902,9 @@
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
         const gpsToggle = document.getElementById('gps-toggle');
         const mapStyleToggle = document.getElementById('map-style-toggle');
+        const perpToggle = document.getElementById('perp-toggle');
+        const perpAngleSlider = document.getElementById('perp-angle-slider');
+        const angleValDisplay = document.getElementById('angle-val');
         const gpsStats = document.getElementById('gps-stats');
         const downloadTrackBtn = document.getElementById('download-track-btn');
         const wakeVideo = document.getElementById('wake-lock-video');
@@ -868,11 +933,26 @@
         let sectorLayer = null;
         let meanHeadingLineLayer = null;
         let perpendicularLineLayer = null;
+        let windGridGroup = null;
+        let windDialWidget = null;
+        let manualWindDeg = 0; // Direction wind is going (0 = North, 90 = East, etc.)
+        let perpAngleOffset = 90;
+        let isPerpEnabled = true;
+
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
-        let fortDenisonWindText = "Wind: N/A (Offline)";
-        let windIntervalId = null;
+
+        perpAngleSlider.addEventListener('input', () => {
+            perpAngleOffset = parseInt(perpAngleSlider.value, 10);
+            angleValDisplay.textContent = perpAngleOffset;
+            updateMapTrack();
+        });
+
+        perpToggle.addEventListener('change', () => {
+            isPerpEnabled = perpToggle.checked;
+            updateMapTrack();
+        });
 
         function getItemHeight() {
             return 50;
@@ -929,35 +1009,10 @@
             return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         }
 
-        function getWindDirectionInfo(angle) {
-            if (isNaN(angle)) return { arrow: "↑", text: "--" };
-            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-            const arrows = ['↓', '↙', '↙', '↙', '←', '↖', '↖', '↖', '↑', '↗', '↗', '↗', '→', '↘', '↘', '↘'];
-            const index = Math.round((angle % 360) / 22.5) % 16;
-            return { arrow: arrows[index], text: directions[index] };
-        }
-
-        async function fetchFortDenisonWind() {
-            try {
-                const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots");
-                const data = await response.json();
-                if (data && data.current) {
-                    const speedKt = Math.round(data.current.wind_speed_10m);
-                    const gustKt = Math.round(data.current.wind_gusts_10m);
-                    const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
-                    fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
-                    updateTelemetryText();
-                }
-            } catch (err) {
-                fortDenisonWindText = "Wind: N/A";
-                updateTelemetryText();
-            }
-        }
-
         function updateTelemetryText() {
             const isLandscape = window.innerWidth > window.innerHeight;
             if (isLandscape && isOvertimeActive) {
-                gpsStats.textContent = `SOG: ${latestKnots} kts | ${fortDenisonWindText}`;
+                gpsStats.textContent = `SOG: ${latestKnots} kts | Wind Dir: ${manualWindDeg}°`;
             } else if (latestLat !== null && latestLon !== null) {
                 gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | SOG: ${latestKnots} kts`;
             }
@@ -994,6 +1049,79 @@
                 setWheelValues(getSelectedMinutes() >= 0 ? getSelectedMinutes() : 5, getSelectedSeconds() >= 0 ? getSelectedSeconds() : 0);
             }, 300);
         });
+
+        function createWindDialWidget() {
+            if (windDialWidget) return;
+            windDialWidget = document.createElement('div');
+            windDialWidget.className = 'wind-dial-widget';
+            windDialWidget.innerHTML = `
+                <div class="wind-dial-face" id="wind-dial-face">
+                    <div class="wind-dial-pointer" id="wind-dial-pointer"></div>
+                </div>
+                <div class="wind-dial-label" id="wind-dial-label">0° Wind</div>
+            `;
+            document.getElementById('map-wrapper').appendChild(windDialWidget);
+
+            const dialFace = document.getElementById('wind-dial-face');
+            const pointer = document.getElementById('wind-dial-pointer');
+            const label = document.getElementById('wind-dial-label');
+
+            function updateDialUI() {
+                pointer.style.transform = `translate(-50%, 0) rotate(${manualWindDeg}deg)`;
+                label.textContent = `${manualWindDeg}° Wind`;
+            }
+            updateDialUI();
+
+            let isDragging = false;
+            function handlePointerMove(e) {
+                if (!isDragging) return;
+                const rect = dialFace.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const rad = Math.atan2(clientX - centerX, -(clientY - centerY));
+                let deg = Math.round((rad * 180) / Math.PI);
+                if (deg < 0) deg += 360;
+                manualWindDeg = deg;
+                updateDialUI();
+                updateWindGrid();
+            }
+
+            dialFace.addEventListener('mousedown', (e) => { isDragging = true; handlePointerMove(e); });
+            window.addEventListener('mousemove', handlePointerMove);
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            dialFace.addEventListener('touchstart', (e) => { isDragging = true; handlePointerMove(e); }, {passive: true});
+            window.addEventListener('touchmove', handlePointerMove, {passive: true});
+            window.addEventListener('touchend', () => { isDragging = false; });
+        }
+
+        function updateWindGrid() {
+            if (!leafletMap) return;
+            if (!windGridGroup) {
+                windGridGroup = L.layerGroup().addTo(leafletMap);
+            }
+            windGridGroup.clearLayers();
+
+            const bounds = leafletMap.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            const latStep = (ne.lat - sw.lat) / 5;
+            const lonStep = (ne.lng - sw.lng) / 5;
+
+            // Draw regular grid of subtle wind arrows pointing in manualWindDeg direction
+            for (let lat = sw.lat + latStep/2; lat < ne.lat; lat += latStep) {
+                for (let lon = sw.lng + lonStep/2; lon < ne.lng; lon += lonStep) {
+                    const tip = getDestinationPoint(lat, lon, manualWindDeg, 150);
+                    L.polyline([[lat, lon], tip], {
+                        color: '#38bdf8',
+                        weight: 1.5,
+                        opacity: 0.35
+                    }).addTo(windGridGroup);
+                }
+            }
+        }
 
         function initLeafletMap(lat, lon) {
             if (leafletMap) return;
@@ -1062,7 +1190,13 @@
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
             });
 
-            setTimeout(() => leafletMap.invalidateSize(), 250);
+            createWindDialWidget();
+            leafletMap.on('moveend', updateWindGrid);
+
+            setTimeout(() => {
+                leafletMap.invalidateSize();
+                updateWindGrid();
+            }, 250);
         }
 
         function getSpeedColor(knots) {
@@ -1089,7 +1223,7 @@
                 const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
                 const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
                 
-                // Draw sector cone (opacity increased to 0.22)
+                // Draw sector cone
                 if (!sectorLayer) {
                     sectorLayer = L.polygon(polygonCoords, { color: '#ef4444', weight: 1, stroke: false, fillColor: '#ef4444', fillOpacity: 0.22 }).addTo(leafletMap);
                 } else {
@@ -1105,14 +1239,18 @@
                     meanHeadingLineLayer.setLatLngs(meanLineCoords);
                 }
 
-                // Draw 3nm Perpendicular line (3nm Port to 3nm Starboard)
-                const portEnd = getDestinationPoint(latestLat, latestLon, (meanHeading - 90 + 360) % 360, radiusMeters);
-                const stbdEnd = getDestinationPoint(latestLat, latestLon, (meanHeading + 90) % 360, radiusMeters);
-                const perpLineCoords = [portEnd, [latestLat, latestLon], stbdEnd];
-                if (!perpendicularLineLayer) {
-                    perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2.5, opacity: 0.85 }).addTo(leafletMap);
+                // Draw Perpendicular / angled line if enabled
+                if (isPerpEnabled) {
+                    const side1End = getDestinationPoint(latestLat, latestLon, (meanHeading - perpAngleOffset + 360) % 360, radiusMeters);
+                    const side2End = getDestinationPoint(latestLat, latestLon, (meanHeading + perpAngleOffset) % 360, radiusMeters);
+                    const perpLineCoords = [side1End, [latestLat, latestLon], side2End];
+                    if (!perpendicularLineLayer) {
+                        perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2.5, opacity: 0.85 }).addTo(leafletMap);
+                    } else {
+                        perpendicularLineLayer.setLatLngs(perpLineCoords);
+                    }
                 } else {
-                    perpendicularLineLayer.setLatLngs(perpLineCoords);
+                    if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
                 }
             }
         }
@@ -1134,7 +1272,7 @@
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
                         updateTelemetryText();
                         if (!leafletMap) initLeafletMap(latestLat, latestLon);
-                        else { leafletMap.invalidateSize(); updateMapTrack(); }
+                        else { leafletMap.invalidateSize(); updateMapTrack(); updateWindGrid(); }
                     },
                     (err) => { gpsStats.textContent = "GPS signal unavailable"; },
                     { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
@@ -1149,6 +1287,8 @@
             if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
             if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
             if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
+            if (windGridGroup) { windGridGroup.remove(); windGridGroup = null; }
+            if (windDialWidget) { windDialWidget.remove(); windDialWidget = null; }
             if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
 
@@ -1339,7 +1479,6 @@
                 gpsTrackPoints = [];
                 latestLat = null;
                 latestLon = null;
-                if (windIntervalId) { clearInterval(windIntervalId); windIntervalId = null; }
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
                 setTimeout(() => {
@@ -1423,8 +1562,6 @@
                     gpsLoggerPanel.style.display = 'flex';
                     downloadTrackBtn.style.display = 'block';
                     startGPSTracking();
-                    fetchFortDenisonWind();
-                    windIntervalId = setInterval(fetchFortDenisonWind, 5 * 60 * 1000);
                     checkOrientation();
                 }
 
