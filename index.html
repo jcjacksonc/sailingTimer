@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.89">
+    <link rel="manifest" href="manifest.json?v=1.0.90">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.89">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.90">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -909,7 +909,7 @@
             return [(φ2 * 180) / Math.PI, ((λ1 + Math.atan2(y, x)) * 180) / Math.PI];
         }
 
-        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 3704, numArcPoints = 16) {
+        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 5556, numArcPoints = 16) {
             const { mean, spread } = calculateHeadingStats(bearings);
             const startBearing = mean - spread, endBearing = mean + spread;
             const step = (endBearing - startBearing) / (numArcPoints - 1);
@@ -1086,31 +1086,31 @@
             }
             if (latestLat !== null && latestLon !== null) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
-                const radiusMeters = 3704; // 2 nautical miles
+                const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
                 const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
                 
-                // Draw sector cone
+                // Draw sector cone (opacity increased to 0.22)
                 if (!sectorLayer) {
-                    sectorLayer = L.polygon(polygonCoords, { color: '#4f46e5', weight: 1, stroke: false, fillColor: '#6366f1', fillOpacity: 0.15 }).addTo(leafletMap);
+                    sectorLayer = L.polygon(polygonCoords, { color: '#ef4444', weight: 1, stroke: false, fillColor: '#ef4444', fillOpacity: 0.22 }).addTo(leafletMap);
                 } else {
                     sectorLayer.setLatLngs(polygonCoords);
                 }
 
-                // Draw 2nm Mean Heading line
+                // Draw 3nm Mean Heading line in Red
                 const meanEnd = getDestinationPoint(latestLat, latestLon, meanHeading, radiusMeters);
                 const meanLineCoords = [[latestLat, latestLon], meanEnd];
                 if (!meanHeadingLineLayer) {
-                    meanHeadingLineLayer = L.polyline(meanLineCoords, { color: '#818cf8', weight: 2, dashArray: '6, 6', opacity: 0.9 }).addTo(leafletMap);
+                    meanHeadingLineLayer = L.polyline(meanLineCoords, { color: '#ef4444', weight: 3, dashArray: '8, 6', opacity: 0.95 }).addTo(leafletMap);
                 } else {
                     meanHeadingLineLayer.setLatLngs(meanLineCoords);
                 }
 
-                // Draw 2nm Perpendicular line (2nm Port to 2nm Starboard)
+                // Draw 3nm Perpendicular line (3nm Port to 3nm Starboard)
                 const portEnd = getDestinationPoint(latestLat, latestLon, (meanHeading - 90 + 360) % 360, radiusMeters);
                 const stbdEnd = getDestinationPoint(latestLat, latestLon, (meanHeading + 90) % 360, radiusMeters);
                 const perpLineCoords = [portEnd, [latestLat, latestLon], stbdEnd];
                 if (!perpendicularLineLayer) {
-                    perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2, opacity: 0.85 }).addTo(leafletMap);
+                    perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2.5, opacity: 0.85 }).addTo(leafletMap);
                 } else {
                     perpendicularLineLayer.setLatLngs(perpLineCoords);
                 }
