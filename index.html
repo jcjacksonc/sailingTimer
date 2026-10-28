@@ -67,7 +67,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: env(safe-area-inset-top, 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+            padding: env(safe-area-inset-top, 4px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
@@ -108,7 +108,7 @@
             margin-bottom: 1px;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
-            line-height: 1.2;
+            line-height: 1.1;
             letter-spacing: -0.2px;
         }
 
@@ -568,36 +568,11 @@
                 width: 100vw;
                 margin: 0;
                 border-radius: 0;
-                padding: 8px 16px;
+                padding: 12px 24px;
             }
 
-            /* COUNTDOWN MODE LANDSCAPE: Huge Timer + Live Clock Only (Hide buttons, controls, tabs, extra text) */
-            body:not(.race-active).landscape-mode .container {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-                padding: 12px 24px !important;
-            }
-
-            body:not(.race-active).landscape-mode .header-section {
-                width: 100% !important;
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-                padding-top: 0 !important;
-                margin-bottom: 0 !important;
-            }
-
-            body:not(.race-active).landscape-mode h1 {
-                font-size: 1.1rem !important;
-            }
-
-            body:not(.race-active).landscape-mode .live-clock {
-                font-size: 1.1rem !important;
-            }
-
-            /* Hide extra setup controls in landscape countdown mode */
+            /* PRE-RACE COUNTDOWN LANDSCAPE MODE: Maximize Timer, Hide Extra UI */
+            body:not(.race-active).landscape-mode .header-section h1,
             body:not(.race-active).landscape-mode .mode-tabs,
             body:not(.race-active).landscape-mode .picker-container,
             body:not(.race-active).landscape-mode .target-time-container,
@@ -607,32 +582,42 @@
                 display: none !important;
             }
 
-            /* Maximize Timer display size in landscape countdown mode */
+            body:not(.race-active).landscape-mode .left-column {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                height: 100% !important;
+                width: 100% !important;
+            }
+
+            body:not(.race-active).landscape-mode .header-section {
+                margin-top: 4px !important;
+            }
+
+            body:not(.race-active).landscape-mode .live-clock {
+                font-size: 1.1rem !important;
+            }
+
             body:not(.race-active).landscape-mode .active-display {
                 display: flex !important;
                 flex: 1 !important;
                 width: 100% !important;
-                max-height: calc(100vh - 60px) !important;
+                max-width: 90vw !important;
+                margin: auto !important;
                 background: transparent !important;
                 border: none !important;
                 align-items: center !important;
                 justify-content: center !important;
-                padding: 0 !important;
-                margin: 0 !important;
             }
 
             body:not(.race-active).landscape-mode .active-value,
             body:not(.race-active).landscape-mode .active-separator {
-                font-size: clamp(6rem, 22vh + 12vw, 12rem) !important;
-                line-height: 0.9 !important;
+                font-size: 7.5rem !important;
+                line-height: 1 !important;
             }
 
-            body:not(.race-active).landscape-mode .active-label {
-                font-size: 1rem !important;
-                letter-spacing: 2px !important;
-            }
-
-            /* RACE MODE / OVERTIME LANDSCAPE: Full Map + Top-Left Overlay */
+            /* RACE MODE / OVERTIME LANDSCAPE: Full Map & Overlaid Timer */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
