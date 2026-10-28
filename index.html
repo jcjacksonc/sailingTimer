@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.93">
+    <link rel="manifest" href="manifest.json?v=1.0.94">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.93">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.94">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -323,7 +323,7 @@
         .gps-logger-panel {
             display: none;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
             margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
@@ -397,10 +397,53 @@
             flex-shrink: 0;
         }
 
+        /* Speed Legend Styling */
+        .gps-legend {
+            font-size: 0.68rem;
+            background: rgba(0, 0, 0, 0.12);
+            padding: 5px 6px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-title {
+            font-weight: 700;
+            color: var(--muted-color);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.6rem;
+        }
+
+        .legend-items {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
+        .legend-color-box {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 100px;
+            min-height: 80px;
             border-radius: 10px;
             overflow: hidden;
             position: relative;
@@ -671,7 +714,8 @@
                 background: #000 !important; padding: 0 !important; margin: 0 !important;
             }
 
-            body.race-active.landscape-mode .gps-toggle-row { display: none !important; }
+            body.race-active.landscape-mode .gps-toggle-row,
+            body.race-active.landscape-mode .gps-legend { display: none !important; }
 
             body.race-active.landscape-mode #map-wrapper {
                 position: absolute !important;
@@ -835,6 +879,18 @@
                     <input type="range" id="perp-angle-slider" min="0" max="180" value="90" style="width: 100px; accent-color: var(--accent-color);">
                 </div>
                 <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
+                <div class="gps-legend" id="gps-legend">
+                    <div class="legend-title">Speed Legend (Knots)</div>
+                    <div class="legend-items">
+                        <div class="legend-item"><span class="legend-color-box" style="background: #38bdf8;"></span>&lt;3</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #818cf8;"></span>3-4</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #6366f1;"></span>4-5</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #10b981;"></span>5-6</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #84cc16;"></span>6-7</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #f59e0b;"></span>7-8</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #ef4444;"></span>8+</div>
+                    </div>
+                </div>
                 <div id="map-wrapper">
                     <div id="map-container"></div>
                 </div>
@@ -1080,7 +1136,6 @@
                 const centerY = rect.top + rect.height / 2;
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                // Standard math: angle from center to touch point
                 const rad = Math.atan2(clientX - centerX, -(clientY - centerY));
                 let deg = Math.round((rad * 180) / Math.PI);
                 if (deg < 0) deg += 360;
@@ -1115,14 +1170,12 @@
             for (let lat = sw.lat + latStep/2; lat < ne.lat; lat += latStep) {
                 for (let lon = sw.lng + lonStep/2; lon < ne.lng; lon += lonStep) {
                     const tip = getDestinationPoint(lat, lon, manualWindDeg, 180);
-                    // Main arrow shaft
                     L.polyline([[lat, lon], tip], {
                         color: '#38bdf8',
                         weight: 2,
                         opacity: 0.6
                     }).addTo(windGridGroup);
 
-                    // Arrowhead wings (angled 145° and 215° relative to flow vector)
                     const wing1 = getDestinationPoint(tip[0], tip[1], (manualWindDeg + 145) % 360, 45);
                     const wing2 = getDestinationPoint(tip[0], tip[1], (manualWindDeg - 145 + 360) % 360, 45);
                     L.polyline([wing1, tip, wing2], {
@@ -1162,7 +1215,6 @@
                     if (leafletMap.hasLayer(satelliteLayer)) leafletMap.removeLayer(satelliteLayer);
                     if (!leafletMap.hasLayer(normalLayer)) normalLayer.addTo(leafletMap);
                 }
-                // Ensure wind grid stays on top regardless of tile layer changes
                 if (windGridGroup) windGridGroup.bringToFront();
             });
 
@@ -1213,12 +1265,16 @@
             }, 250);
         }
 
+        /* 1-Knot Interval Color Scheme (3 to 8+ kts) */
         function getSpeedColor(knots) {
             const k = parseFloat(knots);
-            if (k < 3.0) return '#38bdf8';
-            if (k < 6.0) return '#10b981';
-            if (k < 8.0) return '#f59e0b';
-            return '#ef4444';
+            if (k < 3.0) return '#38bdf8'; // Sky Blue (< 3 kts)
+            if (k < 4.0) return '#818cf8'; // Indigo (3-4 kts)
+            if (k < 5.0) return '#6366f1'; // Violet (4-5 kts)
+            if (k < 6.0) return '#10b981'; // Emerald (5-6 kts)
+            if (k < 7.0) return '#84cc16'; // Lime (6-7 kts)
+            if (k < 8.0) return '#f59e0b'; // Amber (7-8 kts)
+            return '#ef4444';              // Red (8+ kts)
         }
 
         function updateMapTrack() {
@@ -1229,7 +1285,7 @@
                     const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
                     L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
                         color: getSpeedColor(p2.knots),
-                        weight: 6,
+                        weight: 3.5, // Reduced from 6 to make position marks thinner/smaller
                         opacity: 0.95
                     }).addTo(polylineGroup);
                 }
@@ -1240,14 +1296,12 @@
                 const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
                 const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
                 
-                // Draw sector cone
                 if (!sectorLayer) {
                     sectorLayer = L.polygon(polygonCoords, { color: '#ef4444', weight: 1, stroke: false, fillColor: '#ef4444', fillOpacity: 0.22 }).addTo(leafletMap);
                 } else {
                     sectorLayer.setLatLngs(polygonCoords);
                 }
 
-                // Draw 3nm Mean Heading line in Red
                 const meanEnd = getDestinationPoint(latestLat, latestLon, meanHeading, radiusMeters);
                 const meanLineCoords = [[latestLat, latestLon], meanEnd];
                 if (!meanHeadingLineLayer) {
@@ -1256,7 +1310,6 @@
                     meanHeadingLineLayer.setLatLngs(meanLineCoords);
                 }
 
-                // Draw Perpendicular / angled line if enabled
                 if (isPerpEnabled) {
                     const side1End = getDestinationPoint(latestLat, latestLon, (meanHeading - perpAngleOffset + 360) % 360, radiusMeters);
                     const side2End = getDestinationPoint(latestLat, latestLon, (meanHeading + perpAngleOffset) % 360, radiusMeters);
@@ -1282,11 +1335,15 @@
                         latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
+                        
                         let heading = 0;
                         if (gpsTrackPoints.length > 0) {
-                            const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
-                            heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
+                            // Smooth heading calculation by looking back up to 5 points to eliminate point-to-point GPS jumpiness
+                            const lookbackIndex = Math.max(0, gpsTrackPoints.length - 5);
+                            const pastPt = gpsTrackPoints[lookbackIndex];
+                            heading = calculateBearing(pastPt.lat, pastPt.lon, latestLat, latestLon);
                         }
+
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
                         updateTelemetryText();
                         if (!leafletMap) initLeafletMap(latestLat, latestLon);
