@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.95">
+    <link rel="manifest" href="manifest.json?v=1.0.96">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.95">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.96">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,7 +31,7 @@
             --warning-btn: #d97706;
             --warning-hover: #b45309;
             --muted-color: #9ca3af;
-            --item-height: 50px;
+            --item-height: 46px;
         }
 
         /* Race Mode Theme */
@@ -67,7 +67,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: max(env(safe-area-inset-top, 8px), 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+            padding: env(safe-area-inset-top, 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
@@ -77,7 +77,7 @@
             max-height: calc(100vh - 16px);
             background-color: var(--card-bg);
             border-radius: 24px;
-            padding: 12px 14px 14px 14px;
+            padding: 10px 14px 12px 14px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -93,22 +93,23 @@
             min-height: 0;
         }
 
+        .header-section {
+            flex-shrink: 0;
+            margin-bottom: 2px;
+        }
+
         .live-clock {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--muted-color);
             margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
-            font-weight: 500;
-            flex-shrink: 0;
-            line-height: 1.2;
+            font-weight: 600;
         }
 
         h1 {
             font-size: 1.3rem;
-            margin-bottom: 4px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            flex-shrink: 0;
         }
 
         /* Mode Selector Tabs */
@@ -117,17 +118,17 @@
             background: rgba(0, 0, 0, 0.15);
             border-radius: 12px;
             padding: 3px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 8px;
+            padding: 7px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             border-radius: 9px;
             cursor: pointer;
@@ -145,14 +146,14 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 10px;
+            padding: 8px;
             flex: 1;
-            min-height: 120px;
-            max-height: 160px;
+            min-height: 110px;
+            max-height: 150px;
         }
 
         .wheel-column {
@@ -165,7 +166,7 @@
 
         .wheel {
             height: 100%;
-            width: 100px;
+            width: 95px;
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
@@ -191,7 +192,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -207,18 +208,18 @@
         }
 
         .wheel-separator {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         .wheel-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
@@ -228,24 +229,24 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 6px;
+            gap: 6px;
+            margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 12px;
+            padding: 10px;
             flex: 1;
-            min-height: 120px;
+            min-height: 110px;
         }
 
         input[type="time"] {
             width: 80%;
-            padding: 10px;
+            padding: 8px;
             border-radius: 12px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 2.1rem;
+            font-size: 2rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -253,7 +254,7 @@
         }
 
         .target-time-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -266,11 +267,11 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 20px;
-            padding: 14px;
+            padding: 12px;
             flex-shrink: 0;
             width: 100%;
         }
@@ -282,7 +283,7 @@
         }
 
         .active-value {
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -290,24 +291,24 @@
         }
 
         .active-separator {
-            font-size: 3.5rem;
+            font-size: 3.2rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 14px;
+            padding: 12px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 7.5rem;
+            font-size: 7rem;
             letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -326,21 +327,21 @@
         .gps-logger-panel {
             display: none;
             flex-direction: column;
-            gap: 5px;
-            margin-bottom: 6px;
+            gap: 4px;
+            margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 18px;
-            padding: 8px;
+            padding: 6px;
             flex: 1;
-            min-height: 150px;
+            min-height: 140px;
         }
 
         .gps-toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--muted-color);
             padding: 0 4px;
@@ -350,8 +351,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 38px;
-            height: 20px;
+            width: 36px;
+            height: 18px;
         }
 
         .switch input {
@@ -366,14 +367,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 20px;
+            border-radius: 18px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 12px;
+            width: 12px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -390,11 +391,11 @@
         }
 
         .gps-stats {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
-            padding: 4px;
+            padding: 3px;
             border-radius: 6px;
             text-align: center;
             flex-shrink: 0;
@@ -402,9 +403,9 @@
 
         /* Speed Legend Styling */
         .gps-legend {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             background: rgba(0, 0, 0, 0.12);
-            padding: 5px 6px;
+            padding: 4px 6px;
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -418,14 +419,14 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
         }
 
         .legend-items {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            gap: 3px;
+            gap: 2px;
         }
 
         .legend-item {
@@ -437,8 +438,8 @@
         }
 
         .legend-color-box {
-            width: 9px;
-            height: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 2px;
             display: inline-block;
         }
@@ -446,7 +447,7 @@
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 80px;
+            min-height: 70px;
             border-radius: 10px;
             overflow: hidden;
             position: relative;
@@ -459,62 +460,11 @@
             background: #0f172a;
         }
 
-        /* Repositioned & More Transparent Wind Dial Widget */
-        .wind-dial-widget {
-            position: absolute;
-            top: 65px;
-            right: 16px;
-            background: rgba(28, 28, 33, 0.45);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 5px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            cursor: pointer;
-            width: 60px;
-        }
-
-        .wind-dial-face {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.25);
-            position: relative;
-            margin-bottom: 2px;
-        }
-
-        .wind-dial-pointer {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 3px;
-            height: 17px;
-            background: #38bdf8;
-            border-radius: 2px;
-            transform-origin: 50% 100%;
-            transform: translate(-50%, -100%) rotate(0deg);
-            box-shadow: 0 0 5px #38bdf8;
-        }
-
-        .wind-dial-label {
-            font-size: 0.55rem;
-            color: #f4f4f6;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.85rem;
-            padding: 8px;
+            font-size: 0.8rem;
+            padding: 7px;
             flex-shrink: 0;
         }
 
@@ -523,10 +473,10 @@
         }
 
         .message {
-            font-size: 0.85rem;
-            margin-bottom: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 4px;
             color: var(--muted-color);
-            min-height: 16px;
+            min-height: 15px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -534,28 +484,29 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
             flex-shrink: 0;
         }
 
         .controls-row {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             width: 100%;
         }
 
         button {
             width: 100%;
-            padding: 11px;
+            padding: 12px 14px;
             border-radius: 12px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
             z-index: 10;
+            line-height: normal;
         }
 
         button:active {
@@ -608,7 +559,7 @@
                 max-height: 96vh;
                 height: 100%;
                 margin: 0 auto;
-                padding: 8px 14px;
+                padding: 6px 12px;
             }
 
             .left-column {
@@ -619,7 +570,7 @@
                 align-content: center;
             }
 
-            .left-column > div:first-child {
+            .header-section {
                 width: 100%;
                 display: flex;
                 justify-content: space-between;
@@ -633,8 +584,7 @@
             }
 
             h1 {
-                font-size: 1rem;
-                margin-bottom: 0;
+                font-size: 0.95rem;
             }
 
             .mode-tabs {
@@ -644,33 +594,33 @@
             }
 
             .tab-btn {
-                padding: 5px;
-                font-size: 0.8rem;
+                padding: 4px;
+                font-size: 0.75rem;
             }
 
             .picker-container, .target-time-container {
                 width: 100%;
-                min-height: 85px;
-                max-height: 105px;
+                min-height: 80px;
+                max-height: 95px;
                 margin-bottom: 2px;
-                padding: 4px;
+                padding: 3px;
             }
 
             .wheel {
-                width: 95px;
-                max-height: 90px;
+                width: 90px;
+                max-height: 80px;
             }
 
             .active-display {
                 width: fit-content !important;
-                margin: 0 auto 6px auto !important;
-                padding: 10px 20px !important;
+                margin: 0 auto 4px auto !important;
+                padding: 8px 16px !important;
             }
 
             .message {
                 width: 48%;
                 margin-bottom: 0;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 text-align: left;
             }
 
@@ -684,7 +634,7 @@
             }
 
             .controls button {
-                padding: 7px;
+                padding: 7px 10px;
                 font-size: 0.8rem;
                 border-radius: 9px;
             }
@@ -820,7 +770,7 @@
 
     <div class="container">
         <div class="left-column">
-            <div>
+            <div class="header-section">
                 <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
                 <h1 id="event-title">Beta Timer</h1>
             </div>
@@ -889,17 +839,6 @@
                         <input type="checkbox" id="map-style-toggle">
                         <span class="slider"></span>
                     </label>
-                </div>
-                <div class="gps-toggle-row" style="margin-top: 2px;">
-                    <span>Perpendicular Line (Cross)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="perp-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="gps-toggle-row" style="margin-top: 2px;">
-                    <span>Cross Angle Offset: <span id="angle-val">90</span>°</span>
-                    <input type="range" id="perp-angle-slider" min="0" max="180" value="90" style="width: 100px; accent-color: var(--accent-color);">
                 </div>
                 <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
                 <div class="gps-legend" id="gps-legend">
@@ -985,9 +924,6 @@
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
         const gpsToggle = document.getElementById('gps-toggle');
         const mapStyleToggle = document.getElementById('map-style-toggle');
-        const perpToggle = document.getElementById('perp-toggle');
-        const perpAngleSlider = document.getElementById('perp-angle-slider');
-        const angleValDisplay = document.getElementById('angle-val');
         const gpsStats = document.getElementById('gps-stats');
         const downloadTrackBtn = document.getElementById('download-track-btn');
         const wakeVideo = document.getElementById('wake-lock-video');
@@ -1017,30 +953,13 @@
         let polylineGroup = null;
         let sectorLayer = null;
         let meanHeadingLineLayer = null;
-        let perpendicularLineLayer = null;
-        let windGridGroup = null;
-        let windDialWidget = null;
-        let manualWindDeg = 0;
-        let perpAngleOffset = 90;
-        let isPerpEnabled = true;
 
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
 
-        perpAngleSlider.addEventListener('input', () => {
-            perpAngleOffset = parseInt(perpAngleSlider.value, 10);
-            angleValDisplay.textContent = perpAngleOffset;
-            updateMapTrack();
-        });
-
-        perpToggle.addEventListener('change', () => {
-            isPerpEnabled = perpToggle.checked;
-            updateMapTrack();
-        });
-
         function getItemHeight() {
-            return 50;
+            return 46;
         }
 
         function calculateHeadingStats(bearings, scaleFactor = 0.5) {
@@ -1097,7 +1016,7 @@
         function updateTelemetryText() {
             const isLandscape = window.innerWidth > window.innerHeight;
             if (isLandscape && isOvertimeActive) {
-                gpsStats.textContent = `SOG: ${latestKnots} kts | Wind Flow: ${manualWindDeg}°`;
+                gpsStats.textContent = `SOG: ${latestKnots} kts`;
             } else if (latestLat !== null && latestLon !== null) {
                 gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | SOG: ${latestKnots} kts`;
             }
@@ -1135,87 +1054,6 @@
             }, 300);
         });
 
-        function createWindDialWidget() {
-            if (windDialWidget) return;
-            windDialWidget = document.createElement('div');
-            windDialWidget.className = 'wind-dial-widget';
-            windDialWidget.innerHTML = `
-                <div class="wind-dial-face" id="wind-dial-face">
-                    <div class="wind-dial-pointer" id="wind-dial-pointer"></div>
-                </div>
-                <div class="wind-dial-label" id="wind-dial-label">0° Flow</div>
-            `;
-            document.getElementById('map-wrapper').appendChild(windDialWidget);
-
-            const dialFace = document.getElementById('wind-dial-face');
-            const pointer = document.getElementById('wind-dial-pointer');
-            const label = document.getElementById('wind-dial-label');
-
-            function updateDialUI() {
-                pointer.style.transform = `translate(-50%, -100%) rotate(${manualWindDeg}deg)`;
-                label.textContent = `${manualWindDeg}° Flow`;
-            }
-            updateDialUI();
-
-            let isDragging = false;
-            function handlePointerMove(e) {
-                if (!isDragging) return;
-                const rect = dialFace.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const rad = Math.atan2(clientX - centerX, -(clientY - centerY));
-                let deg = Math.round((rad * 180) / Math.PI);
-                if (deg < 0) deg += 360;
-                manualWindDeg = deg;
-                updateDialUI();
-                updateWindGrid();
-                updateTelemetryText();
-            }
-
-            dialFace.addEventListener('mousedown', (e) => { isDragging = true; handlePointerMove(e); });
-            window.addEventListener('mousemove', handlePointerMove);
-            window.addEventListener('mouseup', () => { isDragging = false; });
-
-            dialFace.addEventListener('touchstart', (e) => { isDragging = true; handlePointerMove(e); }, {passive: true});
-            window.addEventListener('touchmove', handlePointerMove, {passive: true});
-            window.addEventListener('touchend', () => { isDragging = false; });
-        }
-
-        function updateWindGrid() {
-            if (!leafletMap) return;
-            if (!windGridGroup) {
-                windGridGroup = L.layerGroup().addTo(leafletMap);
-            }
-            windGridGroup.clearLayers();
-
-            const bounds = leafletMap.getBounds();
-            const sw = bounds.getSouthWest();
-            const ne = bounds.getNorthEast();
-            const latStep = (ne.lat - sw.lat) / 5;
-            const lonStep = (ne.lng - sw.lng) / 5;
-
-            for (let lat = sw.lat + latStep/2; lat < ne.lat; lat += latStep) {
-                for (let lon = sw.lng + lonStep/2; lon < ne.lng; lon += lonStep) {
-                    const tip = getDestinationPoint(lat, lon, manualWindDeg, 180);
-                    L.polyline([[lat, lon], tip], {
-                        color: '#38bdf8',
-                        weight: 2,
-                        opacity: 0.6
-                    }).addTo(windGridGroup);
-
-                    const wing1 = getDestinationPoint(tip[0], tip[1], (manualWindDeg + 145) % 360, 45);
-                    const wing2 = getDestinationPoint(tip[0], tip[1], (manualWindDeg - 145 + 360) % 360, 45);
-                    L.polyline([wing1, tip, wing2], {
-                        color: '#38bdf8',
-                        weight: 2,
-                        opacity: 0.6
-                    }).addTo(windGridGroup);
-                }
-            }
-        }
-
         function initLeafletMap(lat, lon) {
             if (leafletMap) return;
 
@@ -1244,7 +1082,6 @@
                     if (leafletMap.hasLayer(satelliteLayer)) leafletMap.removeLayer(satelliteLayer);
                     if (!leafletMap.hasLayer(normalLayer)) normalLayer.addTo(leafletMap);
                 }
-                if (windGridGroup) windGridGroup.bringToFront();
             });
 
             polylineGroup = L.layerGroup().addTo(leafletMap);
@@ -1284,13 +1121,8 @@
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
             });
 
-            createWindDialWidget();
-            leafletMap.on('moveend', updateWindGrid);
-            leafletMap.on('zoomend', updateWindGrid);
-
             setTimeout(() => {
                 leafletMap.invalidateSize();
-                updateWindGrid();
             }, 250);
         }
 
@@ -1337,21 +1169,7 @@
                 } else {
                     meanHeadingLineLayer.setLatLngs(meanLineCoords);
                 }
-
-                if (isPerpEnabled) {
-                    const side1End = getDestinationPoint(latestLat, latestLon, (meanHeading - perpAngleOffset + 360) % 360, radiusMeters);
-                    const side2End = getDestinationPoint(latestLat, latestLon, (meanHeading + perpAngleOffset) % 360, radiusMeters);
-                    const perpLineCoords = [side1End, [latestLat, latestLon], side2End];
-                    if (!perpendicularLineLayer) {
-                        perpendicularLineLayer = L.polyline(perpLineCoords, { color: '#38bdf8', weight: 2.5, opacity: 0.85 }).addTo(leafletMap);
-                    } else {
-                        perpendicularLineLayer.setLatLngs(perpLineCoords);
-                    }
-                } else {
-                    if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
-                }
             }
-            updateWindGrid();
         }
 
         function startGPSTracking() {
@@ -1388,9 +1206,6 @@
             if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
             if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
-            if (perpendicularLineLayer) { perpendicularLineLayer.remove(); perpendicularLineLayer = null; }
-            if (windGridGroup) { windGridGroup.remove(); windGridGroup = null; }
-            if (windDialWidget) { windDialWidget.remove(); windDialWidget = null; }
             if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
 
@@ -1560,7 +1375,7 @@
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
                 pauseBtn.style.display = 'block';
-                startBtn.textContent = CONFIG.stopBtnTest;
+                startBtn.textContent = CONFIG.stopBtnText;
             } else {
                 document.body.classList.remove('race-active');
                 modeTabs.style.display = 'flex';
@@ -1622,7 +1437,6 @@
                 await requestWakeLock();
                 speak(CONFIG.timerStartedSpeech, true);
             } else {
-                // Stop / Reset button action
                 isRunning = false;
                 isPaused = false;
                 targetTime = null;
@@ -1637,7 +1451,6 @@
 
         pauseBtn.addEventListener('click', async () => {
             if (isRunning && !isPaused) {
-                // Pause action
                 isRunning = false;
                 isPaused = true;
                 remainingTimeMsAtPause = targetTime - Date.now();
@@ -1646,7 +1459,6 @@
                 await releaseWakeLock();
                 speak(CONFIG.timerPausedSpeech, true);
             } else if (!isRunning && isPaused) {
-                // Resume action
                 targetTime = Date.now() + remainingTimeMsAtPause;
                 isRunning = true;
                 isPaused = false;
