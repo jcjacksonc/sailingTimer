@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.94">
+    <link rel="manifest" href="manifest.json?v=1.0.95">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.94">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.95">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -28,6 +28,8 @@
             --accent-hover: #6366f1;
             --secondary-btn: #374151;
             --secondary-hover: #4b5563;
+            --warning-btn: #d97706;
+            --warning-hover: #b45309;
             --muted-color: #9ca3af;
             --item-height: 50px;
         }
@@ -65,7 +67,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+            padding: max(env(safe-area-inset-top, 8px), 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
@@ -75,7 +77,7 @@
             max-height: calc(100vh - 16px);
             background-color: var(--card-bg);
             border-radius: 24px;
-            padding: 14px;
+            padding: 12px 14px 14px 14px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -92,17 +94,18 @@
         }
 
         .live-clock {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--muted-color);
             margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
             flex-shrink: 0;
+            line-height: 1.2;
         }
 
         h1 {
-            font-size: 1.4rem;
-            margin-bottom: 6px;
+            font-size: 1.3rem;
+            margin-bottom: 4px;
             font-weight: 700;
             letter-spacing: -0.5px;
             flex-shrink: 0;
@@ -148,8 +151,8 @@
             border-radius: 20px;
             padding: 10px;
             flex: 1;
-            min-height: 130px;
-            max-height: 170px;
+            min-height: 120px;
+            max-height: 160px;
         }
 
         .wheel-column {
@@ -232,7 +235,7 @@
             border-radius: 20px;
             padding: 12px;
             flex: 1;
-            min-height: 130px;
+            min-height: 120px;
         }
 
         input[type="time"] {
@@ -330,7 +333,7 @@
             border-radius: 18px;
             padding: 8px;
             flex: 1;
-            min-height: 160px;
+            min-height: 150px;
         }
 
         .gps-toggle-row {
@@ -535,14 +538,20 @@
             flex-shrink: 0;
         }
 
+        .controls-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+
         button {
             width: 100%;
-            padding: 12px;
+            padding: 11px;
             border-radius: 12px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -563,6 +572,14 @@
 
         .btn-secondary:hover {
             background-color: var(--secondary-hover);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-btn);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--warning-hover);
         }
 
         /* Strict Default Hidden State for Standalone Timer Overlay */
@@ -633,15 +650,15 @@
 
             .picker-container, .target-time-container {
                 width: 100%;
-                min-height: 90px;
-                max-height: 110px;
+                min-height: 85px;
+                max-height: 105px;
                 margin-bottom: 2px;
                 padding: 4px;
             }
 
             .wheel {
                 width: 95px;
-                max-height: 95px;
+                max-height: 90px;
             }
 
             .active-display {
@@ -659,13 +676,16 @@
 
             .controls {
                 width: 48%;
-                flex-direction: row;
-                gap: 6px;
+                gap: 4px;
+            }
+
+            .controls-row {
+                gap: 4px;
             }
 
             .controls button {
-                padding: 8px;
-                font-size: 0.85rem;
+                padding: 7px;
+                font-size: 0.8rem;
                 border-radius: 9px;
             }
 
@@ -847,7 +867,10 @@
 
             <div class="controls">
                 <button id="start-btn">Start Countdown</button>
-                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+                <div class="controls-row">
+                    <button id="pause-btn" class="btn-warning" style="display:none;">Pause</button>
+                    <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+                </div>
             </div>
         </div>
 
@@ -860,21 +883,21 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="gps-toggle-row" style="margin-top: 4px;">
+                <div class="gps-toggle-row" style="margin-top: 2px;">
                     <span>Satellite Map View</span>
                     <label class="switch">
                         <input type="checkbox" id="map-style-toggle">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="gps-toggle-row" style="margin-top: 4px;">
+                <div class="gps-toggle-row" style="margin-top: 2px;">
                     <span>Perpendicular Line (Cross)</span>
                     <label class="switch">
                         <input type="checkbox" id="perp-toggle" checked>
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="gps-toggle-row" style="margin-top: 4px;">
+                <div class="gps-toggle-row" style="margin-top: 2px;">
                     <span>Cross Angle Offset: <span id="angle-val">90</span>°</span>
                     <input type="range" id="perp-angle-slider" min="0" max="180" value="90" style="width: 100px; accent-color: var(--accent-color);">
                 </div>
@@ -906,9 +929,12 @@
             stopBtnText: "Reset / Stop",
             quick5BtnText: "Quick 5 Min Timer",
             runningMsg: "Countdown running...",
+            pausedMsg: "Timer paused",
             stoppedMsg: "Timer stopped",
             raceStartedMsg: "Race started! 🏁",
             timerStartedSpeech: "Timer started",
+            timerPausedSpeech: "Timer paused",
+            timerResumedSpeech: "Timer resumed",
             timerStoppedSpeech: "Timer stopped",
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
@@ -953,6 +979,7 @@
         const minutesWheel = document.getElementById('minutes-wheel');
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
         
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
@@ -971,7 +998,9 @@
         messageEl.textContent = CONFIG.defaultDurationMsg;
 
         let targetTime = null;
+        let remainingTimeMsAtPause = null;
         let isRunning = false;
+        let isPaused = false;
         let lastSpokenSecond = -1;
         let hasPlayedRaceStart = false;
         let currentMode = 'duration';
@@ -991,7 +1020,7 @@
         let perpendicularLineLayer = null;
         let windGridGroup = null;
         let windDialWidget = null;
-        let manualWindDeg = 0; // Wind flow direction (0 = North, pointing UP)
+        let manualWindDeg = 0;
         let perpAngleOffset = 90;
         let isPerpEnabled = true;
 
@@ -1265,16 +1294,15 @@
             }, 250);
         }
 
-        /* 1-Knot Interval Color Scheme (3 to 8+ kts) */
         function getSpeedColor(knots) {
             const k = parseFloat(knots);
-            if (k < 3.0) return '#38bdf8'; // Sky Blue (< 3 kts)
-            if (k < 4.0) return '#818cf8'; // Indigo (3-4 kts)
-            if (k < 5.0) return '#6366f1'; // Violet (4-5 kts)
-            if (k < 6.0) return '#10b981'; // Emerald (5-6 kts)
-            if (k < 7.0) return '#84cc16'; // Lime (6-7 kts)
-            if (k < 8.0) return '#f59e0b'; // Amber (7-8 kts)
-            return '#ef4444';              // Red (8+ kts)
+            if (k < 3.0) return '#38bdf8';
+            if (k < 4.0) return '#818cf8';
+            if (k < 5.0) return '#6366f1';
+            if (k < 6.0) return '#10b981';
+            if (k < 7.0) return '#84cc16';
+            if (k < 8.0) return '#f59e0b';
+            return '#ef4444';
         }
 
         function updateMapTrack() {
@@ -1285,7 +1313,7 @@
                     const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
                     L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
                         color: getSpeedColor(p2.knots),
-                        weight: 3.5, // Reduced from 6 to make position marks thinner/smaller
+                        weight: 3.5,
                         opacity: 0.95
                     }).addTo(polylineGroup);
                 }
@@ -1293,7 +1321,7 @@
 
             if (latestLat !== null && latestLon !== null && gpsTrackPoints.length > 0) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
-                const radiusMeters = 5556; // 3 nautical miles (~5.556 km)
+                const radiusMeters = 5556;
                 const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
                 
                 if (!sectorLayer) {
@@ -1330,7 +1358,7 @@
             if ('geolocation' in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
-                        if (!isOvertimeActive || !gpsToggle.checked) return;
+                        if ((!isOvertimeActive && !isRunning) || !gpsToggle.checked) return;
                         latestLat = pos.coords.latitude;
                         latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
@@ -1338,7 +1366,6 @@
                         
                         let heading = 0;
                         if (gpsTrackPoints.length > 0) {
-                            // Smooth heading calculation by looking back up to 5 points to eliminate point-to-point GPS jumpiness
                             const lookbackIndex = Math.max(0, gpsTrackPoints.length - 5);
                             const pastPt = gpsTrackPoints[lookbackIndex];
                             heading = calculateBearing(pastPt.lat, pastPt.lon, latestLat, latestLon);
@@ -1452,7 +1479,7 @@
         timeInput.value = `${String(defaultTarget.getHours()).padStart(2, '0')}:${String(defaultTarget.getMinutes()).padStart(2, '0')}`;
 
         durationTab.addEventListener('click', () => {
-            if (isRunning) return;
+            if (isRunning || isPaused) return;
             currentMode = 'duration';
             durationTab.classList.add('active');
             targetTimeTab.classList.remove('active');
@@ -1463,7 +1490,7 @@
         });
 
         targetTimeTab.addEventListener('click', () => {
-            if (isRunning) return;
+            if (isRunning || isPaused) return;
             currentMode = 'target';
             targetTimeTab.classList.add('active');
             durationTab.classList.remove('active');
@@ -1481,7 +1508,7 @@
             wheelEl.innerHTML = html;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) {
+                    if (!isRunning && !isPaused) {
                         const targetVal = parseInt(item.dataset.value, 10);
                         wheelEl.scrollTo({ top: targetVal * getItemHeight(), behavior: 'smooth' });
                     }
@@ -1525,14 +1552,15 @@
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
         }, 1000);
 
-        function setUIState(running) {
-            if (running) {
+        function setUIState(runningOrPaused) {
+            if (runningOrPaused) {
                 modeTabs.style.display = 'none';
                 pickerContainer.style.display = 'none';
                 targetTimeContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
-                startBtn.textContent = CONFIG.stopBtnText;
+                pauseBtn.style.display = 'block';
+                startBtn.textContent = CONFIG.stopBtnTest;
             } else {
                 document.body.classList.remove('race-active');
                 modeTabs.style.display = 'flex';
@@ -1548,6 +1576,8 @@
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 gpsLoggerPanel.style.display = 'none';
+                pauseBtn.style.display = 'none';
+                pauseBtn.textContent = "Pause";
                 isOvertimeActive = false;
                 hasPlayedRaceStart = false;
                 stopGPSTracking();
@@ -1567,7 +1597,7 @@
         startBtn.addEventListener('click', async () => {
             haltWheelInertia();
             unlockSpeechAudio();
-            if (!isRunning) {
+            if (!isRunning && !isPaused) {
                 let totalMs = 0;
                 if (currentMode === 'duration') {
                     totalMs = (getSelectedMinutes() * 60 + getSelectedSeconds()) * 1000;
@@ -1584,6 +1614,7 @@
                 if (totalMs <= 0) { messageEl.textContent = "Target time must be in the future"; return; }
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
+                isPaused = false;
                 lastSpokenSecond = -1;
                 hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.runningMsg;
@@ -1591,13 +1622,38 @@
                 await requestWakeLock();
                 speak(CONFIG.timerStartedSpeech, true);
             } else {
+                // Stop / Reset button action
                 isRunning = false;
+                isPaused = false;
                 targetTime = null;
+                remainingTimeMsAtPause = null;
                 hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.stoppedMsg;
                 setUIState(false);
                 await releaseWakeLock();
                 speak(CONFIG.timerStoppedSpeech, true);
+            }
+        });
+
+        pauseBtn.addEventListener('click', async () => {
+            if (isRunning && !isPaused) {
+                // Pause action
+                isRunning = false;
+                isPaused = true;
+                remainingTimeMsAtPause = targetTime - Date.now();
+                messageEl.textContent = CONFIG.pausedMsg;
+                pauseBtn.textContent = "Resume";
+                await releaseWakeLock();
+                speak(CONFIG.timerPausedSpeech, true);
+            } else if (!isRunning && isPaused) {
+                // Resume action
+                targetTime = Date.now() + remainingTimeMsAtPause;
+                isRunning = true;
+                isPaused = false;
+                messageEl.textContent = CONFIG.runningMsg;
+                pauseBtn.textContent = "Pause";
+                await requestWakeLock();
+                speak(CONFIG.timerResumedSpeech, true);
             }
         });
 
@@ -1614,6 +1670,7 @@
             updateWheelHighlight(secondsWheel);
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
+            isPaused = false;
             lastSpokenSecond = -1;
             hasPlayedRaceStart = false;
             messageEl.textContent = CONFIG.runningMsg;
