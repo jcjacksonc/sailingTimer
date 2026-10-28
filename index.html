@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.96">
+    <link rel="manifest" href="manifest.json?v=1.0.98">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.96">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.98">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,7 +31,7 @@
             --warning-btn: #d97706;
             --warning-hover: #b45309;
             --muted-color: #9ca3af;
-            --item-height: 46px;
+            --item-height: 44px;
         }
 
         /* Race Mode Theme */
@@ -74,10 +74,10 @@
             width: 100%;
             max-width: 440px;
             height: 100%;
-            max-height: calc(100vh - 16px);
+            max-height: calc(100vh - 12px);
             background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 10px 14px 12px 14px;
+            border-radius: 20px;
+            padding: 10px 14px 10px 14px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -95,42 +95,49 @@
 
         .header-section {
             flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 2px;
             margin-bottom: 2px;
         }
 
         .live-clock {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--muted-color);
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.2px;
         }
 
         h1 {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
         /* Mode Selector Tabs */
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 3px;
+            border-radius: 10px;
+            padding: 2px;
             margin-bottom: 4px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 7px;
+            padding: 6px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            border-radius: 9px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -149,11 +156,11 @@
             margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 8px;
+            border-radius: 16px;
+            padding: 6px;
             flex: 1;
-            min-height: 110px;
-            max-height: 150px;
+            min-height: 100px;
+            max-height: 140px;
         }
 
         .wheel-column {
@@ -166,7 +173,7 @@
 
         .wheel {
             height: 100%;
-            width: 95px;
+            width: 90px;
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
@@ -174,7 +181,7 @@
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 12px;
+            border-radius: 10px;
             -webkit-overflow-scrolling: touch;
             scroll-padding-top: calc(50% - (var(--item-height) / 2));
             scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
@@ -192,7 +199,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2rem;
+            font-size: 1.85rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -204,22 +211,22 @@
 
         .wheel-item.selected {
             opacity: 1.0;
-            transform: scale(1.08);
+            transform: scale(1.06);
         }
 
         .wheel-separator {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
             color: var(--text-color);
             padding-bottom: 6px;
         }
 
         .wheel-label {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 4px;
+            margin-top: 3px;
             font-weight: 600;
         }
 
@@ -233,20 +240,20 @@
             margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 10px;
             flex: 1;
-            min-height: 110px;
+            min-height: 100px;
         }
 
         input[type="time"] {
             width: 80%;
             padding: 8px;
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 2rem;
+            font-size: 1.9rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -254,7 +261,7 @@
         }
 
         .target-time-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -266,11 +273,11 @@
             display: none;
             justify-content: center;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 12px;
             flex-shrink: 0;
             width: 100%;
@@ -283,7 +290,7 @@
         }
 
         .active-value {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -291,7 +298,7 @@
         }
 
         .active-separator {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 800;
             color: var(--muted-color);
             padding-bottom: 6px;
@@ -303,12 +310,12 @@
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 7rem;
+            font-size: 6.5rem;
             letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -331,10 +338,10 @@
             margin-bottom: 4px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
+            border-radius: 16px;
             padding: 6px;
             flex: 1;
-            min-height: 140px;
+            min-height: 130px;
         }
 
         .gps-toggle-row {
@@ -351,7 +358,7 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 36px;
+            width: 34px;
             height: 18px;
         }
 
@@ -387,11 +394,11 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(18px);
+            transform: translateX(16px);
         }
 
         .gps-stats {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
@@ -403,13 +410,13 @@
 
         /* Speed Legend Styling */
         .gps-legend {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             background: rgba(0, 0, 0, 0.12);
-            padding: 4px 6px;
-            border-radius: 8px;
+            padding: 3px 6px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 1px;
             flex-shrink: 0;
         }
 
@@ -419,7 +426,7 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
         }
 
         .legend-items {
@@ -432,14 +439,14 @@
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
         }
 
         .legend-color-box {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 2px;
             display: inline-block;
         }
@@ -447,8 +454,8 @@
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 70px;
-            border-radius: 10px;
+            min-height: 60px;
+            border-radius: 8px;
             overflow: hidden;
             position: relative;
         }
@@ -463,8 +470,8 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.8rem;
-            padding: 7px;
+            font-size: 0.75rem;
+            padding: 6px;
             flex-shrink: 0;
         }
 
@@ -473,10 +480,10 @@
         }
 
         .message {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             margin-bottom: 4px;
             color: var(--muted-color);
-            min-height: 15px;
+            min-height: 14px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -484,24 +491,24 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
             flex-shrink: 0;
         }
 
         .controls-row {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             width: 100%;
         }
 
         button {
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -549,100 +556,83 @@
             }
 
             body {
-                padding: 4px !important;
+                padding: 0 !important;
                 justify-content: center !important;
                 align-items: center !important;
             }
 
             .container {
-                max-width: 96vw;
-                max-height: 96vh;
-                height: 100%;
-                margin: 0 auto;
-                padding: 6px 12px;
+                max-width: 100vw;
+                max-height: 100vh;
+                height: 100vh;
+                width: 100vw;
+                margin: 0;
+                border-radius: 0;
+                padding: 8px 16px;
             }
 
-            .left-column {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                align-content: center;
+            /* COUNTDOWN MODE LANDSCAPE: Huge Timer + Live Clock Only (Hide buttons, controls, tabs, extra text) */
+            body:not(.race-active).landscape-mode .container {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 12px 24px !important;
             }
 
-            .header-section {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 2px;
+            body:not(.race-active).landscape-mode .header-section {
+                width: 100% !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding-top: 0 !important;
+                margin-bottom: 0 !important;
             }
 
-            .live-clock {
-                margin-bottom: 0;
-                font-size: 0.75rem;
+            body:not(.race-active).landscape-mode h1 {
+                font-size: 1.1rem !important;
             }
 
-            h1 {
-                font-size: 0.95rem;
+            body:not(.race-active).landscape-mode .live-clock {
+                font-size: 1.1rem !important;
             }
 
-            .mode-tabs {
-                width: 48%;
-                margin-bottom: 2px;
-                padding: 2px;
+            /* Hide extra setup controls in landscape countdown mode */
+            body:not(.race-active).landscape-mode .mode-tabs,
+            body:not(.race-active).landscape-mode .picker-container,
+            body:not(.race-active).landscape-mode .target-time-container,
+            body:not(.race-active).landscape-mode .message,
+            body:not(.race-active).landscape-mode .controls,
+            body:not(.race-active).landscape-mode .right-column {
+                display: none !important;
             }
 
-            .tab-btn {
-                padding: 4px;
-                font-size: 0.75rem;
+            /* Maximize Timer display size in landscape countdown mode */
+            body:not(.race-active).landscape-mode .active-display {
+                display: flex !important;
+                flex: 1 !important;
+                width: 100% !important;
+                max-height: calc(100vh - 60px) !important;
+                background: transparent !important;
+                border: none !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                margin: 0 !important;
             }
 
-            .picker-container, .target-time-container {
-                width: 100%;
-                min-height: 80px;
-                max-height: 95px;
-                margin-bottom: 2px;
-                padding: 3px;
+            body:not(.race-active).landscape-mode .active-value,
+            body:not(.race-active).landscape-mode .active-separator {
+                font-size: clamp(6rem, 22vh + 12vw, 12rem) !important;
+                line-height: 0.9 !important;
             }
 
-            .wheel {
-                width: 90px;
-                max-height: 80px;
+            body:not(.race-active).landscape-mode .active-label {
+                font-size: 1rem !important;
+                letter-spacing: 2px !important;
             }
 
-            .active-display {
-                width: fit-content !important;
-                margin: 0 auto 4px auto !important;
-                padding: 8px 16px !important;
-            }
-
-            .message {
-                width: 48%;
-                margin-bottom: 0;
-                font-size: 0.7rem;
-                text-align: left;
-            }
-
-            .controls {
-                width: 48%;
-                gap: 4px;
-            }
-
-            .controls-row {
-                gap: 4px;
-            }
-
-            .controls button {
-                padding: 7px 10px;
-                font-size: 0.8rem;
-                border-radius: 9px;
-            }
-
-            .right-column {
-                display: none;
-            }
-
+            /* RACE MODE / OVERTIME LANDSCAPE: Full Map + Top-Left Overlay */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -959,7 +949,7 @@
         let latestKnots = "0.0";
 
         function getItemHeight() {
-            return 46;
+            return 44;
         }
 
         function calculateHeadingStats(bearings, scaleFactor = 0.5) {
