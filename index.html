@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.98">
+    <link rel="manifest" href="manifest.json?v=1.0.99">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.98">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.99">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,7 +31,7 @@
             --warning-btn: #d97706;
             --warning-hover: #b45309;
             --muted-color: #9ca3af;
-            --item-height: 44px;
+            --item-height: 48px;
         }
 
         /* Race Mode Theme */
@@ -52,9 +52,8 @@
         }
 
         html, body {
-            height: 100vh;
-            max-height: 100vh;
             width: 100vw;
+            height: 100vh;
             overflow: hidden;
             position: fixed;
             top: 0; left: 0;
@@ -67,17 +66,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: env(safe-area-inset-top, 4px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+            padding: env(safe-area-inset-top, 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
             width: 100%;
             max-width: 440px;
-            height: 100%;
-            max-height: calc(100vh - 12px);
+            max-height: 96vh;
             background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 10px 14px 10px 14px;
+            border-radius: 22px;
+            padding: 12px 14px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -98,25 +96,23 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 2px;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .live-clock {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             color: var(--muted-color);
-            margin-bottom: 1px;
+            margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
             font-weight: 600;
-            line-height: 1.1;
-            letter-spacing: -0.2px;
+            line-height: normal;
         }
 
         h1 {
             font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: -0.5px;
-            line-height: 1.2;
+            line-height: normal;
         }
 
         /* Mode Selector Tabs */
@@ -125,17 +121,17 @@
             background: rgba(0, 0, 0, 0.15);
             border-radius: 10px;
             padding: 2px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 6px;
+            padding: 7px;
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
@@ -153,14 +149,14 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 16px;
             padding: 6px;
             flex: 1;
-            min-height: 100px;
-            max-height: 140px;
+            min-height: 110px;
+            max-height: 150px;
         }
 
         .wheel-column {
@@ -173,7 +169,7 @@
 
         .wheel {
             height: 100%;
-            width: 90px;
+            width: 95px;
             overflow-y: auto;
             overflow-x: hidden;
             scroll-snap-type: y mandatory;
@@ -183,10 +179,11 @@
             background: rgba(128, 128, 128, 0.06);
             border-radius: 10px;
             -webkit-overflow-scrolling: touch;
-            scroll-padding-top: calc(50% - (var(--item-height) / 2));
-            scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
+            /* Exact centering padding matching item height */
             padding-top: calc(50% - (var(--item-height) / 2));
             padding-bottom: calc(50% - (var(--item-height) / 2));
+            scroll-padding-top: calc(50% - (var(--item-height) / 2));
+            scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
         }
 
         .wheel::-webkit-scrollbar {
@@ -199,7 +196,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.85rem;
+            font-size: 2rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -215,18 +212,18 @@
         }
 
         .wheel-separator {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: var(--text-color);
             padding-bottom: 6px;
         }
 
         .wheel-label {
-            font-size: 0.55rem;
+            font-size: 0.58rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 3px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
@@ -237,13 +234,13 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 16px;
             padding: 10px;
             flex: 1;
-            min-height: 100px;
+            min-height: 110px;
         }
 
         input[type="time"] {
@@ -253,7 +250,7 @@
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
-            font-size: 1.9rem;
+            font-size: 2rem;
             text-align: center;
             outline: none;
             font-variant-numeric: tabular-nums;
@@ -273,12 +270,12 @@
             display: none;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
+            gap: 12px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 16px;
-            padding: 12px;
+            padding: 14px;
             flex-shrink: 0;
             width: 100%;
         }
@@ -290,7 +287,7 @@
         }
 
         .active-value {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -298,7 +295,7 @@
         }
 
         .active-separator {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 800;
             color: var(--muted-color);
             padding-bottom: 6px;
@@ -306,16 +303,16 @@
         }
 
         .active-display.seconds-only {
-            padding: 12px;
+            padding: 14px;
         }
 
         .active-display.seconds-only .active-value {
-            font-size: 6.5rem;
+            font-size: 7rem;
             letter-spacing: -4px;
         }
 
         .active-label {
-            font-size: 0.6rem;
+            font-size: 0.62rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -335,13 +332,13 @@
             display: none;
             flex-direction: column;
             gap: 4px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 16px;
             padding: 6px;
             flex: 1;
-            min-height: 130px;
+            min-height: 140px;
         }
 
         .gps-toggle-row {
@@ -358,7 +355,7 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 34px;
+            width: 36px;
             height: 18px;
         }
 
@@ -394,11 +391,11 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(16px);
+            transform: translateX(18px);
         }
 
         .gps-stats {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             color: var(--text-color);
             font-variant-numeric: tabular-nums;
             background: rgba(0,0,0,0.12);
@@ -410,9 +407,9 @@
 
         /* Speed Legend Styling */
         .gps-legend {
-            font-size: 0.6rem;
+            font-size: 0.62rem;
             background: rgba(0, 0, 0, 0.12);
-            padding: 3px 6px;
+            padding: 4px 6px;
             border-radius: 6px;
             display: flex;
             flex-direction: column;
@@ -426,7 +423,7 @@
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.5rem;
+            font-size: 0.52rem;
         }
 
         .legend-items {
@@ -445,8 +442,8 @@
         }
 
         .legend-color-box {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 2px;
             display: inline-block;
         }
@@ -454,7 +451,7 @@
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 60px;
+            min-height: 70px;
             border-radius: 8px;
             overflow: hidden;
             position: relative;
@@ -470,8 +467,8 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.75rem;
-            padding: 6px;
+            font-size: 0.78rem;
+            padding: 7px;
             flex-shrink: 0;
         }
 
@@ -480,10 +477,10 @@
         }
 
         .message {
-            font-size: 0.75rem;
-            margin-bottom: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
             color: var(--muted-color);
-            min-height: 14px;
+            min-height: 16px;
             font-weight: 500;
             flex-shrink: 0;
         }
@@ -491,24 +488,24 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             flex-shrink: 0;
         }
 
         .controls-row {
             display: flex;
-            gap: 4px;
+            gap: 6px;
             width: 100%;
         }
 
         button {
             width: 100%;
-            padding: 10px 12px;
+            padding: 11px 14px;
             border-radius: 10px;
             border: none;
             background-color: var(--accent-color);
             color: white;
-            font-size: 0.95rem;
+            font-size: 0.98rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s;
@@ -548,9 +545,8 @@
         /* LANDSCAPE ADAPTIVE RULES */
         @media (orientation: landscape) {
             html, body {
-                height: 100vh !important;
-                max-height: 100vh !important;
                 width: 100vw !important;
+                height: 100vh !important;
                 overflow: hidden !important;
                 position: fixed !important;
             }
@@ -568,10 +564,10 @@
                 width: 100vw;
                 margin: 0;
                 border-radius: 0;
-                padding: 12px 24px;
+                padding: 10px 20px;
             }
 
-            /* PRE-RACE COUNTDOWN LANDSCAPE MODE: Maximize Timer, Hide Extra UI */
+            /* PRE-RACE COUNTDOWN LANDSCAPE MODE: Maximize Timer as large as possible */
             body:not(.race-active).landscape-mode .header-section h1,
             body:not(.race-active).landscape-mode .mode-tabs,
             body:not(.race-active).landscape-mode .picker-container,
@@ -592,18 +588,24 @@
             }
 
             body:not(.race-active).landscape-mode .header-section {
-                margin-top: 4px !important;
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                margin-top: 2px !important;
+                margin-bottom: 0 !important;
             }
 
             body:not(.race-active).landscape-mode .live-clock {
-                font-size: 1.1rem !important;
+                font-size: 0.95rem !important;
             }
 
             body:not(.race-active).landscape-mode .active-display {
                 display: flex !important;
                 flex: 1 !important;
                 width: 100% !important;
-                max-width: 90vw !important;
+                max-width: 96vw !important;
                 margin: auto !important;
                 background: transparent !important;
                 border: none !important;
@@ -613,8 +615,8 @@
 
             body:not(.race-active).landscape-mode .active-value,
             body:not(.race-active).landscape-mode .active-separator {
-                font-size: 7.5rem !important;
-                line-height: 1 !important;
+                font-size: 9.5rem !important;
+                line-height: 0.9 !important;
             }
 
             /* RACE MODE / OVERTIME LANDSCAPE: Full Map & Overlaid Timer */
@@ -896,7 +898,7 @@
         const pauseBtn = document.getElementById('pause-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
         
-        const gpsLoggerPanel = document.getElementById('gps-logger-panel');
+        const gpsloggerPanel = document.getElementById('gps-logger-panel');
         const gpsToggle = document.getElementById('gps-toggle');
         const mapStyleToggle = document.getElementById('map-style-toggle');
         const gpsStats = document.getElementById('gps-stats');
@@ -934,7 +936,7 @@
         let latestKnots = "0.0";
 
         function getItemHeight() {
-            return 44;
+            return 48;
         }
 
         function calculateHeadingStats(bearings, scaleFactor = 0.5) {
@@ -1114,6 +1116,14 @@
 
         function updateMapTrack() {
             if (!leafletMap) return;
+            
+            // Clear heading overlays & track rendering immediately if paused or GPS tracking toggle is off
+            if (isPaused || !gpsToggle.checked) {
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+                return;
+            }
+
             if (gpsTrackPoints.length > 0) {
                 polylineGroup.clearLayers();
                 for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
@@ -1151,7 +1161,8 @@
             if ('geolocation' in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
-                        if ((!isOvertimeActive && !isRunning) || !gpsToggle.checked) return;
+                        // Do not record position, plot, or update heading if paused or GPS toggle is off
+                        if (!isOvertimeActive || isPaused || !gpsToggle.checked) return;
                         latestLat = pos.coords.latitude;
                         latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
@@ -1183,6 +1194,16 @@
             if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
             if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
+
+        gpsToggle.addEventListener('change', () => {
+            if (!gpsToggle.checked) {
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+                if (polylineGroup) polylineGroup.clearLayers();
+            } else if (isOvertimeActive) {
+                updateMapTrack();
+            }
+        });
 
         downloadTrackBtn.addEventListener('click', () => {
             html2canvas(document.getElementById('map-wrapper'), { useCORS: true, allowTaint: true, scale: 2 }).then(canvas => {
@@ -1365,7 +1386,7 @@
                 boxSign.style.display = 'none';
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
-                gpsLoggerPanel.style.display = 'none';
+                gpsloggerPanel.style.display = 'none';
                 pauseBtn.style.display = 'none';
                 pauseBtn.textContent = "Pause";
                 isOvertimeActive = false;
@@ -1431,6 +1452,8 @@
                 remainingTimeMsAtPause = targetTime - Date.now();
                 messageEl.textContent = CONFIG.pausedMsg;
                 pauseBtn.textContent = "Resume";
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
                 await releaseWakeLock();
                 speak(CONFIG.timerPausedSpeech, true);
             } else if (!isRunning && isPaused) {
@@ -1478,7 +1501,7 @@
 
                 if (!isOvertimeActive) {
                     isOvertimeActive = true;
-                    gpsLoggerPanel.style.display = 'flex';
+                    gpsloggerPanel.style.display = 'flex';
                     downloadTrackBtn.style.display = 'block';
                     startGPSTracking();
                     checkOrientation();
