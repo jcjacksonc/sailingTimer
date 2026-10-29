@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags -->
-    <link rel="manifest" href="manifest.json?v=1.1.01">
+    <link rel="manifest" href="manifest.json?v=1.1.02">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.1.01">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.1.02">
 
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -171,10 +171,12 @@
             justify-content: center;
         }
 
+        /* Strict Vertical-Only Scroll Behavior */
         .wheel {
             height: 100%;
             width: 100px;
             overflow-y: auto;
+            overflow-x: hidden;
             scroll-snap-type: y mandatory;
             scrollbar-width: none;
             background: rgba(128, 128, 128, 0.06);
@@ -184,6 +186,8 @@
             padding-bottom: calc(50% - (var(--item-height) / 2));
             scroll-padding-top: calc(50% - (var(--item-height) / 2));
             scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
+            touch-action: pan-y;
+            overscroll-behavior-x: none;
         }
 
         .wheel::-webkit-scrollbar { display: none; }
@@ -391,6 +395,7 @@
                 border-radius: 0; padding: 12px 24px;
             }
 
+            /* Pre-Race Landscape Countdown Display */
             body:not(.race-active).landscape-mode .header-section h1,
             body:not(.race-active).landscape-mode .mode-tabs,
             body:not(.race-active).landscape-mode .picker-container,
@@ -437,6 +442,7 @@
                 font-weight: 900 !important;
             }
 
+            /* Race / Overtime Mode Landscape Overlay Fix */
             body.race-active.landscape-mode .container {
                 display: block !important;
                 position: fixed !important;
@@ -473,16 +479,23 @@
                 position: fixed !important;
                 top: max(10px, env(safe-area-inset-top)) !important;
                 left: max(16px, env(safe-area-inset-left)) !important;
-                background: rgba(0, 0, 0, 0.25) !important;
-                backdrop-filter: blur(4px) !important;
-                -webkit-backdrop-filter: blur(4px) !important;
-                border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                border-radius: 12px !important;
+                background: rgba(0, 0, 0, 0.45) !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.3) !important;
+                border-radius: 14px !important;
                 padding: 6px 14px !important;
                 z-index: 999999 !important;
+                align-items: center !important;
+                gap: 8px !important;
             }
 
-            body.race-active.landscape-mode #standalone-timer-overlay .active-box { flex-direction: row !important; }
+            body.race-active.landscape-mode #standalone-timer-overlay .active-box {
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+            }
+
             body.race-active.landscape-mode #standalone-timer-overlay #box-sign,
             body.race-active.landscape-mode #standalone-timer-overlay .active-label { display: none !important; }
 
@@ -498,14 +511,14 @@
                 position: fixed !important;
                 bottom: max(10px, env(safe-area-inset-bottom)) !important; 
                 left: max(16px, env(safe-area-inset-left)) !important;
-                background: rgba(0, 0, 0, 0.25) !important;
-                backdrop-filter: blur(4px) !important;
-                -webkit-backdrop-filter: blur(4px) !important;
+                background: rgba(0, 0, 0, 0.45) !important;
+                backdrop-filter: blur(6px) !important;
+                -webkit-backdrop-filter: blur(6px) !important;
                 color: #ffffff !important;
                 padding: 6px 14px !important;
                 border-radius: 12px !important;
                 border: 1px solid rgba(255, 255, 255, 0.25) !important;
-                font-size: 0.8rem !important;
+                font-size: 0.85rem !important;
                 z-index: 999999 !important;
                 font-weight: 700 !important;
             }
