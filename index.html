@@ -6,11 +6,11 @@
     <title>Beta Timer</title>
 
     <!-- PWA / iOS Meta Tags with Cache Busting -->
-    <link rel="manifest" href="manifest.json?v=1.0.86">
+    <link rel="manifest" href="manifest.json?v=1.1.00">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Beta Timer">
-    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.0.86">
+    <link rel="apple-touch-icon" href="sailboat.jpg?v=1.1.00">
 
     <!-- Leaflet.js Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -28,8 +28,10 @@
             --accent-hover: #6366f1;
             --secondary-btn: #374151;
             --secondary-hover: #4b5563;
+            --warning-btn: #d97706;
+            --warning-hover: #b45309;
             --muted-color: #9ca3af;
-            --item-height: 50px;
+            --item-height: 48px;
         }
 
         /* Race Mode Theme */
@@ -50,9 +52,8 @@
         }
 
         html, body {
-            height: 100vh;
-            max-height: 100vh;
             width: 100vw;
+            height: 100vh;
             overflow: hidden;
             position: fixed;
             top: 0; left: 0;
@@ -65,17 +66,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+            padding: env(safe-area-inset-top, 6px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
         }
 
         .container {
             width: 100%;
             max-width: 440px;
             height: 100%;
-            max-height: calc(100vh - 16px);
             background-color: var(--card-bg);
-            border-radius: 24px;
-            padding: 14px;
+            border-radius: 22px;
+            padding: 16px 16px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             text-align: center;
             display: flex;
@@ -88,7 +88,16 @@
             flex-direction: column;
             justify-content: space-between;
             flex: 1;
+            height: 100%;
             min-height: 0;
+        }
+
+        .header-section {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
         .live-clock {
@@ -96,25 +105,24 @@
             color: var(--muted-color);
             margin-bottom: 2px;
             font-variant-numeric: tabular-nums;
-            font-weight: 500;
-            flex-shrink: 0;
+            font-weight: 600;
+            line-height: normal;
         }
 
         h1 {
-            font-size: 1.4rem;
-            margin-bottom: 6px;
+            font-size: 1.3rem;
             font-weight: 700;
             letter-spacing: -0.5px;
-            flex-shrink: 0;
+            line-height: normal;
         }
 
         /* Mode Selector Tabs */
         .mode-tabs {
             display: flex;
             background: rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 3px;
-            margin-bottom: 6px;
+            border-radius: 10px;
+            padding: 2px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
 
@@ -124,9 +132,9 @@
             background: transparent;
             border: none;
             color: var(--muted-color);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
-            border-radius: 9px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -142,14 +150,13 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 10px;
+            border-radius: 16px;
+            padding: 8px;
             flex: 1;
-            min-height: 130px;
-            max-height: 170px;
+            min-height: 120px;
         }
 
         .wheel-column {
@@ -170,12 +177,12 @@
             -ms-overflow-style: none;
             position: relative;
             background: rgba(128, 128, 128, 0.06);
-            border-radius: 12px;
+            border-radius: 10px;
             -webkit-overflow-scrolling: touch;
-            scroll-padding-top: calc(50% - (var(--item-height) / 2));
-            scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
             padding-top: calc(50% - (var(--item-height) / 2));
             padding-bottom: calc(50% - (var(--item-height) / 2));
+            scroll-padding-top: calc(50% - (var(--item-height) / 2));
+            scroll-padding-bottom: calc(50% - (var(--item-height) / 2));
         }
 
         .wheel::-webkit-scrollbar {
@@ -188,7 +195,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 2.1rem;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
             color: var(--text-color);
@@ -200,22 +207,22 @@
 
         .wheel-item.selected {
             opacity: 1.0;
-            transform: scale(1.08);
+            transform: scale(1.06);
         }
 
         .wheel-separator {
             font-size: 2.4rem;
             font-weight: 800;
             color: var(--text-color);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         .wheel-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 600;
         }
 
@@ -225,20 +232,20 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 6px;
+            gap: 6px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
+            border-radius: 16px;
             padding: 12px;
             flex: 1;
-            min-height: 130px;
+            min-height: 120px;
         }
 
         input[type="time"] {
             width: 80%;
-            padding: 10px;
-            border-radius: 12px;
+            padding: 8px;
+            border-radius: 10px;
             border: 1px solid rgba(128, 128, 128, 0.25);
             background: rgba(128, 128, 128, 0.06);
             color: var(--text-color);
@@ -250,7 +257,7 @@
         }
 
         .target-time-label {
-            font-size: 0.7rem;
+            font-size: 0.62rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -263,12 +270,12 @@
             justify-content: center;
             align-items: center;
             gap: 12px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 20px;
-            padding: 14px;
-            flex-shrink: 0;
+            border-radius: 16px;
+            padding: 16px;
+            flex: 1;
             width: 100%;
         }
 
@@ -290,12 +297,12 @@
             font-size: 3.5rem;
             font-weight: 800;
             color: var(--muted-color);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             line-height: 1;
         }
 
         .active-display.seconds-only {
-            padding: 14px;
+            padding: 16px;
         }
 
         .active-display.seconds-only .active-value {
@@ -304,7 +311,7 @@
         }
 
         .active-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--muted-color);
             text-transform: uppercase;
             letter-spacing: 1.2px;
@@ -327,17 +334,17 @@
             margin-bottom: 6px;
             background: rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(128, 128, 128, 0.2);
-            border-radius: 18px;
+            border-radius: 16px;
             padding: 8px;
             flex: 1;
-            min-height: 160px;
+            min-height: 140px;
         }
 
         .gps-toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--muted-color);
             padding: 0 4px;
@@ -347,8 +354,8 @@
         .switch {
             position: relative;
             display: inline-block;
-            width: 38px;
-            height: 20px;
+            width: 36px;
+            height: 18px;
         }
 
         .switch input {
@@ -363,14 +370,14 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: #374151;
             transition: 0.3s;
-            border-radius: 20px;
+            border-radius: 18px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 14px;
-            width: 14px;
+            height: 12px;
+            width: 12px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -397,11 +404,54 @@
             flex-shrink: 0;
         }
 
+        /* Speed Legend Styling */
+        .gps-legend {
+            font-size: 0.62rem;
+            background: rgba(0, 0, 0, 0.12);
+            padding: 4px 6px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-title {
+            font-weight: 700;
+            color: var(--muted-color);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.55rem;
+        }
+
+        .legend-items {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+
+        .legend-color-box {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
         #map-wrapper {
             width: 100%;
             flex: 1;
-            min-height: 100px;
-            border-radius: 10px;
+            min-height: 80px;
+            border-radius: 8px;
             overflow: hidden;
             position: relative;
         }
@@ -416,7 +466,7 @@
         .download-btn {
             display: none;
             background-color: #059669;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             padding: 8px;
             flex-shrink: 0;
         }
@@ -426,8 +476,8 @@
         }
 
         .message {
-            font-size: 0.85rem;
-            margin-bottom: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
             color: var(--muted-color);
             min-height: 16px;
             font-weight: 500;
@@ -437,13 +487,19 @@
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             flex-shrink: 0;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border-radius: 12px;
             border: none;
             background-color: var(--accent-color);
@@ -453,6 +509,7 @@
             cursor: pointer;
             transition: background 0.2s;
             z-index: 10;
+            line-height: normal;
         }
 
         button:active {
@@ -471,6 +528,14 @@
             background-color: var(--secondary-hover);
         }
 
+        .btn-warning {
+            background-color: var(--warning-btn);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--warning-hover);
+        }
+
         /* Strict Default Hidden State for Standalone Timer Overlay */
         #standalone-timer-overlay {
             display: none !important;
@@ -479,106 +544,84 @@
         /* LANDSCAPE ADAPTIVE RULES */
         @media (orientation: landscape) {
             html, body {
-                height: 100vh !important;
-                max-height: 100vh !important;
                 width: 100vw !important;
+                height: 100vh !important;
                 overflow: hidden !important;
                 position: fixed !important;
             }
 
             body {
-                padding: 4px !important;
+                padding: 0 !important;
                 justify-content: center !important;
                 align-items: center !important;
             }
 
             .container {
-                max-width: 96vw;
-                max-height: 96vh;
-                height: 100%;
-                margin: 0 auto;
-                padding: 8px 14px;
+                max-width: 100vw;
+                max-height: 100vh;
+                height: 100vh;
+                width: 100vw;
+                margin: 0;
+                border-radius: 0;
+                padding: 12px 24px;
             }
 
-            .left-column {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: space-between;
-                align-content: center;
+            /* PRE-RACE COUNTDOWN LANDSCAPE MODE: Text filling screen completely */
+            body:not(.race-active).landscape-mode .header-section h1,
+            body:not(.race-active).landscape-mode .mode-tabs,
+            body:not(.race-active).landscape-mode .picker-container,
+            body:not(.race-active).landscape-mode .target-time-container,
+            body:not(.race-active).landscape-mode .message,
+            body:not(.race-active).landscape-mode .controls,
+            body:not(.race-active).landscape-mode .right-column {
+                display: none !important;
             }
 
-            .left-column > div:first-child {
-                width: 100%;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 2px;
+            body:not(.race-active).landscape-mode .left-column {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: flex-start !important;
+                align-items: center !important;
+                height: 100% !important;
+                width: 100% !important;
             }
 
-            .live-clock {
-                margin-bottom: 0;
-                font-size: 0.75rem;
+            body:not(.race-active).landscape-mode .header-section {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                margin-top: 2px !important;
+                margin-bottom: 0 !important;
+                flex-shrink: 0 !important;
             }
 
-            h1 {
-                font-size: 1rem;
-                margin-bottom: 0;
+            body:not(.race-active).landscape-mode .live-clock {
+                font-size: 1.1rem !important;
             }
 
-            .mode-tabs {
-                width: 48%;
-                margin-bottom: 2px;
-                padding: 2px;
+            body:not(.race-active).landscape-mode .active-display {
+                display: flex !important;
+                flex: 1 !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+                margin: 0 auto !important;
+                background: transparent !important;
+                border: none !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
             }
 
-            .tab-btn {
-                padding: 5px;
-                font-size: 0.8rem;
+            body:not(.race-active).landscape-mode .active-value,
+            body:not(.race-active).landscape-mode .active-separator {
+                font-size: min(28vw, 68vh) !important;
+                line-height: 0.85 !important;
+                font-weight: 900 !important;
             }
 
-            .picker-container, .target-time-container {
-                width: 100%;
-                min-height: 90px;
-                max-height: 110px;
-                margin-bottom: 2px;
-                padding: 4px;
-            }
-
-            .wheel {
-                width: 95px;
-                max-height: 95px;
-            }
-
-            .active-display {
-                width: fit-content !important;
-                margin: 0 auto 6px auto !important;
-                padding: 10px 20px !important;
-            }
-
-            .message {
-                width: 48%;
-                margin-bottom: 0;
-                font-size: 0.75rem;
-                text-align: left;
-            }
-
-            .controls {
-                width: 48%;
-                flex-direction: row;
-                gap: 6px;
-            }
-
-            .controls button {
-                padding: 8px;
-                font-size: 0.85rem;
-                border-radius: 9px;
-            }
-
-            .right-column {
-                display: none;
-            }
-
+            /* RACE MODE / OVERTIME LANDSCAPE: Full Map & Overlaid Timer */
             body.race-active.landscape-mode {
                 padding: 0 !important;
                 margin: 0 !important;
@@ -620,7 +663,8 @@
                 background: #000 !important; padding: 0 !important; margin: 0 !important;
             }
 
-            body.race-active.landscape-mode .gps-toggle-row { display: none !important; }
+            body.race-active.landscape-mode .gps-toggle-row,
+            body.race-active.landscape-mode .gps-legend { display: none !important; }
 
             body.race-active.landscape-mode #map-wrapper {
                 position: absolute !important;
@@ -705,7 +749,7 @@
 
     <div class="container">
         <div class="left-column">
-            <div>
+            <div class="header-section">
                 <div class="live-clock" id="live-clock">Current Time: 00:00:00</div>
                 <h1 id="event-title">Beta Timer</h1>
             </div>
@@ -752,7 +796,10 @@
 
             <div class="controls">
                 <button id="start-btn">Start Countdown</button>
-                <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+                <div class="controls-row">
+                    <button id="pause-btn" class="btn-warning" style="display:none;">Pause</button>
+                    <button id="quick-5min-btn" class="btn-secondary">Quick 5 Min Timer</button>
+                </div>
             </div>
         </div>
 
@@ -765,7 +812,7 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="gps-toggle-row" style="margin-top: 4px;">
+                <div class="gps-toggle-row" style="margin-top: 2px;">
                     <span>Satellite Map View</span>
                     <label class="switch">
                         <input type="checkbox" id="map-style-toggle">
@@ -773,6 +820,18 @@
                     </label>
                 </div>
                 <div class="gps-stats" id="gps-stats">Awaiting GPS fix...</div>
+                <div class="gps-legend" id="gps-legend">
+                    <div class="legend-title">Speed Legend (Knots)</div>
+                    <div class="legend-items">
+                        <div class="legend-item"><span class="legend-color-box" style="background: #38bdf8;"></span>&lt;3</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #818cf8;"></span>3-4</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #6366f1;"></span>4-5</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #10b981;"></span>5-6</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #84cc16;"></span>6-7</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #f59e0b;"></span>7-8</div>
+                        <div class="legend-item"><span class="legend-color-box" style="background: #ef4444;"></span>8+</div>
+                    </div>
+                </div>
                 <div id="map-wrapper">
                     <div id="map-container"></div>
                 </div>
@@ -788,9 +847,12 @@
             stopBtnText: "Reset / Stop",
             quick5BtnText: "Quick 5 Min Timer",
             runningMsg: "Countdown running...",
+            pausedMsg: "Timer paused",
             stoppedMsg: "Timer stopped",
             raceStartedMsg: "Race started! 🏁",
             timerStartedSpeech: "Timer started",
+            timerPausedSpeech: "Timer paused",
+            timerResumedSpeech: "Timer resumed",
             timerStoppedSpeech: "Timer stopped",
             raceStartedSpeech: "Race started",
             defaultDurationMsg: "Scroll wheels to set duration",
@@ -835,6 +897,7 @@
         const minutesWheel = document.getElementById('minutes-wheel');
         const secondsWheel = document.getElementById('seconds-wheel');
         const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
         const quick5Btn = document.getElementById('quick-5min-btn');
         
         const gpsLoggerPanel = document.getElementById('gps-logger-panel');
@@ -850,7 +913,9 @@
         messageEl.textContent = CONFIG.defaultDurationMsg;
 
         let targetTime = null;
+        let remainingTimeMsAtPause = null;
         let isRunning = false;
+        let isPaused = false;
         let lastSpokenSecond = -1;
         let hasPlayedRaceStart = false;
         let currentMode = 'duration';
@@ -866,17 +931,17 @@
         let satelliteLayer = null;
         let polylineGroup = null;
         let sectorLayer = null;
+        let meanHeadingLineLayer = null;
+
         let latestLat = null;
         let latestLon = null;
         let latestKnots = "0.0";
-        let fortDenisonWindText = "Wind: Loading...";
-        let windIntervalId = null;
 
         function getItemHeight() {
-            return 50;
+            return 48;
         }
 
-        function calculateHeadingStats(bearings, scaleFactor = 1.5) {
+        function calculateHeadingStats(bearings, scaleFactor = 0.5) {
             if (!bearings || bearings.length === 0) return { mean: 0, spread: 0 };
             let sumSin = 0, sumCos = 0;
             for (let b of bearings) {
@@ -890,7 +955,7 @@
             if (meanDeg < 0) meanDeg += 360;
             const R = Math.sqrt((sumSin/n)**2 + (sumCos/n)**2);
             const circStdDevDeg = (R > 0 ? Math.sqrt(-2 * Math.log(R)) : 0) * 180 / Math.PI;
-            return { mean: meanDeg, spread: Math.min(circStdDevDeg * scaleFactor, 90) };
+            return { mean: meanDeg, spread: Math.min(Math.max(circStdDevDeg * scaleFactor, 3), 30) };
         }
 
         function getDestinationPoint(lat, lon, bearingDeg, distanceMeters) {
@@ -907,7 +972,7 @@
             return [(φ2 * 180) / Math.PI, ((λ1 + Math.atan2(y, x)) * 180) / Math.PI];
         }
 
-        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 150, numArcPoints = 12) {
+        function generateSectorPolygon(boatLat, boatLon, bearings, radiusMeters = 5556, numArcPoints = 16) {
             const { mean, spread } = calculateHeadingStats(bearings);
             const startBearing = mean - spread, endBearing = mean + spread;
             const step = (endBearing - startBearing) / (numArcPoints - 1);
@@ -916,7 +981,7 @@
                 polygonCoords.push(getDestinationPoint(boatLat, boatLon, startBearing + (step * i), radiusMeters));
             }
             polygonCoords.push([boatLat, boatLon]);
-            return polygonCoords;
+            return { polygonCoords, meanHeading: mean };
         }
 
         function calculateBearing(lat1, lon1, lat2, lon2) {
@@ -927,38 +992,10 @@
             return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         }
 
-        function getWindDirectionInfo(angle) {
-            if (isNaN(angle)) return { arrow: "↑", text: "--" };
-            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-            const arrows = ['↓', '↙', '↙', '↙', '←', '↖', '↖', '↖', '↑', '↗', '↗', '↗', '→', '↘', '↘', '↘'];
-            const index = Math.round((angle % 360) / 22.5) % 16;
-            return { arrow: arrows[index], text: directions[index] };
-        }
-
-        window.handleWindData = function(data) {
-            if (data && data.current) {
-                const speedKt = Math.round(data.current.wind_speed_10m);
-                const gustKt = Math.round(data.current.wind_gusts_10m);
-                const dirInfo = getWindDirectionInfo(data.current.wind_direction_10m);
-                fortDenisonWindText = `Wind: ${dirInfo.arrow} ${dirInfo.text} ${speedKt}kt (G ${gustKt})`;
-                updateTelemetryText();
-            }
-        };
-
-        function fetchFortDenisonWind() {
-            const oldScript = document.getElementById('jsonp-wind-script');
-            if (oldScript) oldScript.remove();
-            const script = document.createElement('script');
-            script.id = 'jsonp-wind-script';
-            script.src = "https://api.open-meteo.com/v1/forecast?latitude=-33.8568&longitude=151.2223&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=knots&apikey=&format=jsonp&jsonp=handleWindData";
-            script.onerror = () => { fortDenisonWindText = "Wind: N/A"; updateTelemetryText(); };
-            document.body.appendChild(script);
-        }
-
         function updateTelemetryText() {
             const isLandscape = window.innerWidth > window.innerHeight;
             if (isLandscape && isOvertimeActive) {
-                gpsStats.textContent = `SOG: ${latestKnots} kts | ${fortDenisonWindText}`;
+                gpsStats.textContent = `SOG: ${latestKnots} kts`;
             } else if (latestLat !== null && latestLon !== null) {
                 gpsStats.textContent = `Lat: ${latestLat.toFixed(5)}, Lon: ${latestLon.toFixed(5)} | SOG: ${latestKnots} kts`;
             }
@@ -1004,19 +1041,16 @@
                 attributionControl: false
             }).setView([lat, lon], 14);
 
-            // 1. Normal View: OpenStreetMap tiles (Free, no API key)
             normalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // 2. Satellite View: Esri World Imagery (Free public tile server, no API key)
             satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 maxZoom: 19,
                 crossOrigin: true
             });
 
-            // Default to Normal Layer
             normalLayer.addTo(leafletMap);
 
             mapStyleToggle.addEventListener('change', () => {
@@ -1066,35 +1100,60 @@
                     .bindPopup(`<b>${mark.name}</b><br>${mark.desc}`);
             });
 
-            setTimeout(() => leafletMap.invalidateSize(), 250);
+            setTimeout(() => {
+                leafletMap.invalidateSize();
+            }, 250);
         }
 
         function getSpeedColor(knots) {
             const k = parseFloat(knots);
             if (k < 3.0) return '#38bdf8';
+            if (k < 4.0) return '#818cf8';
+            if (k < 5.0) return '#6366f1';
             if (k < 6.0) return '#10b981';
+            if (k < 7.0) return '#84cc16';
             if (k < 8.0) return '#f59e0b';
             return '#ef4444';
         }
 
         function updateMapTrack() {
-            if (!leafletMap || gpsTrackPoints.length === 0) return;
-            polylineGroup.clearLayers();
-            for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
-                const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
-                L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
-                    color: getSpeedColor(p2.knots),
-                    weight: 6,
-                    opacity: 0.95
-                }).addTo(polylineGroup);
+            if (!leafletMap) return;
+            
+            if (isPaused || !gpsToggle.checked) {
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+                return;
             }
-            if (latestLat !== null && latestLon !== null) {
+
+            if (gpsTrackPoints.length > 0) {
+                polylineGroup.clearLayers();
+                for (let i = 0; i < gpsTrackPoints.length - 1; i++) {
+                    const p1 = gpsTrackPoints[i], p2 = gpsTrackPoints[i + 1];
+                    L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+                        color: getSpeedColor(p2.knots),
+                        weight: 3.5,
+                        opacity: 0.95
+                    }).addTo(polylineGroup);
+                }
+            }
+
+            if (latestLat !== null && latestLon !== null && gpsTrackPoints.length > 0) {
                 const recentHeadings = gpsTrackPoints.slice(-15).map(pt => pt.heading);
-                const sectorCoords = generateSectorPolygon(latestLat, latestLon, recentHeadings, 150, 12);
+                const radiusMeters = 5556;
+                const { polygonCoords, meanHeading } = generateSectorPolygon(latestLat, latestLon, recentHeadings, radiusMeters, 16);
+                
                 if (!sectorLayer) {
-                    sectorLayer = L.polygon(sectorCoords, { color: '#4f46e5', weight: 1, fillColor: '#4f46e5', fillOpacity: 0.25 }).addTo(leafletMap);
+                    sectorLayer = L.polygon(polygonCoords, { color: '#ef4444', weight: 1, stroke: false, fillColor: '#ef4444', fillOpacity: 0.22 }).addTo(leafletMap);
                 } else {
-                    sectorLayer.setLatLngs(sectorCoords);
+                    sectorLayer.setLatLngs(polygonCoords);
+                }
+
+                const meanEnd = getDestinationPoint(latestLat, latestLon, meanHeading, radiusMeters);
+                const meanLineCoords = [[latestLat, latestLon], meanEnd];
+                if (!meanHeadingLineLayer) {
+                    meanHeadingLineLayer = L.polyline(meanLineCoords, { color: '#ef4444', weight: 3, dashArray: '8, 6', opacity: 0.95 }).addTo(leafletMap);
+                } else {
+                    meanHeadingLineLayer.setLatLngs(meanLineCoords);
                 }
             }
         }
@@ -1103,16 +1162,19 @@
             if ('geolocation' in navigator) {
                 watchId = navigator.geolocation.watchPosition(
                     (pos) => {
-                        if (!isOvertimeActive || !gpsToggle.checked) return;
+                        if (!isOvertimeActive || isPaused || !gpsToggle.checked) return;
                         latestLat = pos.coords.latitude;
                         latestLon = pos.coords.longitude;
                         const speedMs = pos.coords.speed;
                         latestKnots = speedMs ? (speedMs * 1.94384).toFixed(1) : '0.0';
+                        
                         let heading = 0;
                         if (gpsTrackPoints.length > 0) {
-                            const prev = gpsTrackPoints[gpsTrackPoints.length - 1];
-                            heading = calculateBearing(prev.lat, prev.lon, latestLat, latestLon);
+                            const lookbackIndex = Math.max(0, gpsTrackPoints.length - 5);
+                            const pastPt = gpsTrackPoints[lookbackIndex];
+                            heading = calculateBearing(pastPt.lat, pastPt.lon, latestLat, latestLon);
                         }
+
                         gpsTrackPoints.push({ lat: latestLat, lon: latestLon, knots: latestKnots, heading: heading });
                         updateTelemetryText();
                         if (!leafletMap) initLeafletMap(latestLat, latestLon);
@@ -1129,8 +1191,19 @@
         function stopGPSTracking() {
             if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+            if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
             if (leafletMap) { leafletMap.remove(); leafletMap = null; polylineGroup = null; }
         }
+
+        gpsToggle.addEventListener('change', () => {
+            if (!gpsToggle.checked) {
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+                if (polylineGroup) polylineGroup.clearLayers();
+            } else if (isOvertimeActive) {
+                updateMapTrack();
+            }
+        });
 
         downloadTrackBtn.addEventListener('click', () => {
             html2canvas(document.getElementById('map-wrapper'), { useCORS: true, allowTaint: true, scale: 2 }).then(canvas => {
@@ -1217,7 +1290,7 @@
         timeInput.value = `${String(defaultTarget.getHours()).padStart(2, '0')}:${String(defaultTarget.getMinutes()).padStart(2, '0')}`;
 
         durationTab.addEventListener('click', () => {
-            if (isRunning) return;
+            if (isRunning || isPaused) return;
             currentMode = 'duration';
             durationTab.classList.add('active');
             targetTimeTab.classList.remove('active');
@@ -1228,7 +1301,7 @@
         });
 
         targetTimeTab.addEventListener('click', () => {
-            if (isRunning) return;
+            if (isRunning || isPaused) return;
             currentMode = 'target';
             targetTimeTab.classList.add('active');
             durationTab.classList.remove('active');
@@ -1246,7 +1319,7 @@
             wheelEl.innerHTML = html;
             wheelEl.querySelectorAll('.wheel-item[data-value]').forEach(item => {
                 item.addEventListener('click', () => {
-                    if (!isRunning) {
+                    if (!isRunning && !isPaused) {
                         const targetVal = parseInt(item.dataset.value, 10);
                         wheelEl.scrollTo({ top: targetVal * getItemHeight(), behavior: 'smooth' });
                     }
@@ -1290,13 +1363,14 @@
             liveClockEl.textContent = `Current Time: ${new Date().toLocaleTimeString()}`;
         }, 1000);
 
-        function setUIState(running) {
-            if (running) {
+        function setUIState(runningOrPaused) {
+            if (runningOrPaused) {
                 modeTabs.style.display = 'none';
                 pickerContainer.style.display = 'none';
                 targetTimeContainer.style.display = 'none';
                 activeDisplay.style.display = 'flex';
                 quick5Btn.style.display = 'none';
+                pauseBtn.style.display = 'block';
                 startBtn.textContent = CONFIG.stopBtnText;
             } else {
                 document.body.classList.remove('race-active');
@@ -1313,13 +1387,14 @@
                 boxMins.style.display = 'flex';
                 boxSep.style.display = 'block';
                 gpsLoggerPanel.style.display = 'none';
+                pauseBtn.style.display = 'none';
+                pauseBtn.textContent = "Pause";
                 isOvertimeActive = false;
                 hasPlayedRaceStart = false;
                 stopGPSTracking();
                 gpsTrackPoints = [];
                 latestLat = null;
                 latestLon = null;
-                if (windIntervalId) { clearInterval(windIntervalId); windIntervalId = null; }
                 startBtn.textContent = CONFIG.startBtnText;
                 checkOrientation();
                 setTimeout(() => {
@@ -1333,7 +1408,7 @@
         startBtn.addEventListener('click', async () => {
             haltWheelInertia();
             unlockSpeechAudio();
-            if (!isRunning) {
+            if (!isRunning && !isPaused) {
                 let totalMs = 0;
                 if (currentMode === 'duration') {
                     totalMs = (getSelectedMinutes() * 60 + getSelectedSeconds()) * 1000;
@@ -1350,6 +1425,7 @@
                 if (totalMs <= 0) { messageEl.textContent = "Target time must be in the future"; return; }
                 targetTime = Date.now() + totalMs;
                 isRunning = true;
+                isPaused = false;
                 lastSpokenSecond = -1;
                 hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.runningMsg;
@@ -1358,12 +1434,36 @@
                 speak(CONFIG.timerStartedSpeech, true);
             } else {
                 isRunning = false;
+                isPaused = false;
                 targetTime = null;
+                remainingTimeMsAtPause = null;
                 hasPlayedRaceStart = false;
                 messageEl.textContent = CONFIG.stoppedMsg;
                 setUIState(false);
                 await releaseWakeLock();
                 speak(CONFIG.timerStoppedSpeech, true);
+            }
+        });
+
+        pauseBtn.addEventListener('click', async () => {
+            if (isRunning && !isPaused) {
+                isRunning = false;
+                isPaused = true;
+                remainingTimeMsAtPause = targetTime - Date.now();
+                messageEl.textContent = CONFIG.pausedMsg;
+                pauseBtn.textContent = "Resume";
+                if (sectorLayer) { sectorLayer.remove(); sectorLayer = null; }
+                if (meanHeadingLineLayer) { meanHeadingLineLayer.remove(); meanHeadingLineLayer = null; }
+                await releaseWakeLock();
+                speak(CONFIG.timerPausedSpeech, true);
+            } else if (!isRunning && isPaused) {
+                targetTime = Date.now() + remainingTimeMsAtPause;
+                isRunning = true;
+                isPaused = false;
+                messageEl.textContent = CONFIG.runningMsg;
+                pauseBtn.textContent = "Pause";
+                await requestWakeLock();
+                speak(CONFIG.timerResumedSpeech, true);
             }
         });
 
@@ -1380,6 +1480,7 @@
             updateWheelHighlight(secondsWheel);
             targetTime = Date.now() + 5 * 60 * 1000;
             isRunning = true;
+            isPaused = false;
             lastSpokenSecond = -1;
             hasPlayedRaceStart = false;
             messageEl.textContent = CONFIG.runningMsg;
@@ -1403,8 +1504,6 @@
                     gpsLoggerPanel.style.display = 'flex';
                     downloadTrackBtn.style.display = 'block';
                     startGPSTracking();
-                    fetchFortDenisonWind();
-                    windIntervalId = setInterval(fetchFortDenisonWind, 5 * 60 * 1000);
                     checkOrientation();
                 }
 
